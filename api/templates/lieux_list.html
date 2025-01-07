@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Lieux</title>
+</head>
+<body>
+    <h1>Liste des Lieux</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Zone</th>
+                <th>Ville</th>
+                <th>Type de Lieu</th>
+                <th>Mobile</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lieu in lieux %}
+                <tr>
+                    <td>{{ lieu.name }}</td>
+                    <td>{{ lieu.address }}</td>
+                    <td>{{ lieu.zone.name }}</td>
+                    <td>{{ lieu.city.name }}</td>
+                    <td>{{ lieu.lieu_type }}</td>
+                    <td>{{ lieu.mobile }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">Aucun lieu trouvé.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

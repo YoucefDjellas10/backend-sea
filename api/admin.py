@@ -1,0 +1,23 @@
+from django.contrib import admin
+from .models import *
+
+admin.site.register(Zone)
+admin.site.register(AlgerianCities)
+admin.site.register(Lieux)
+admin.site.register(Categorie)
+admin.site.register(Modele)
+admin.site.register(Vehicule)
+admin.site.register(CategorieClient)
+admin.site.register(SoldeParrainage)
+admin.site.register(ListeClient)
+admin.site.register(Saison)
+admin.site.register(Periode)
+admin.site.register(NombreDeJour)
+admin.site.register(Tarifs)
+admin.site.register(Options)
+admin.site.register(FraisLivraison)
+admin.site.register(Supplement)
+admin.site.register(Promotion)
+admin.site.register(Reservation)
+admin.site.register(Livraison)
+admin.site.register(TauxChange)
