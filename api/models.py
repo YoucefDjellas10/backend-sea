@@ -6,7 +6,7 @@ import string
 from datetime import date,datetime, timedelta
 
 class TauxChange(models.Model):
-    
+
     name = models.CharField(
         max_length=255,
         default='Devise €',
@@ -44,7 +44,7 @@ class Zone(models.Model):
         managed = False
 
     def __str__(self):
-        return self.name 
+        return self.name
 
 class AlgerianCities(models.Model):
     name = models.CharField(max_length=255, verbose_name="Nom de la ville")
@@ -52,7 +52,7 @@ class AlgerianCities(models.Model):
     class Meta:
         db_table = 'algerian_cities'
         managed = False
-    
+
     def __str__(self):
         return self.name
 
@@ -70,9 +70,9 @@ class Lieux(models.Model):
     mobile = models.CharField(max_length=20, verbose_name="Mobile")
 
     class Meta:
-        db_table = 'lieux' 
-        managed = False 
-    
+        db_table = 'lieux'
+        managed = False
+
     def __str__(self):
         return self.name
 
@@ -84,9 +84,9 @@ class Categorie(models.Model):
     caution_red = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Caution Réduite")
 
     class Meta:
-        db_table = 'categorie' 
-        managed = False 
-    
+        db_table = 'categorie'
+        managed = False
+
     def __str__(self):
         return self.name
 
@@ -164,10 +164,10 @@ class Modele(models.Model):
     ]
     vehicule_type = models.CharField(max_length=10, choices=MODEL_TYPE_CHOICES, verbose_name="Type de véhicule")
 
-    
+
     class Meta:
-        db_table = 'modele'  
-        managed = False  
+        db_table = 'modele'
+        managed = False
 
     def __str__(self):
         return self.name
@@ -294,8 +294,8 @@ class Vehicule(models.Model):
 
     class Meta:
         db_table = 'vehicule'
-        managed = False  
-        
+        managed = False
+
     def __str__(self):
         return f"{self.numero} - {self.matricule}"
 
@@ -309,8 +309,8 @@ class CategorieClient(models.Model):
 
     class Meta:
         db_table = 'categorie_client'
-        managed = False  
-        
+        managed = False
+
     def __str__(self):
         return self.name
 
@@ -321,7 +321,7 @@ class CategorieClient(models.Model):
     def clean(self):
         if self.au_pts <= self.du_pts:
             raise ValidationError(_("Le champ 'Au (pts)' doit être supérieur à 'Du (pts)'."))
-        
+
         overlapping_records = CategorieClient.objects.filter(
             id__ne=self.id,
             du_pts__lte=self.au_pts,
@@ -346,8 +346,8 @@ class CategorieClient(models.Model):
 class SoldeParrainage(models.Model):
     name = models.CharField(max_length=255, verbose_name="Nom")
     parrain_solde = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         verbose_name="Filleul (Euro)"
     )
     parrain_solde_da = models.DecimalField(
@@ -373,12 +373,12 @@ class SoldeParrainage(models.Model):
 
     class Meta:
         db_table = 'solde_parrainage'
-        managed = False  
-        
+        managed = False
+
 
     def __str__(self):
         return self.name
-    
+
 
 class ListeClient(models.Model):
     CIVILITE_CHOICES = [
@@ -402,9 +402,9 @@ class ListeClient(models.Model):
     mobile = models.CharField(max_length=20, verbose_name="Mobile", blank=True, null=True)
     telephone = models.CharField(max_length=20, verbose_name="Téléphone", blank=True, null=True)
     risque = models.CharField(
-        max_length=10, 
-        choices=RISQUE_CHOICES, 
-        verbose_name="Risque", 
+        max_length=10,
+        choices=RISQUE_CHOICES,
+        verbose_name="Risque",
         default="faible"
     )
     note = models.TextField(verbose_name="Note", blank=True, null=True)
@@ -423,23 +423,23 @@ class ListeClient(models.Model):
     total_points = models.IntegerField(verbose_name="Total des points", blank=True, null=True)
     total_points_char = models.CharField(max_length=50, verbose_name="Total des points (texte)", blank=True, null=True)
     solde = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        verbose_name="Solde non consommé", 
-        blank=True, 
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Solde non consommé",
+        blank=True,
         null=True
     )
     total_reservation = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        verbose_name="Total des réservations", 
-        blank=True, 
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Total des réservations",
+        blank=True,
         null=True
     )
     code_prime = models.CharField(
-        max_length=50, 
-        verbose_name="Code Prime", 
-        blank=True, 
+        max_length=50,
+        verbose_name="Code Prime",
+        blank=True,
         null=True
     )
 
@@ -454,9 +454,11 @@ class ListeClient(models.Model):
     )
     solde_total = models.IntegerField(verbose_name="Solde Total", blank=True, null=True)
     solde_consomer = models.IntegerField(verbose_name="Solde consommé", blank=True, null=True)
+    otp = models.CharField(max_length=6, null=True, blank=True)
+    otp_created_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'liste_client' 
+        db_table = 'liste_client'
         managed = False
 
     def __str__(self):
@@ -481,26 +483,26 @@ class ListeClient(models.Model):
         self.compute_total_points_char()
         super().save(*args, **kwargs)
 
- 
- 
+
+
 class Saison(models.Model):
     name = models.CharField(max_length=255, verbose_name="Nom complet", blank=True, null=True)
 
     class Meta:
-        db_table = 'saison' 
+        db_table = 'saison'
         managed = False
 
 class Periode(models.Model):
-    name = models.CharField(max_length=255, editable=False, null=True, blank=True)  
-    saison = models.ForeignKey('Saison', on_delete=models.CASCADE,db_column='saison', related_name='periodes')  
-    date_debut = models.DateField()  
+    name = models.CharField(max_length=255, editable=False, null=True, blank=True)
+    saison = models.ForeignKey('Saison', on_delete=models.CASCADE,db_column='saison', related_name='periodes')
+    date_debut = models.DateField()
     date_fin = models.DateField()
     tarif_id = models.ForeignKey(
         'Tarifs', on_delete=models.CASCADE,db_column='tarif_id', verbose_name="Tarif"
-    )    
+    )
 
     class Meta:
-        db_table = 'periode'  
+        db_table = 'periode'
         managed = False
 
     def save(self, *args, **kwargs):
@@ -512,12 +514,12 @@ class Periode(models.Model):
             raise ValidationError("La date de fin doit être postérieure à la date de début.")
 
 class NombreDeJour(models.Model):
-    name = models.CharField(max_length=255, editable=False, null=True, blank=True) 
+    name = models.CharField(max_length=255, editable=False, null=True, blank=True)
     de = models.IntegerField()
-    au = models.IntegerField()  
+    au = models.IntegerField()
 
     class Meta:
-        db_table = 'nb_jour'  
+        db_table = 'nb_jour'
         managed = False
 
     def save(self, *args, **kwargs):
@@ -542,22 +544,22 @@ class NombreDeJour(models.Model):
             )
 
 class Tarifs(models.Model):
-    name = models.CharField(max_length=255, editable=False, null=True, blank=True) 
+    name = models.CharField(max_length=255, editable=False, null=True, blank=True)
     saison = models.ForeignKey(
         'Saison', on_delete=models.CASCADE, db_column='saison',verbose_name="Saison", related_name="tarifs"
-    ) 
+    )
     modele = models.ForeignKey(
         'Modele', on_delete=models.CASCADE, db_column='modele', verbose_name="Modèle", related_name="tarifs"
     )
     categorie = models.ForeignKey(
         'Categorie', on_delete=models.CASCADE, db_column='categorie', verbose_name="Categorie", related_name="tarifs"
-    )  
-    prix = models.IntegerField(verbose_name="Prix") 
+    )
+    prix = models.IntegerField(verbose_name="Prix")
     nb_jour = models.ForeignKey(
         'NombreDeJour', on_delete=models.CASCADE,db_column='nb_jour', verbose_name="Nombre de jours", related_name="tarifs"
-    )  
-    nbr_de = models.IntegerField(editable=False, null=True, blank=True)  
-    nbr_au = models.IntegerField(editable=False, null=True, blank=True)  
+    )
+    nbr_de = models.IntegerField(editable=False, null=True, blank=True)
+    nbr_au = models.IntegerField(editable=False, null=True, blank=True)
     date_depart_one = models.DateField(editable=False, null=True, blank=True)
     date_fin_one = models.DateField(editable=False, null=True, blank=True)
     date_depart_two = models.DateField(editable=False, null=True, blank=True)
@@ -568,7 +570,7 @@ class Tarifs(models.Model):
     date_fin_four = models.DateField(editable=False, null=True, blank=True)
 
     class Meta:
-        db_table = 'tarifs'  
+        db_table = 'tarifs'
         managed = False
 
 class TypeOptions(models.Model):
@@ -577,11 +579,11 @@ class TypeOptions(models.Model):
         verbose_name="Type",
         null=False,
         blank=False
-    )  
+    )
     class Meta:
-        db_table = 'type_options'  
+        db_table = 'type_options'
         managed = False
-    
+
     def __str__(self):
         return self.name
 
@@ -591,25 +593,25 @@ class Options(models.Model):
         verbose_name="Nom de l'option",
         null=False,
         blank=False
-    )  
+    )
     type_option = models.ForeignKey(
         'TypeOptions',
         on_delete=models.CASCADE,
         db_column='type_option',
         verbose_name="Type de l'option",
         related_name="options"
-    )  
+    )
     description = models.TextField(
         verbose_name="Description",
         null=True,
         blank=True
-    )  
+    )
     tout_modele = models.CharField(
         max_length=3,
         choices=[('oui', 'Oui'), ('non', 'Non')],
         verbose_name="Appliquer sur toutes les catégories",
         default='oui'
-    )  
+    )
     modele = models.ForeignKey(
         'Modele',
         on_delete=models.CASCADE,
@@ -618,7 +620,7 @@ class Options(models.Model):
         null=True,
         blank=True,
         related_name="options"
-    )  
+    )
     categorie = models.ForeignKey(
         'Categorie',
         on_delete=models.CASCADE,
@@ -627,18 +629,18 @@ class Options(models.Model):
         null=True,
         blank=True,
         related_name="options"
-    )  
+    )
     prix = models.IntegerField(
         verbose_name="Prix",
         null=True,
         blank=True
-    )  
+    )
     type_tarif = models.CharField(
         max_length=10,
         choices=[('jour', 'Par jour'), ('fixe', 'Montant fixe')],
         verbose_name="Type de Tarif",
         default='jour'
-    ) 
+    )
     option_code = models.CharField(
         max_length=255,
         verbose_name="CODE",
@@ -662,7 +664,7 @@ class Options(models.Model):
     )
 
     class Meta:
-        db_table = 'options'  
+        db_table = 'options'
         managed = False
 
     def __str__(self):
@@ -674,7 +676,7 @@ class FraisLivraison(models.Model):
         verbose_name="Nom",
         blank=True,
         null=True
-    )  
+    )
     depart = models.ForeignKey(
         'Lieux',
         on_delete=models.CASCADE,
@@ -683,7 +685,7 @@ class FraisLivraison(models.Model):
         related_name="livraisons_depart",
         null=False,
         blank=False
-    )  
+    )
     zone = models.ForeignKey(
         'Zone',
         on_delete=models.CASCADE,
@@ -692,7 +694,7 @@ class FraisLivraison(models.Model):
         related_name="livraisons_zone",
         null=True,
         blank=True
-    ) 
+    )
     retour = models.ForeignKey(
         'Lieux',
         on_delete=models.CASCADE,
@@ -701,15 +703,15 @@ class FraisLivraison(models.Model):
         related_name="livraisons_retour",
         null=False,
         blank=False
-    )  
+    )
     montant = models.IntegerField(
         verbose_name="Montant",
         null=True,
         blank=True
-    )  
+    )
 
     class Meta:
-        db_table = 'frais_livraison'  
+        db_table = 'frais_livraison'
         managed = False
 
     def __str__(self):
@@ -731,48 +733,48 @@ class Supplement(models.Model):
         verbose_name="Nom",
         blank=True,
         null=True
-    )  
+    )
     heure_debut = models.CharField(
         max_length=5,
         verbose_name="Heure début",
         blank=True,
         null=True
-    )  
+    )
     heure_fin = models.CharField(
         max_length=5,
         verbose_name="Heure Fin",
         blank=True,
         null=True
-    )  
+    )
     heure_debut_float = models.FloatField(
         verbose_name="Heure début (float)",
         blank=True,
         null=True
-    )  
+    )
     heure_fin_float = models.FloatField(
         verbose_name="Heure Fin (float)",
         blank=True,
         null=True
-    )  
+    )
     montant = models.IntegerField(
         verbose_name="Montant",
         blank=True,
         null=True
-    )  
+    )
     reatrd = models.IntegerField(
         verbose_name="Si dépasse (heure)",
         blank=True,
         null=True
-    )  
+    )
     valeur = models.IntegerField(
         verbose_name="Valeur %",
         blank=True,
         null=True
-    )  
+    )
 
     class Meta:
         db_table = 'supplements'
-        managed = False        
+        managed = False
 
     def __str__(self):
         return self.name or "Supplément"
@@ -784,13 +786,13 @@ class Promotion(models.Model):
         verbose_name="Nom",
         blank=True,
         null=True
-    )  
+    )
     tout_modele = models.CharField(
         max_length=3,
         choices=[('oui', 'Oui'), ('non', 'Non')],
         default='oui',
         verbose_name="Appliquer sur tout les modèles"
-    )  
+    )
     modele = models.ForeignKey(
         'Modele',
         on_delete=models.SET_NULL,
@@ -798,34 +800,34 @@ class Promotion(models.Model):
         verbose_name="Modèle",
         null=True,
         blank=True
-    )  
+    )
     date_debut = models.DateField(
         verbose_name="Date début",
         default=date.today
-    ) 
+    )
     date_fin = models.DateField(
         verbose_name="Date fin",
         default=lambda: date.today() + timedelta(days=30)
-    )  
+    )
     debut_visibilite = models.DateField(
         verbose_name="Début visibilité",
         default=date.today
-    ) 
+    )
     fin_visibilite = models.DateField(
         verbose_name="Fin visibilité",
         default=lambda: date.today() + timedelta(days=30)
-    )  
+    )
     code_promo = models.CharField(
         max_length=255,
         verbose_name="Code promo",
         blank=True,
         null=True
-    )  
+    )
     reduction = models.IntegerField(
         verbose_name="Réduction %",
         blank=True,
         null=True
-    )  
+    )
     zone = models.ForeignKey(
         'Zone',
         on_delete=models.SET_NULL,
@@ -833,23 +835,23 @@ class Promotion(models.Model):
         verbose_name="Zone",
         null=True,
         blank=True
-    )  
+    )
     active_passive = models.BooleanField(
         verbose_name="Active",
         default=False
-    )  
+    )
 
     class Meta:
-        db_table = 'promotion'  
+        db_table = 'promotion'
         managed = False
 
     def __str__(self):
         return self.name or "Promotion"
-    
+
 class AnnulerRaison(models.Model):
     name = models.CharField()
     class Meta:
-        db_table = 'annuler_raison'  
+        db_table = 'annuler_raison'
         managed = False
 
 class Reservation(models.Model):
@@ -890,7 +892,7 @@ class Reservation(models.Model):
     matricule = models.CharField(max_length=50, editable=False, null=True, blank=True)
     numero = models.CharField(max_length=50, editable=False, null=True, blank=True)
 
-    
+
     model_name = models.CharField(max_length=50, editable=False, null=True, blank=True)
     marketing_text_fr = models.CharField(max_length=50, editable=False, null=True, blank=True)
     photo_link_nd = models.CharField(max_length=50, editable=False, null=True, blank=True)
@@ -1019,7 +1021,7 @@ class Reservation(models.Model):
     opt_siege_c_total = models.IntegerField(null=True, blank=True)
     num_vol = models.CharField()
 
-    
+
 
     class Meta:
         db_table = 'reservation'
@@ -1092,7 +1094,7 @@ class Livraison(models.Model):
         ('cin', 'CIN'),
     ], verbose_name='Document Fourni', null=True, blank=True)
     #signature = models.BinaryField(verbose_name='Signature', null=True, blank=True)
- 
+
     total_da = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Total Dégradation (DA)', null=True, blank=True)
     total_eur = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Dégradation (EUR)', null=True, blank=True)
 
@@ -1192,13 +1194,13 @@ class Livraison(models.Model):
 
     class Meta:
         db_table = 'livraison'
-        
+
 
     def __str__(self):
         return self.name
 
 class BookCar(models.Model):
-      
+
     name = models.CharField(max_length=255, verbose_name='Name',default='test')
     lieu_depart = models.ForeignKey(
         Lieux,
@@ -1212,8 +1214,8 @@ class BookCar(models.Model):
         db_column='zone',
         on_delete=models.CASCADE,
         verbose_name='Zone de départ',
-        editable=False,  
-        null=True,      
+        editable=False,
+        null=True,
         blank=True
     )
     lieu_retour = models.ForeignKey(
@@ -1225,18 +1227,17 @@ class BookCar(models.Model):
     )
     date_depart = models.DateField(verbose_name='Date de départ')
     date_retour = models.DateField(verbose_name='Date de retour')
-    heure_debut = models.CharField(max_length=5, verbose_name='Heure début')  
-    heure_fin = models.CharField(max_length=5, verbose_name='Heure Fin')  
+    heure_debut = models.CharField(max_length=5, verbose_name='Heure début')
+    heure_fin = models.CharField(max_length=5, verbose_name='Heure Fin')
 
     class Meta:
         db_table = 'book_car'
-    
+
     def save(self, *args, **kwargs):
         if self.lieu_depart and self.lieu_depart.zone:
             self.zone = self.lieu_depart.zone
         super().save(*args, **kwargs)
 
 
-    
 
-    
+
