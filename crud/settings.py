@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,17 +12,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-hd8ly#-p$^-zf!r52dqhnhs@hhuw&#m9yx*zc532f^(kfr54f^'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp-relay.brevo.com' 
+EMAIL_HOST = 'smtp-relay.brevo.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ghalemmohsen@gmail.com'  
+EMAIL_HOST_USER = 'ghalemmohsen@gmail.com'
 EMAIL_HOST_PASSWORD = 'VOvkEXrRB5J2qfAD'
 ROOT_URLCONF = 'crud.urls'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['safarelamirbackend.pythonanywhere.com','*','api.safarelamir.com']
 
 
 # Application definition
@@ -80,11 +81,12 @@ WSGI_APPLICATION = 'crud.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'SafarElAmir',  
-        'USER': 'SafarElAmir',        
-        'PASSWORD': 'Sea@10.',  
-        'HOST': 'localhost',              
-        'PORT': '5432', 
+        'NAME': 'SafarElAmir',
+        'USER': 'SafarElAmir',
+        'PASSWORD': 'Sea@10.',
+        'HOST': '107.189.24.110',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -111,11 +113,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Africa/Algiers'
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -123,6 +122,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -133,6 +136,6 @@ STRIPE_SECRET_KEY = "sk_test_51QDP02CkZxKAK88xjkSe6bZC57ciRG2iK5FlRt2zQeghjMhUq6
 STRIPE_PUBLISHABLE_KEY = "pk_test_51QDP02CkZxKAK88xByoq5yi02rCt6O1VHXircxSDQbR9eoQPgoYv7C46bGuDsEuaBfVV9c1yyIJxWlAjEB1o4DQO00VL3kRKtH"
 STRIPE_WEBHOOK_SECRET = "whsec_WYccqlHI4V1OfIEu5zUVgsHyr6c49u25"
 
-SECURE_SSL_REDIRECT = False  
+SECURE_SSL_REDIRECT = False
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
