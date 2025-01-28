@@ -22,7 +22,7 @@ ROOT_URLCONF = 'crud.urls'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['safarelamirbackend.pythonanywhere.com','*']
+ALLOWED_HOSTS = ['safarelamirbackend.pythonanywhere.com','*', 'api.safarelamir.com']
 
 
 # Application definition
