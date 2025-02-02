@@ -1239,5 +1239,55 @@ class BookCar(models.Model):
         super().save(*args, **kwargs)
 
 
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=255, verbose_name='ID', editable=False)
+    nom_complet = models.CharField(max_length=255, verbose_name='Nom Complet', editable=False)
+    email = models.CharField(max_length=255, verbose_name='E-mail', editable=False)
+    message = models.TextField(verbose_name='Message', editable=False)
+    client = models.ForeignKey(ListeClient, on_delete=models.CASCADE, verbose_name='Client', db_column='client')
+    create_date = models.DateTimeField(verbose_name='Date')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'contact_message'
 
 
+
+
+class ListeAttente(models.Model):
+    name = models.CharField(max_length=255, verbose_name='id')
+    client = models.ForeignKey(ListeClient, on_delete=models.CASCADE, verbose_name='Client', db_column='client')
+    full_name = models.CharField(max_length=255, verbose_name='Nom et Prenom')
+    email = models.CharField(max_length=255, verbose_name='Email')
+    phone_number = models.CharField(max_length=255, verbose_name='Numero de telephone')
+    car_model = models.ForeignKey(Modele, on_delete=models.CASCADE, verbose_name='Modele', db_column='car_model')
+    lieu_depart = models.ForeignKey(Lieux, on_delete=models.CASCADE, related_name='departures',db_column='lieu_depart', verbose_name='Lieu de depart')
+    date_depart = models.DateField(verbose_name='Date de depart')
+    lieu_retour = models.ForeignKey(Lieux, on_delete=models.CASCADE, related_name='returns',db_column='lieu_retour', verbose_name='Lieu de retour')
+    date_retour = models.DateField(verbose_name='Date de retour')
+    heure_debut = models.CharField(max_length=5, verbose_name='Heure début')
+    heure_fin = models.CharField(max_length=5, verbose_name='Heure Fin')
+    heure_debut_float = models.FloatField(verbose_name='Heure début (float)', editable=False)
+    heure_fin_float = models.FloatField(verbose_name='Heure Fin (float)', editable=False)
+
+    def save(self, *args, **kwargs):
+        self.heure_debut_float = self._convert_hour_to_float(self.heure_debut)
+        self.heure_fin_float = self._convert_hour_to_float(self.heure_fin)
+        super().save(*args, **kwargs)
+
+    def _convert_hour_to_float(self, heure_str):
+        if heure_str:
+            try:
+                time_obj = datetime.strptime(heure_str, '%H:%M')
+                return time_obj.hour + time_obj.minute / 60
+            except ValueError:
+                raise ValidationError(f"L'heure {heure_str} n'est pas au format HH:MM")
+        return 0.0
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'lite_atente'

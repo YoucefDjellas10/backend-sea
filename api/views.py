@@ -15,11 +15,102 @@ from django.utils.dateparse import parse_datetime
 from django.test import RequestFactory
 import json
 from decimal import Decimal
-
-
+from rest_framework.decorators import api_view
+from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+@csrf_exempt
+def ajouter_liste_attente(request):
+    if request.method == 'POST':
+        try:
+            # Récupérer les données du corps de la requête
+            data = json.loads(request.body)
+            
+            # Récupérer le client_id et vérifier si le client existe
+            client_id = data.get('client_id')
+            try:
+                client = ListeClient.objects.get(id=client_id)
+            except ObjectDoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Client non trouvé'}, status=404)
+
+            # Récupérer les autres données nécessaires
+            car_model_id = data.get('car_model_id')
+            lieu_depart_id = data.get('lieu_depart_id')
+            lieu_retour_id = data.get('lieu_retour_id')
+            date_depart = data.get('date_depart')
+            date_retour = data.get('date_retour')
+            heure_debut = data.get('heure_debut')
+            heure_fin = data.get('heure_fin')
+
+            try:
+                car_model = Modele.objects.get(id=car_model_id)
+                lieu_depart = Lieux.objects.get(id=lieu_depart_id)
+                lieu_retour = Lieux.objects.get(id=lieu_retour_id)
+            except ObjectDoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Modèle ou lieu non trouvé'}, status=404)
+
+            # Créer un nouvel enregistrement dans la table ListeAttente
+            nouvelle_liste_attente = ListeAttente(
+                name=data.get('name', 'Nouvelle liste d\'attente'),
+                client=client,
+                full_name=f"{client.nom} {client.prenom}",
+                email=client.email,
+                phone_number=client.telephone,
+                car_model=car_model,
+                lieu_depart=lieu_depart,
+                date_depart=date_depart,
+                lieu_retour=lieu_retour,
+                date_retour=date_retour,
+                heure_debut=heure_debut,
+                heure_fin=heure_fin
+            )
+
+            # Sauvegarder l'enregistrement
+            nouvelle_liste_attente.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Enregistrement ajouté avec succès'}, status=201)
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'}, status=405)
+
+@api_view(['POST'])
+def create_contact_message(request):
+    if request.method == 'POST':
+        try:
+            nom_complet = request.data.get('nom_complet')
+            email = request.data.get('email')
+            message_text = request.data.get('message') 
+            client_id = request.data.get('client')
+
+            if not client_id :
+                client_id = 0
+
+            name = str(random.randint(1000, 9999))
+
+            create_date = datetime.now()
+
+            client = None
+            if client_id:
+                client = ListeClient.objects.filter(id=client_id).first()
+
+            ContactMessage.objects.create(
+                name=name,
+                nom_complet=nom_complet,
+                email=email,
+                message=message_text, 
+                client=client,  
+                create_date=create_date,
+            )
+
+            return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 @csrf_exempt
 def create_account_view(request):
     if request.method == 'POST':

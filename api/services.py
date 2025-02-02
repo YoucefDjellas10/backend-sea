@@ -8,7 +8,7 @@ from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-#kEKYkQ5Ty54Z
+
 def verify_client(email, nom, prenom, birthday, permis, phone):
     try:
         client_id=ListeClient.objects.filter(nom=nom, prenom=prenom).first()
@@ -65,10 +65,22 @@ def new_models():
         return {"message": f"Erreur: {str(e)}"}
 
 
-def add_options_request(ref, nd_driver, carburant, sb_a, sb_b, sb_c):
+def add_options_request(ref, nd_driver, carburant, sb_a, sb_b, sb_c,nom, prenom, birthday, permis_date):
     try:
         result = []
         reservations = Reservation.objects.filter(name=ref).first()
+
+        if nom and prenom and birthday and permis_date :
+            email = reservations.email
+            phone = reservations.telephone
+            verify_client(                
+                email = email,
+                nom = nom,
+                prenom = prenom,
+                birthday = birthday,
+                permis = permis_date,
+                phone =  phone
+            )
         if not reservations:
             return {"message" : "pas de reservation avce cet id "}
         result.append({
@@ -1131,144 +1143,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                             "max_protection_price": MAX_P_3_prix,
                             "max_protection_total": MAX_P_3_total,
                             "max_protection_caution": MAX_P_3_caution,
-                            'id': record.id,
-                            'model_name': record.model_name,
-                            'nombre_deplace': record.nombre_deplace,
-                            'nombre_de_bagage': record.nombre_de_bagage,
-                            'nombre_de_porte': record.nombre_de_porte,
-                            'boite_vitesse': record.boite_vitesse,
-                            'carburant': record.carburant,
-                            'marketing_text_fr': record.marketing_text_fr,
-                            'photo_link': record.photo_link,
-                            'photo_link_nd': record.photo_link_nd,
-                            'age_min': record.age_min,
-                            'sticker': record.sticker,
-                        })
-
-
-    return resultats
-
-
-def search_availability(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour):
-
-    date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
-    date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
-
-    total_days = (date_retour - date_depart).days
-
-    tarifs = Tarifs.objects.filter(
-        Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
-            Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-            Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-            Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-            Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
-        )
-    )
-
-    resultats = []
-    modele_repete = []
-
-    try:
-        dossier_option = Options.objects.get(option_code='FRAIS_DOSSIER')
-        frais_dossier = dossier_option.prix
-
-    except Options.DoesNotExist:
-        frais_dossier = 0
-
-
-    
-
-    for record in tarifs:
-        total = 0
-        prix_unitaire = 0
-        total += frais_dossier
-
-        if record.date_depart_one and record.date_fin_one:
-            if date_depart <= record.date_fin_one and date_retour >= record.date_depart_one:
-                overlap_start = max(date_depart, record.date_depart_one)
-                overlap_end = min(date_retour, record.date_fin_one)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
-
-        if record.date_depart_two and record.date_fin_two:
-            if date_depart <= record.date_fin_two and date_retour >= record.date_depart_two:
-                overlap_start = max(date_depart, record.date_depart_two)
-                overlap_end = min(date_retour, record.date_fin_two)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
-
-        if record.date_depart_three and record.date_fin_three:
-            if date_depart <= record.date_fin_three and date_retour >= record.date_depart_three:
-                overlap_start = max(date_depart, record.date_depart_three)
-                overlap_end = min(date_retour, record.date_fin_three)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
-
-        if record.date_depart_four and record.date_fin_four:
-            if date_depart <= record.date_fin_four and date_retour >= record.date_depart_four:
-                overlap_start = max(date_depart, record.date_depart_four)
-                overlap_end = min(date_retour, record.date_fin_four)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
-
-        frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
-        for frais in frais_livraison:
-            total += frais.montant if frais else 0
-
-        supplements = Supplement.objects.filter(
-            Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
-            Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
-        )
-        for supplement in supplements:
-            total += supplement.montant if supplement else 0
-
-        supplements = Supplement.objects.filter(
-            Q(valeur__gt=0)
-        )
-
-        for supplement in supplements:
-
-            start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
-            end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
-
-            duration = end_hour - start_hour
-
-            if duration > supplement.reatrd:
-                total += (prix_unitaire * supplement.valeur) / 100
-
-        if total > 0:
-            prix_par_jour = total / total_days if total_days > 0 else 0
-
-            modele_id = record.modele.id
-            lieu_depart = Lieux.objects.get(pk=lieu_depart_id)
-
-            date_depart_heure_ = datetime.strptime(f"{date_depart} {heure_depart}", '%Y-%m-%d %H:%M')
-            date_retour_heure_ = datetime.strptime(f"{date_retour} {heure_retour}", '%Y-%m-%d %H:%M')
-
-            zone_lieu_depart = lieu_depart.zone
-
-            vehicules_disponibles = Vehicule.objects.filter(
-                    Q(zone=zone_lieu_depart) &
-                    ~Q(reservation__date_heure_debut__lt=date_retour_heure_, reservation__date_heure_fin__gt=date_depart_heure_)  # Non réservé dans l'intervalle
-            ).distinct()
-
-
-            for record in vehicules_disponibles:
-                if record.modele.id == modele_id and record.modele.id not in modele_repete:
-                    modele_repete.append(record.modele.id)
-                    resultats.append({
-                            "modele_id": record.modele.id,
-                            "categorie":record.categorie.id,
-                            "total": total,
-                            "prix": prix_par_jour,
                             'id': record.id,
                             'model_name': record.model_name,
                             'nombre_deplace': record.nombre_deplace,
