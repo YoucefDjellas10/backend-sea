@@ -49,12 +49,7 @@ urlpatterns += [
     path('create-account/', create_account_view, name='create_account'),
     path('contact-messages/', create_contact_message, name='contact-message-create'),
     path('ajouter-liste-attente/', ajouter_liste_attente, name='ajouter_liste_attente'),
+    path('categories/', get_all_categories, name='categories-list'),
+
 
 ]
-
-#urlpatterns = [
-   #path('', home),
-  # path('zones/', zone_list, name='zone_list'),
- #  path('lieux/', lieux_list, name='lieux_list'),
-
-#]

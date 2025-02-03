@@ -19,22 +19,53 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+def get_all_categories(request):
+    categories = CategorieClient.objects.all() 
+
+    categories_list = []
+    
+    for cat in categories:
+        category_data = {
+            "id": cat.id,
+            "name": cat.name,
+            "du_pts": cat.du_pts,
+            "au_pts": cat.au_pts,
+            "reduction": cat.reduction,
+        }
+
+        options = {
+            "option_one": cat.option_one.id if cat.option_one else None,
+            "option_two": cat.option_two.id if cat.option_two else None,
+            "option_three": cat.option_three.id if cat.option_three else None,
+            "option_four": cat.option_four.id if cat.option_four else None,
+            "option_five": cat.option_five.id if cat.option_five else None,
+            "option_six": cat.option_six.id if cat.option_six else None,
+            "option_seven": cat.option_seven.id if cat.option_seven else None,
+            "option_eight": cat.option_eight.id if cat.option_eight else None,
+            "option_nine": cat.option_nine.id if cat.option_nine else None,
+            "option_ten": cat.option_ten.id if cat.option_ten else None,
+        }
+
+        options = {key: value for key, value in options.items() if value is not None}
+
+        category_data.update(options)
+
+        categories_list.append(category_data)
+
+    return JsonResponse({"categories": categories_list}, safe=False)
 
 @csrf_exempt
 def ajouter_liste_attente(request):
     if request.method == 'POST':
         try:
-            # Récupérer les données du corps de la requête
             data = json.loads(request.body)
             
-            # Récupérer le client_id et vérifier si le client existe
             client_id = data.get('client_id')
             try:
                 client = ListeClient.objects.get(id=client_id)
             except ObjectDoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Client non trouvé'}, status=404)
 
-            # Récupérer les autres données nécessaires
             car_model_id = data.get('car_model_id')
             lieu_depart_id = data.get('lieu_depart_id')
             lieu_retour_id = data.get('lieu_retour_id')
@@ -50,7 +81,6 @@ def ajouter_liste_attente(request):
             except ObjectDoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Modèle ou lieu non trouvé'}, status=404)
 
-            # Créer un nouvel enregistrement dans la table ListeAttente
             nouvelle_liste_attente = ListeAttente(
                 name=data.get('name', 'Nouvelle liste d\'attente'),
                 client=client,
@@ -66,7 +96,6 @@ def ajouter_liste_attente(request):
                 heure_fin=heure_fin
             )
 
-            # Sauvegarder l'enregistrement
             nouvelle_liste_attente.save()
 
             return JsonResponse({'status': 'success', 'message': 'Enregistrement ajouté avec succès'}, status=201)
