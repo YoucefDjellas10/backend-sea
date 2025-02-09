@@ -306,6 +306,8 @@ class CategorieClient(models.Model):
     au_pts = models.IntegerField(verbose_name="Au (pts)")
     reduction = models.IntegerField(verbose_name="Réduction (%)")
     reduction_pr = models.CharField(max_length=10, verbose_name="Réduction affichée", blank=True, null=True)
+    category_code = models.CharField(max_length=10, verbose_name="CODE")
+
     option_one = models.ForeignKey('Options', on_delete=models.SET_NULL, null=True, db_column='option_one', related_name='option_one')
     option_two = models.ForeignKey('Options', on_delete=models.SET_NULL, null=True, db_column='option_two', related_name='option_two')
     option_three = models.ForeignKey('Options', on_delete=models.SET_NULL, null=True, db_column='option_three', related_name='option_three')

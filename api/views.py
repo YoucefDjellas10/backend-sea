@@ -19,6 +19,37 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
+def disponibilite_view(request):
+    lieu_depart_id = request.GET.get("lieu_depart_id")
+    lieu_retour_id = request.GET.get("lieu_retour_id")
+    date_depart = request.GET.get("date_depart")
+    heure_depart = request.GET.get("heure_depart")
+    date_retour = request.GET.get("date_retour")
+    heure_retour = request.GET.get("heure_retour")
+    client_id = request.GET.get("client_id")
+    prime_code = request.GET.get("prime_code")
+
+    if not date_depart or not date_retour:
+        return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
+
+    try:
+        resultats = disponibilite_resultat(
+            lieu_depart_id=int(lieu_depart_id),
+            lieu_retour_id=int(lieu_retour_id),
+            date_depart=date_depart,
+            heure_depart=heure_depart,
+            date_retour=date_retour,
+            heure_retour=heure_retour,
+            client_id=client_id,
+            prime_code=prime_code,
+        )
+        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
+
+
+
 def get_all_categories(request):
     categories = CategorieClient.objects.all() 
 

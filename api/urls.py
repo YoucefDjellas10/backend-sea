@@ -50,6 +50,7 @@ urlpatterns += [
     path('contact-messages/', create_contact_message, name='contact-message-create'),
     path('ajouter-liste-attente/', ajouter_liste_attente, name='ajouter_liste_attente'),
     path('categories/', get_all_categories, name='categories-list'),
+    path('result/', disponibilite_view, name='diponibilite-result')
 
 
 ]

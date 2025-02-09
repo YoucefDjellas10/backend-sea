@@ -1156,6 +1156,433 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                             'age_min': record.age_min,
                             'sticker': record.sticker,
                         })
-
-
     return resultats
+
+def check_client(id):
+    try:
+        client_id=ListeClient.objects.filter(id=id).first()
+        if client_id :
+            if client_id.risque == "eleve":
+                return {"message":"negatif"}
+            else :
+                return {"message":"positif"}
+
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
+
+
+def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone):
+    date_heure_debut = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
+    date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
+
+    reserved_vehicles = Reservation.objects.filter(
+        Q(date_heure_debut__lt=date_heure_fin, date_heure_fin__gt=date_heure_debut),  
+        etat_reservation__in=["reserve", "loue"],  
+    ).values_list("vehicule_id", flat=True)
+
+    available_vehicles = Vehicule.objects.filter(
+        active_test=True,  
+        date_debut_service__lte=date_heure_debut.date(),
+        zone_id=int(zone) 
+    ).exclude(id__in=reserved_vehicles)  
+
+    return available_vehicles
+
+
+def search_option(code, total_days):
+    try:
+        option = Options.objects.get(option_code=code)
+        return {
+            'name': option.name,
+            'prix': option.prix,
+            'total': option.prix * total_days if option.type_tarif == 'jour' else option.prix,
+            'categorie': option.categorie.id if option.categorie else None,
+            'limit': (option.limit_Klm or 0) * total_days,
+            'penalite': option.penalite_Klm or 0,
+            'caution': option.caution or 0
+        }
+    except Options.DoesNotExist:
+        return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
+def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code):
+    try:
+        date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
+        date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
+    except ValueError:
+        return {"message": "Invalid date format"}
+
+    if date_retour < date_depart:
+        return {"message": "Return date cannot be before departure date"}
+
+    total_days = (date_retour - date_depart).days
+
+    lieu_depart = Lieux.objects.filter(id=lieu_depart_id).first()
+    if not lieu_depart:
+        return {"message": "Lieu de départ introuvable"}
+
+    zone_id = lieu_depart.zone.id if lieu_depart.zone else None
+    if not zone_id:
+        return {"message": "Zone introuvable pour ce lieu de départ"}
+
+    client_pr, client_sold = None, None
+    if client_id:
+        client_status = check_client(client_id)  
+        client = ListeClient.objects.filter(id=client_id).first()
+        
+        if not client:
+            return {"message": "Client introuvable"}
+        
+        if client_status.get("message") == "negatif":
+            return {"message": "Client has a high risk, cannot proceed"}
+        elif client_status.get("message") == "positif":
+            client_pr = client.reduction
+            client_sold = client.solde
+        else:
+            return client_status  
+
+    available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
+    result = []
+    total = 0
+    prix_unitaire = 0
+    prix_jour = 0
+
+    frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
+    for frais in frais_livraison:
+        total += frais.montant if frais else 0
+
+    supplements = Supplement.objects.filter(
+        Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
+        Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
+    )
+    for supplement in supplements:
+        total += supplement.montant if supplement else 0
+
+    frais_dossier = search_option("FRAIS_DOSSIER", total_days)
+    total += frais_dossier["total"]
+
+    paiement_anticipe = search_option("P_ANTICIPE", total_days)
+    opt_payment_name = paiement_anticipe["name"]
+    opt_payment_unit = paiement_anticipe["prix"]
+    opt_payment_total = paiement_anticipe["total"]
+
+    klm_illimite = search_option("KLM_ILLIMITED", total_days)
+    opt_klm_name = klm_illimite["name"]
+    opt_klm_unit = klm_illimite["prix"]
+    opt_klm_total = klm_illimite["total"]
+    opt_klm_limit = klm_illimite["limit"]
+    opt_klm_penalite = klm_illimite["penalite"]
+
+    nd_driver = search_option("ND_DRIVER", total_days)
+    opt_nd_driver_name = nd_driver["name"]
+    opt_nd_driver_unit = nd_driver["prix"]
+    opt_nd_driver_total = nd_driver["total"]
+
+    plein_carburant = search_option("P_CARBURANT", total_days)
+    opt_carburant_name = plein_carburant["name"]
+    opt_carburant_unit = plein_carburant["prix"]
+    opt_carburant_total = plein_carburant["total"]
+
+    siege_a = search_option("S_BEBE_5", total_days)
+    opt_siege_a_name = siege_a["name"]
+    opt_siege_a_unit = siege_a["prix"]
+    opt_siege_a_total = siege_a["total"]
+
+    siege_b = search_option("S_BEBE_13", total_days)
+    opt_siege_b_name = siege_b["name"]
+    opt_siege_b_unit = siege_b["prix"]
+    opt_siege_b_total = siege_b["total"]
+
+    siege_c = search_option("S_BEBE_18", total_days)
+    opt_siege_c_name = siege_c["name"]
+    opt_siege_c_unit = siege_c["prix"]
+    opt_siege_c_total = siege_c["total"]
+ 
+    base_a = search_option("BASE_P_1", total_days)
+    base_a_name = base_a["name"]
+    base_a_unit = base_a["prix"]
+    base_a_total = base_a["total"]
+    base_a_category = base_a["categorie"]
+    base_a_caution = base_a["caution"]
+
+    base_b = search_option("BASE_P_2", total_days)
+    base_b_name = base_b["name"]
+    base_b_unit = base_b["prix"]
+    base_b_total = base_b["total"]
+    base_b_category = base_b["categorie"]
+    base_b_caution = base_b["caution"]
+    
+    base_c = search_option("BASE_P_3", total_days)
+    base_c_name = base_c["name"]
+    base_c_unit = base_c["prix"]
+    base_c_total = base_c["total"]
+    base_c_category = base_c["categorie"]
+    base_c_caution = base_c["caution"]
+     
+    standart_a = search_option("STANDART_P_1", total_days)
+    standart_a_name = standart_a["name"]
+    standart_a_unit = standart_a["prix"]
+    standart_a_total = standart_a["total"]
+    standart_a_category = standart_a["categorie"]
+    standart_a_caution = standart_a["caution"]
+
+    standart_b = search_option("STANDART_P_2", total_days)
+    standart_b_name = standart_b["name"]
+    standart_b_unit = standart_b["prix"]
+    standart_b_total = standart_b["total"]
+    standart_b_category = standart_b["categorie"]
+    standart_b_caution = standart_b["caution"]
+    
+    standart_c = search_option("STANDART_P_3", total_days)
+    standart_c_name = standart_c["name"]
+    standart_c_unit = standart_c["prix"]
+    standart_c_total = standart_c["total"]
+    standart_c_category = standart_c["categorie"]
+    standart_c_caution = standart_c["caution"]
+
+    max_a = search_option("MAX_P_1", total_days)
+    max_a_name = max_a["name"]
+    max_a_unit = max_a["prix"]
+    max_a_total = max_a["total"]
+    max_a_category = max_a["categorie"]
+    max_a_caution = max_a["caution"]
+
+    max_b = search_option("MAX_P_2", total_days)
+    max_b_name = max_b["name"]
+    max_b_unit = max_b["prix"]
+    max_b_total = max_b["total"]
+    max_b_category = max_b["categorie"]
+    max_b_caution = max_b["caution"]
+    
+    max_c = search_option("MAX_P_3", total_days)
+    max_c_name = max_c["name"]
+    max_c_unit = max_c["prix"]
+    max_c_total = max_c["total"]
+    max_c_category = max_c["categorie"]
+    max_c_caution = max_c["caution"]
+
+    print("category a", base_a_category)
+    print("category b", base_b_category)
+    print("category c", base_c_category)
+
+    modeles_ajoutes = set()
+
+    for vehicle in available_vehicles:
+        if vehicle.modele.id in modeles_ajoutes:
+            continue
+
+        tarif = Tarifs.objects.filter(
+            modele=vehicle.modele,  
+            nbr_de__lte=total_days, 
+            nbr_au__gte=total_days
+        ).filter(
+            Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
+            Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
+            Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
+            Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
+        ).first()
+
+        if tarif:
+            prix_jour = tarif.prix  
+            total += (prix_jour * total_days)
+            for supplement in supplements:
+
+                start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+                end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+
+                duration = end_hour - start_hour
+
+                if duration > supplement.reatrd:
+                    total += (prix_jour * supplement.valeur) / 100
+            if total > 0 and total_days > 0:
+                prix_unitaire = total / total_days
+            
+           
+            modeles_ajoutes.add(vehicle.modele.id)
+
+            if vehicle.categorie.id == base_a_category :
+                 result.append({
+                    "modele_id": vehicle.modele.id,
+                    "categorie":vehicle.categorie.id,
+                    "total": total,
+                    "prix": prix_unitaire,
+                    "klm_name": opt_klm_name ,
+                    "klm_price": opt_klm_unit,
+                    "klm_total": opt_klm_total,
+                    "klm_limit":opt_klm_limit,
+                    "klm_penalite":opt_klm_penalite,
+                    "carburant_name": opt_carburant_name,
+                    "carburant_price": opt_carburant_unit,
+                    "carburant_total": opt_carburant_total,
+                    "nd_driver_name": opt_nd_driver_name,
+                    "nd_driver_price": opt_nd_driver_unit,
+                    "nd_driver_total": opt_nd_driver_total,
+                    "paiement_name": opt_payment_name,
+                    "paiement_price": opt_payment_unit,
+                    "paiement_total": opt_payment_total,
+                    "sb_5_name": opt_siege_a_name,
+                    "sb_5_price": opt_siege_a_unit,
+                    "sb_5_total": opt_siege_a_total,
+                    "sb_13_name": opt_siege_b_name,
+                    "sb_13_price": opt_siege_b_unit,
+                    "sb_13_total": opt_siege_b_total,
+                    "sb_18_name": opt_siege_c_name,
+                    "sb_18_price": opt_siege_c_unit,
+                    "sb_18_total": opt_siege_c_total,
+                    "base_protection_name": base_a_name,
+                    "base_protection_price": base_a_unit,
+                    "base_protection_total": base_a_total,
+                    "base_protection_caution": base_a_category,
+                    "standart_protection_name": standart_a_name,
+                    "standart_protection_price": standart_a_unit,
+                    "standart_protection_total": standart_a_total,
+                    "standart_protection_caution": standart_a_caution,
+                    "max_protection_name": max_a_name,
+                    "max_protection_price": max_a_unit,
+                    "max_protection_total": max_a_total,
+                    "max_protection_caution": max_a_caution,
+                    'id': vehicle.id,
+                    'model_name': vehicle.model_name,
+                    'nombre_deplace': vehicle.nombre_deplace,
+                    'nombre_de_bagage': vehicle.nombre_de_bagage,
+                    'nombre_de_porte': vehicle.nombre_de_porte,
+                    'boite_vitesse': vehicle.boite_vitesse,
+                    'carburant': vehicle.carburant,
+                    'marketing_text_fr': vehicle.marketing_text_fr,
+                    'photo_link': vehicle.photo_link,
+                    'photo_link_nd': vehicle.photo_link_nd,
+                    'age_min': vehicle.age_min,
+                    'sticker': vehicle.sticker,
+                })
+
+            
+            if vehicle.categorie.id == base_b_category :
+                result.append({
+                    "modele_id": vehicle.modele.id,
+                    "categorie":vehicle.categorie.id,
+                    "total": total,
+                    "prix": prix_unitaire,
+                    "klm_name": opt_klm_name ,
+                    "klm_price": opt_klm_unit,
+                    "klm_total": opt_klm_total,
+                    "klm_limit":opt_klm_limit,
+                    "klm_penalite":opt_klm_penalite,
+                    "carburant_name": opt_carburant_name,
+                    "carburant_price": opt_carburant_unit,
+                    "carburant_total": opt_carburant_total,
+                    "nd_driver_name": opt_nd_driver_name,
+                    "nd_driver_price": opt_nd_driver_unit,
+                    "nd_driver_total": opt_nd_driver_total,
+                    "paiement_name": opt_payment_name,
+                    "paiement_price": opt_payment_unit,
+                    "paiement_total": opt_payment_total,
+                    "sb_5_name": opt_siege_a_name,
+                    "sb_5_price": opt_siege_a_unit,
+                    "sb_5_total": opt_siege_a_total,
+                    "sb_13_name": opt_siege_b_name,
+                    "sb_13_price": opt_siege_b_unit,
+                    "sb_13_total": opt_siege_b_total,
+                    "sb_18_name": opt_siege_c_name,
+                    "sb_18_price": opt_siege_c_unit,
+                    "sb_18_total": opt_siege_c_total,
+                    "base_protection_name": base_b_name,
+                    "base_protection_price": base_b_unit,
+                    "base_protection_total": base_b_total,
+                    "base_protection_caution": base_b_category,
+                    "standart_protection_name": standart_b_name,
+                    "standart_protection_price": standart_b_unit,
+                    "standart_protection_total": standart_b_total,
+                    "standart_protection_caution": standart_b_caution,
+                    "max_protection_name": max_b_name,
+                    "max_protection_price": max_b_unit,
+                    "max_protection_total": max_b_total,
+                    "max_protection_caution": max_b_caution,
+                    'id': vehicle.id,
+                    'model_name': vehicle.model_name,
+                    'nombre_deplace': vehicle.nombre_deplace,
+                    'nombre_de_bagage': vehicle.nombre_de_bagage,
+                    'nombre_de_porte': vehicle.nombre_de_porte,
+                    'boite_vitesse': vehicle.boite_vitesse,
+                    'carburant': vehicle.carburant,
+                    'marketing_text_fr': vehicle.marketing_text_fr,
+                    'photo_link': vehicle.photo_link,
+                    'photo_link_nd': vehicle.photo_link_nd,
+                    'age_min': vehicle.age_min,
+                    'sticker': vehicle.sticker,
+                })
+
+            if vehicle.categorie.id == base_c_category :
+                result.append({
+                    "modele_id": vehicle.modele.id,
+                    "categorie":vehicle.categorie.id,
+                    "total": total,
+                    "prix": prix_unitaire,
+                    "klm_name": opt_klm_name ,
+                    "klm_price": opt_klm_unit,
+                    "klm_total": opt_klm_total,
+                    "klm_limit":opt_klm_limit,
+                    "klm_penalite":opt_klm_penalite,
+                    "carburant_name": opt_carburant_name,
+                    "carburant_price": opt_carburant_unit,
+                    "carburant_total": opt_carburant_total,
+                    "nd_driver_name": opt_nd_driver_name,
+                    "nd_driver_price": opt_nd_driver_unit,
+                    "nd_driver_total": opt_nd_driver_total,
+                    "paiement_name": opt_payment_name,
+                    "paiement_price": opt_payment_unit,
+                    "paiement_total": opt_payment_total,
+                    "sb_5_name": opt_siege_a_name,
+                    "sb_5_price": opt_siege_a_unit,
+                    "sb_5_total": opt_siege_a_total,
+                    "sb_13_name": opt_siege_b_name,
+                    "sb_13_price": opt_siege_b_unit,
+                    "sb_13_total": opt_siege_b_total,
+                    "sb_18_name": opt_siege_c_name,
+                    "sb_18_price": opt_siege_c_unit,
+                    "sb_18_total": opt_siege_c_total,
+                    "base_protection_name": base_c_name,
+                    "base_protection_price": base_c_unit,
+                    "base_protection_total": base_c_total,
+                    "base_protection_caution": base_c_category,
+                    "standart_protection_name": standart_c_name,
+                    "standart_protection_price": standart_c_unit,
+                    "standart_protection_total": standart_c_total,
+                    "standart_protection_caution": standart_c_caution,
+                    "max_protection_name": max_c_name,
+                    "max_protection_price": max_c_unit,
+                    "max_protection_total": max_c_total,
+                    "max_protection_caution": max_c_caution,
+                    'id': vehicle.id,
+                    'model_name': vehicle.model_name,
+                    'nombre_deplace': vehicle.nombre_deplace,
+                    'nombre_de_bagage': vehicle.nombre_de_bagage,
+                    'nombre_de_porte': vehicle.nombre_de_porte,
+                    'boite_vitesse': vehicle.boite_vitesse,
+                    'carburant': vehicle.carburant,
+                    'marketing_text_fr': vehicle.marketing_text_fr,
+                    'photo_link': vehicle.photo_link,
+                    'photo_link_nd': vehicle.photo_link_nd,
+                    'age_min': vehicle.age_min,
+                    'sticker': vehicle.sticker,
+                })
+
+    return result
+            
+
+            
+
+
+
+
+
+
+
+    
+
+
+    
+
+        
+ 
+
+
+
+
