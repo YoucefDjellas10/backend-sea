@@ -29,6 +29,7 @@ def disponibilite_view(request):
     heure_retour = request.GET.get("heure_retour")
     client_id = request.GET.get("client_id")
     prime_code = request.GET.get("prime_code")
+    country_code = request.GET.get("country_code")
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
@@ -43,6 +44,7 @@ def disponibilite_view(request):
             heure_retour=heure_retour,
             client_id=client_id,
             prime_code=prime_code,
+            country_code=country_code,
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
@@ -65,16 +67,16 @@ def get_all_categories(request):
         }
 
         options = {
-            "option_one": cat.option_one.id if cat.option_one else None,
-            "option_two": cat.option_two.id if cat.option_two else None,
-            "option_three": cat.option_three.id if cat.option_three else None,
-            "option_four": cat.option_four.id if cat.option_four else None,
-            "option_five": cat.option_five.id if cat.option_five else None,
-            "option_six": cat.option_six.id if cat.option_six else None,
-            "option_seven": cat.option_seven.id if cat.option_seven else None,
-            "option_eight": cat.option_eight.id if cat.option_eight else None,
-            "option_nine": cat.option_nine.id if cat.option_nine else None,
-            "option_ten": cat.option_ten.id if cat.option_ten else None,
+            "option_one": cat.option_one.name if cat.option_one else None,
+            "option_two": cat.option_two.name if cat.option_two else None,
+            "option_three": cat.option_three.name if cat.option_three else None,
+            "option_four": cat.option_four.name if cat.option_four else None,
+            "option_five": cat.option_five.name if cat.option_five else None,
+            "option_six": cat.option_six.name if cat.option_six else None,
+            "option_seven": cat.option_seven.name if cat.option_seven else None,
+            "option_eight": cat.option_eight.name if cat.option_eight else None,
+            "option_nine": cat.option_nine.name if cat.option_nine else None,
+            "option_ten": cat.option_ten.name if cat.option_ten else None,
         }
 
         options = {key: value for key, value in options.items() if value is not None}
