@@ -15,11 +15,164 @@ from django.utils.dateparse import parse_datetime
 from django.test import RequestFactory
 import json
 from decimal import Decimal
-
-
+from rest_framework.decorators import api_view
+from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+def disponibilite_view(request):
+    lieu_depart_id = request.GET.get("lieu_depart_id")
+    lieu_retour_id = request.GET.get("lieu_retour_id")
+    date_depart = request.GET.get("date_depart")
+    heure_depart = request.GET.get("heure_depart")
+    date_retour = request.GET.get("date_retour")
+    heure_retour = request.GET.get("heure_retour")
+    client_id = request.GET.get("client_id")
+    prime_code = request.GET.get("prime_code")
+    country_code = request.GET.get("country_code")
+
+    if not date_depart or not date_retour:
+        return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
+
+    try:
+        resultats = disponibilite_resultat(
+            lieu_depart_id=int(lieu_depart_id),
+            lieu_retour_id=int(lieu_retour_id),
+            date_depart=date_depart,
+            heure_depart=heure_depart,
+            date_retour=date_retour,
+            heure_retour=heure_retour,
+            client_id=client_id,
+            prime_code=prime_code,
+            country_code=country_code,
+        )
+        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
+
+
+
+def get_all_categories(request):
+    categories = CategorieClient.objects.all() 
+
+    categories_list = []
+    
+    for cat in categories:
+        category_data = {
+            "id": cat.id,
+            "name": cat.name,
+            "du_pts": cat.du_pts,
+            "au_pts": cat.au_pts,
+            "reduction": cat.reduction,
+        }
+
+        options = {
+            "option_one": cat.option_one.name if cat.option_one else None,
+            "option_two": cat.option_two.name if cat.option_two else None,
+            "option_three": cat.option_three.name if cat.option_three else None,
+            "option_four": cat.option_four.name if cat.option_four else None,
+            "option_five": cat.option_five.name if cat.option_five else None,
+            "option_six": cat.option_six.name if cat.option_six else None,
+            "option_seven": cat.option_seven.name if cat.option_seven else None,
+            "option_eight": cat.option_eight.name if cat.option_eight else None,
+            "option_nine": cat.option_nine.name if cat.option_nine else None,
+            "option_ten": cat.option_ten.name if cat.option_ten else None,
+        }
+
+        options = {key: value for key, value in options.items() if value is not None}
+
+        category_data.update(options)
+
+        categories_list.append(category_data)
+
+    return JsonResponse({"categories": categories_list}, safe=False)
+
+@csrf_exempt
+def ajouter_liste_attente(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            client_id = data.get('client_id')
+            try:
+                client = ListeClient.objects.get(id=client_id)
+            except ObjectDoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Client non trouvé'}, status=404)
+
+            car_model_id = data.get('car_model_id')
+            lieu_depart_id = data.get('lieu_depart_id')
+            lieu_retour_id = data.get('lieu_retour_id')
+            date_depart = data.get('date_depart')
+            date_retour = data.get('date_retour')
+            heure_debut = data.get('heure_debut')
+            heure_fin = data.get('heure_fin')
+
+            try:
+                car_model = Modele.objects.get(id=car_model_id)
+                lieu_depart = Lieux.objects.get(id=lieu_depart_id)
+                lieu_retour = Lieux.objects.get(id=lieu_retour_id)
+            except ObjectDoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Modèle ou lieu non trouvé'}, status=404)
+
+            nouvelle_liste_attente = ListeAttente(
+                name=data.get('name', 'Nouvelle liste d\'attente'),
+                client=client,
+                full_name=f"{client.nom} {client.prenom}",
+                email=client.email,
+                phone_number=client.telephone,
+                car_model=car_model,
+                lieu_depart=lieu_depart,
+                date_depart=date_depart,
+                lieu_retour=lieu_retour,
+                date_retour=date_retour,
+                heure_debut=heure_debut,
+                heure_fin=heure_fin
+            )
+
+            nouvelle_liste_attente.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Enregistrement ajouté avec succès'}, status=201)
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'}, status=405)
+
+@api_view(['POST'])
+def create_contact_message(request):
+    if request.method == 'POST':
+        try:
+            nom_complet = request.data.get('nom_complet')
+            email = request.data.get('email')
+            message_text = request.data.get('message') 
+            client_id = request.data.get('client')
+
+            if not client_id :
+                client_id = 0
+
+            name = str(random.randint(1000, 9999))
+
+            create_date = datetime.now()
+
+            client = None
+            if client_id:
+                client = ListeClient.objects.filter(id=client_id).first()
+
+            ContactMessage.objects.create(
+                name=name,
+                nom_complet=nom_complet,
+                email=email,
+                message=message_text, 
+                client=client,  
+                create_date=create_date,
+            )
+
+            return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 @csrf_exempt
 def create_account_view(request):
     if request.method == 'POST':

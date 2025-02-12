@@ -47,11 +47,8 @@ urlpatterns += [
     path('post-reservation/', add_reservation_post_view, name='add_reservation_post'),
     path('client-verification/', verify_client_view, name='verify_client'),
     path('create-account/', create_account_view, name='create_account'),
+    path('contact-messages/', create_contact_message, name='contact-message-create'),
+    path('ajouter-liste-attente/', ajouter_liste_attente, name='ajouter_liste_attente'),
+    path('categories/', get_all_categories, name='categories-list'),
+    path('availability-result/', disponibilite_view, name='diponibilite-result')
 ]
-
-#urlpatterns = [
-   #path('', home),
-  # path('zones/', zone_list, name='zone_list'),
- #  path('lieux/', lieux_list, name='lieux_list'),
-
-#]
