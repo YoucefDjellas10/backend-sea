@@ -1189,7 +1189,6 @@ def search_result_view(request):
 
 
 def search_price_view(request):
-    # Récupérer les paramètres GET
     lieu_depart_id = request.GET.get("lieu_depart_id")
     lieu_retour_id = request.GET.get("lieu_retour_id")
     date_depart = request.GET.get("date_depart")

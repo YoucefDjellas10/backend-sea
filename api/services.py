@@ -1788,6 +1788,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
                         'sticker': vehicle.sticker,
+                        'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
                 
@@ -1847,6 +1848,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
                         'sticker': vehicle.sticker,
+                        'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
                 if vehicle.categorie.id == base_c_category :
@@ -1905,6 +1907,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
                         'sticker': vehicle.sticker,
+                        'vehicule_type':vehicle.modele.vehicule_type,
                     })
     else :
         if client_id:
@@ -2172,6 +2175,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
                         'sticker': vehicle.sticker,
+                        'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
                 
@@ -2231,6 +2235,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
                         'sticker': vehicle.sticker,
+                        'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
                 if vehicle.categorie.id == base_c_category :
@@ -2289,6 +2294,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
                         'sticker': vehicle.sticker,
+                        'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
     return result 
