@@ -1182,7 +1182,10 @@ def search_result_view(request):
             prime_code=prime_code,
             country_code=country_code,
         )
-        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        free_options = []
+        if client_id :
+            free_options = free_options_f(client_id)
+        return JsonResponse({"free_options":free_options,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
