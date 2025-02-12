@@ -1842,7 +1842,9 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
+                        "last_total":total_red,
                         "prix": prix_unitaire,
+                        "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_name ,
                         "klm_price": opt_klm_unit,
                         "klm_total": opt_klm_total,
@@ -1901,7 +1903,9 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
+                        "last_total":total_red,
                         "prix": prix_unitaire,
+                        "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_name ,
                         "klm_price": opt_klm_unit,
                         "klm_total": opt_klm_total,
@@ -2230,7 +2234,9 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
+                        "last_total":total_red,
                         "prix": prix_unitaire,
+                        "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_name ,
                         "klm_price": opt_klm_unit,
                         "klm_total": opt_klm_total,
@@ -2289,7 +2295,9 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
+                        "last_total":total_red,
                         "prix": prix_unitaire,
+                        "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_name ,
                         "klm_price": opt_klm_unit,
                         "klm_total": opt_klm_total,
@@ -2340,7 +2348,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
-    return result 
+    return sorted(result, key=lambda x: x["last_total"]) 
 
             
 

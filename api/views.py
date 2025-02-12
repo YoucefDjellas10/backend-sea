@@ -1167,6 +1167,10 @@ def search_result_view(request):
     prime_code = request.GET.get("prime_code")
     country_code = request.GET.get("country_code")
 
+    if not country_code :
+        country_code = request.headers.get("country_code")
+
+
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
 
@@ -1198,6 +1202,7 @@ def search_price_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
