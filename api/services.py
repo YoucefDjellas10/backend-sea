@@ -8,6 +8,7 @@ from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from decimal import Decimal
 
 def verify_client(email, nom, prenom, birthday, permis, phone):
     try:
@@ -431,6 +432,8 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
     except Exception as e:
         return {"message": f"Erreur inattendue : {str(e)}", "client_id": None}
 
+from django.utils.html import strip_tags
+from django.template.loader import render_to_string
 
 def otp_send(email):
     try:
@@ -438,22 +441,26 @@ def otp_send(email):
         if not client:
             return {"message": "Aucun client trouvé avec cet email.", "client_id": None}
 
-        # Générer un OTP de 6 chiffres
         otp_code = f"{random.randint(100000, 999999)}"
         client.otp = otp_code
         client.otp_created_at = datetime.now()
         client.save()
 
-        # Contenu de l'email
         sujet = "Votre code OTP"
-        contenu = f"Bonjour {client.nom} {client.prenom},\n\nVotre code OTP est : {otp_code}. Il est valide pendant 5 minutes."
         expediteur = settings.EMAIL_HOST_USER
+
+        html_message = render_to_string('email/otp_email.html', {
+            'client': client,
+            'otp_code': otp_code,
+        })
+
         try:
             send_mail(
                 sujet,
-                contenu,
+                strip_tags(html_message),  
                 expediteur,
                 [email],
+                html_message=html_message,
                 fail_silently=False,
             )
             return {"sent": True, "message": "Email envoyé avec succès.", "client_id": client.id}
@@ -461,7 +468,7 @@ def otp_send(email):
             return {"message": f"Erreur lors de l'envoi de l'email : {str(e)}", "client_id": client.id}
     except Exception as e:
         return {"message": f"Erreur inattendue : {str(e)}", "client_id": None}
-
+    
 def otp_verify(email, otp, client_id):
     try:
         client = ListeClient.objects.filter(id=client_id).first()
@@ -1202,6 +1209,33 @@ def search_option(code, total_days):
         }
     except Options.DoesNotExist:
         return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
+ 
+def search_option_dzd(code, total_days):
+    try:
+        option = Options.objects.filter(option_code=code).first()
+        taux = TauxChange.objects.filter(id=2).first()
+        
+        if not option or not taux:
+            return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
+        
+        prix = float(option.prix) if option.prix is not None else 0
+        montant_taux = float(taux.montant) if taux.montant is not None else 0
+        limit_Klm = float(option.limit_Klm) if option.limit_Klm is not None else 0
+        penalite_Klm = float(option.penalite_Klm) if option.penalite_Klm is not None else 0
+        caution = float(option.caution) if option.caution is not None else 0
+
+        return {
+            'name': option.name,
+            'prix': prix * montant_taux,
+            'total': prix * float(total_days) * montant_taux if option.type_tarif == 'jour' else prix,
+            'categorie': option.categorie.id if option.categorie else None,
+            'limit': limit_Klm * total_days,
+            'penalite': penalite_Klm * montant_taux,
+            'caution': caution * montant_taux
+        }
+    
+    except Options.DoesNotExist:
+        return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0} 
     
 def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
     try:
@@ -1209,6 +1243,13 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
     except ValueError:
         return {"message": "Invalid date format"}
+    
+    taux = TauxChange.objects.filter(id=2).first()
+    taux_change = taux.montant
+    if taux_change and taux_change is not None :
+       taux_change = float(taux_change)
+    else : 
+        return{"message": "taux de change introuvable"} 
     
     if date_retour < date_depart:
         return {"message": "Return date cannot be before departure date"}
@@ -1224,6 +1265,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         return {"message": "Zone introuvable pour ce lieu de départ"}
 
     result = []
+    free_options = []
     client_pr = 0 
     client_sold = 0
     total = 0
@@ -1231,34 +1273,35 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     prix_unitaire = 0
     prix_unitaire_red = 0
     prix_jour = 0
+    promotion_models = []
+    promotion_zone = []
 
     if country_code == "DZ":
         if client_id:
             client_status = check_client(client_id)  
-            client = ListeClient.objects.filter(id=client_id).first()
-            
+            client = ListeClient.objects.filter(id=client_id).first()          
             if not client:
                 return {"message": "Client introuvable"}
             
             if client_status.get("message") == "negatif":
                 return {"message": "Client has a high risk, cannot proceed"}
             elif client_status.get("message") == "positif":
-                client_pr = client.reduction
-                client_sold = client.solde
+                client_pr = client.reduction if client.reduction is not None else 0
+                client_sold = float(client.solde) * taux_change if client.solde is not None else 0
                 client_categori_id = client.categorie_client.id
                 category_client = CategorieClient.objects.filter(id=client_categori_id).first()
-                option_one = category_client.option_one.name
-                option_two = category_client.option_two.name
-                option_three = category_client.option_three.name
-                option_four = category_client.option_four.name
-                option_five = category_client.option_five.name
-                option_six = category_client.option_six.name
-                option_seven = category_client.option_seven.name
-                option_eight = category_client.option_eight.name
-                option_nine = category_client.option_nine.name
-                option_ten = category_client.option_ten.name
+                option_one = category_client.option_one
+                option_two = category_client.option_two
+                option_three = category_client.option_three
+                option_four = category_client.option_four
+                option_five = category_client.option_five
+                option_six = category_client.option_six
+                option_seven = category_client.option_seven
+                option_eight = category_client.option_eight
+                option_nine = category_client.option_nine
+                option_ten = category_client.option_ten
 
-                result.append({
+                free_options.append({
                     "option_one": option_one if option_one else None,
                     "option_two": option_two if option_two else None,
                     "option_three": option_three if option_three else None,
@@ -1278,113 +1321,113 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             parent_client = ListeClient.objects.filter(prime_code=prime_code).first() 
             if parent_client :
                 parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
-                prime_red = parent_sold.parrain_solde
+                prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         for frais in frais_livraison:
-            total += frais.montant if frais else 0
+            total += float(frais.montant) * taux_change if frais.montant is not None else 0
 
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
         )
         for supplement in supplements:
-            total += supplement.montant if supplement else 0
+            total += float(supplement.montant) * taux_change if supplement else 0
 
-        frais_dossier = search_option("FRAIS_DOSSIER", total_days)
+        frais_dossier = search_option_dzd("FRAIS_DOSSIER", total_days)
         total += frais_dossier["total"]
 
-        paiement_anticipe = search_option("P_ANTICIPE", total_days)
+        paiement_anticipe = search_option_dzd("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
-        klm_illimite = search_option("KLM_ILLIMITED", total_days)
+        klm_illimite = search_option_dzd("KLM_ILLIMITED", total_days)
         opt_klm_name = klm_illimite["name"]
         opt_klm_unit = klm_illimite["prix"]
         opt_klm_total = klm_illimite["total"]
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
 
-        nd_driver = search_option("ND_DRIVER", total_days)
+        nd_driver = search_option_dzd("ND_DRIVER", total_days)
         opt_nd_driver_name = nd_driver["name"]
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
-        plein_carburant = search_option("P_CARBURANT", total_days)
+        plein_carburant = search_option_dzd("P_CARBURANT", total_days)
         opt_carburant_name = plein_carburant["name"]
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
-        siege_a = search_option("S_BEBE_5", total_days)
+        siege_a = search_option_dzd("S_BEBE_5", total_days)
         opt_siege_a_name = siege_a["name"]
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
-        siege_b = search_option("S_BEBE_13", total_days)
+        siege_b = search_option_dzd("S_BEBE_13", total_days)
         opt_siege_b_name = siege_b["name"]
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
-        siege_c = search_option("S_BEBE_18", total_days)
+        siege_c = search_option_dzd("S_BEBE_18", total_days)
         opt_siege_c_name = siege_c["name"]
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
     
-        base_a = search_option("BASE_P_1", total_days)
+        base_a = search_option_dzd("BASE_P_1", total_days)
         base_a_name = base_a["name"]
         base_a_unit = base_a["prix"]
         base_a_total = base_a["total"]
         base_a_category = base_a["categorie"]
         base_a_caution = base_a["caution"]
 
-        base_b = search_option("BASE_P_2", total_days)
+        base_b = search_option_dzd("BASE_P_2", total_days)
         base_b_name = base_b["name"]
         base_b_unit = base_b["prix"]
         base_b_total = base_b["total"]
         base_b_category = base_b["categorie"]
         base_b_caution = base_b["caution"]
         
-        base_c = search_option("BASE_P_3", total_days)
+        base_c = search_option_dzd("BASE_P_3", total_days)
         base_c_name = base_c["name"]
         base_c_unit = base_c["prix"]
         base_c_total = base_c["total"]
         base_c_category = base_c["categorie"]
         base_c_caution = base_c["caution"]
         
-        standart_a = search_option("STANDART_P_1", total_days)
+        standart_a = search_option_dzd("STANDART_P_1", total_days)
         standart_a_name = standart_a["name"]
         standart_a_unit = standart_a["prix"]
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
-        standart_b = search_option("STANDART_P_2", total_days)
+        standart_b = search_option_dzd("STANDART_P_2", total_days)
         standart_b_name = standart_b["name"]
         standart_b_unit = standart_b["prix"]
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
         
-        standart_c = search_option("STANDART_P_3", total_days)
+        standart_c = search_option_dzd("STANDART_P_3", total_days)
         standart_c_name = standart_c["name"]
         standart_c_unit = standart_c["prix"]
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
-        max_a = search_option("MAX_P_1", total_days)
+        max_a = search_option_dzd("MAX_P_1", total_days)
         max_a_name = max_a["name"]
         max_a_unit = max_a["prix"]
         max_a_total = max_a["total"]
         max_a_caution = max_a["caution"]
 
-        max_b = search_option("MAX_P_2", total_days)
+        max_b = search_option_dzd("MAX_P_2", total_days)
         max_b_name = max_b["name"]
         max_b_unit = max_b["prix"]
         max_b_total = max_b["total"]
         max_b_caution = max_b["caution"]
         
-        max_c = search_option("MAX_P_3", total_days)
+        max_c = search_option_dzd("MAX_P_3", total_days)
         max_c_name = max_c["name"]
         max_c_unit = max_c["prix"]
         max_c_total = max_c["total"]
@@ -1408,7 +1451,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             ).first()
 
             if tarif:
-                prix_jour = tarif.prix  
+                prix_jour = float(tarif.prix) * taux_change
                 total += (prix_jour * total_days)
                 for supplement in supplements:
 
@@ -1423,7 +1466,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     prix_unitaire = total / total_days
                 
                 modeles_ajoutes.add(vehicle.modele.id)
-                if client_pr > 0 :
+                if int(client_pr) > 0 :
                     promotion = "yes"
                     percentage = client_pr
                     total_red = (100 - percentage) * total / 100
@@ -1434,17 +1477,17 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     total_red = total
                     prix_unitaire_red = prix_unitaire 
 
-                if client_sold > 0 : 
+                if int(client_sold) > 0 : 
                     total = total - client_sold
                 
-                if prime_red > 0 :
+                if int(prime_red) > 0 :
                     total = total - prime_red
 
                 if vehicle.categorie.id == base_a_category :
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
@@ -1627,22 +1670,22 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             if client_status.get("message") == "negatif":
                 return {"message": "Client has a high risk, cannot proceed"}
             elif client_status.get("message") == "positif":
-                client_pr = client.reduction
-                client_sold = client.solde
+                client_pr = client.reduction if client.reduction is not None else 0
+                client_sold = client.solde if client.solde is not None else 0
                 client_categori_id = client.categorie_client.id
                 category_client = CategorieClient.objects.filter(id=client_categori_id).first()
-                option_one = category_client.option_one.name
-                option_two = category_client.option_two.name
-                option_three = category_client.option_three.name
-                option_four = category_client.option_four.name
-                option_five = category_client.option_five.name
-                option_six = category_client.option_six.name
-                option_seven = category_client.option_seven.name
-                option_eight = category_client.option_eight.name
-                option_nine = category_client.option_nine.name
-                option_ten = category_client.option_ten.name
+                option_one = category_client.option_one
+                option_two = category_client.option_two
+                option_three = category_client.option_three
+                option_four = category_client.option_four
+                option_five = category_client.option_five
+                option_six = category_client.option_six
+                option_seven = category_client.option_seven
+                option_eight = category_client.option_eight
+                option_nine = category_client.option_nine
+                option_ten = category_client.option_ten
 
-                result.append({
+                free_options.append({
                     "option_one": option_one if option_one else None,
                     "option_two": option_two if option_two else None,
                     "option_three": option_three if option_three else None,
@@ -1807,7 +1850,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     prix_unitaire = total / total_days
                 
                 modeles_ajoutes.add(vehicle.modele.id)
-                if client_pr > 0 :
+                if client_pr is not None and int(client_pr) > 0 :
                     promotion = "yes"
                     percentage = client_pr
                     total_red = (100 - percentage) * total / 100
@@ -1818,10 +1861,10 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     total_red = total
                     prix_unitaire_red = prix_unitaire 
 
-                if client_sold > 0 : 
+                if client_pr is not None and int(client_sold) > 0: 
                     total = total - client_sold
                 
-                if prime_red > 0 :
+                if client_pr is not None and int(prime_red) > 0:
                     total = total - prime_red
 
                 if vehicle.categorie.id == base_a_category :
@@ -2001,7 +2044,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                     })
 
-    return result
+    return free_options,result 
             
 
             
