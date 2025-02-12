@@ -1163,6 +1163,9 @@ def search_result_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+    client_id = request.GET.get("client_id")
+    prime_code = request.GET.get("prime_code")
+    country_code = request.GET.get("country_code")
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
@@ -1175,6 +1178,9 @@ def search_result_view(request):
             heure_depart=heure_depart,
             date_retour=date_retour,
             heure_retour=heure_retour,
+            client_id=client_id,
+            prime_code=prime_code,
+            country_code=country_code,
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
