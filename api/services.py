@@ -2348,7 +2348,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'vehicule_type':vehicle.modele.vehicule_type,
                     })
 
-    return sorted(result, key=lambda x: x["last_total"]) 
+    return result 
 
             
 
