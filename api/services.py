@@ -1616,7 +1616,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         for frais in frais_livraison:
-            total += float(frais.montant) * taux_change if frais.montant is not None else 0
+            total += float(frais.montant) * taux_change if frais.montant is not None else 0        
 
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
@@ -1724,6 +1724,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         modeles_ajoutes = set()
 
+
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
                 continue
@@ -1773,6 +1774,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     total = total - prime_red
 
                 if vehicle.categorie.id == base_a_category :
+
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
@@ -2009,17 +2011,18 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         for frais in frais_livraison:
             total += frais.montant if frais else 0
-
+            
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
         )
         for supplement in supplements:
             total += supplement.montant if supplement else 0
+            
 
         frais_dossier = search_option("FRAIS_DOSSIER", total_days)
         total += frais_dossier["total"]
-
+        
         paiement_anticipe = search_option("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_unit = paiement_anticipe["prix"]
@@ -2115,6 +2118,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_c_caution = max_c["caution"]
 
         modeles_ajoutes = set()
+        total_brut = 0
 
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
@@ -2133,7 +2137,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = tarif.prix  
-                total += (prix_jour * total_days)
+                total_brut = total + (prix_jour * total_days)
+            
                 for supplement in supplements:
 
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
@@ -2143,26 +2148,26 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
                     if duration > supplement.reatrd:
                         total += (prix_jour * supplement.valeur) / 100
-                if total > 0 and total_days > 0:
-                    prix_unitaire = total / total_days
+                if total_brut > 0 and total_days > 0:
+                    prix_unitaire = total_brut / total_days
                 
                 modeles_ajoutes.add(vehicle.modele.id)
                 if client_pr is not None and int(client_pr) > 0 :
                     promotion = "yes"
                     percentage = client_pr
-                    total_red = (100 - percentage) * total / 100
+                    total_red = (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
                 else :
                     promotion = "no"
                     percentage = 0
-                    total_red = total
+                    total_red = total_brut
                     prix_unitaire_red = prix_unitaire 
 
                 if client_pr is not None and int(client_sold) > 0: 
-                    total = total - client_sold
+                    total_brut = total_brut - client_sold
                 
                 if client_pr is not None and int(prime_red) > 0:
-                    total = total - prime_red
+                    total_brut = total_brut - prime_red
 
                 if vehicle.categorie.id == base_a_category :
                     result.append({
@@ -2171,7 +2176,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
-                        "total": total,
+                        "total": total_brut,
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
@@ -2233,7 +2238,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
-                        "total": total,
+                        "total": total_brut,
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
@@ -2294,7 +2299,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
-                        "total": total,
+                        "total": total_brut,
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
