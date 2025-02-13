@@ -19,6 +19,77 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+@csrf_exempt
+@require_http_methods(["PUT"])
+def protection_put_view(request):
+    try:
+        print(request.body)
+        data = json.loads(request.body)
+        ref = data.get("ref")
+        protection = data.get("protection")
+
+        try:
+            resultats = modify_protection_request(
+                ref=ref,
+                protection=protection,
+            )
+            reservation = Reservation.objects.filter(name=ref).first()
+
+            to_pay_value = resultats.get("to_pay")
+
+            if to_pay_value is not None:
+                request_factory = RequestFactory()
+                fake_request = request_factory.post(
+                    path="/create-payment-session/",
+                    data=json.dumps({
+                        "product_name": reservation.name,
+                        "description": "test",
+                        "images": [reservation.photo_link] if reservation.photo_link else [],
+                        "unit_amount": int(to_pay_value * 100),
+                        "quantity": 1,
+                        "currency": "eur",
+                        "reservation_id": reservation.id
+                    }),
+                    content_type="application/json"
+                )
+
+                payment_session_response = create_payment_session(fake_request)
+
+                if payment_session_response.status_code != 200:
+                    return JsonResponse({"message": "Erreur lors de la création de la session de paiement."}, status=500)
+
+                payment_session_data = json.loads(payment_session_response.content)
+                session_id = payment_session_data.get("session_id", "")
+                payment_url = payment_session_data.get("url", "")
+
+                return JsonResponse({"refund_message": False, "message": "Modification effectuée avec succès.", "session_id": session_id, "payment_url": payment_url}, status=200)
+
+            return JsonResponse({"message": "Aucune modification requise."}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Données JSON invalides."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+def protection_request_view(request):
+
+    ref = request.GET.get("ref")
+    protection = request.GET.get("protection")
+
+    if not ref or not protection:
+        return JsonResponse({"error": "Les paramètres 'ref' et 'protection' sont requis."}, status=400)
+
+    try:
+        resultats = modify_protection_request(
+            ref=ref,
+            protection=protection,
+        )
+        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
 def disponibilite_view(request):
     lieu_depart_id = request.GET.get("lieu_depart_id")

@@ -10,6 +10,118 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 
+def modify_protection_request(ref, protection):
+    try:   
+        reservation = Reservation.objects.filter(name=ref).first()
+        nb_jour = reservation.nbr_jour_reservation
+        category = reservation.categorie.id
+        
+        if reservation :
+            if protection == "BASE":
+                opt_protection = Options.objects.filter(option_code__icontains="BASE", categorie_id=category).first()
+                prix = opt_protection.prix
+                total = prix * nb_jour
+
+                if total > reservation.opt_protection_total:
+                    total_pay = total - reservation.opt_protection_total
+                    if reservation.opt_payment_name:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            "to_pay":total_pay
+                            }
+                    else:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            }
+                else : 
+                    to_refund = reservation.opt_protection_total - total
+                    if reservation.opt_payment_name:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            "to_refund":to_refund
+                            }
+                    else:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            }
+                    
+            elif protection == "STANDART":
+                opt_protection = Options.objects.filter(option_code__icontains="STANDART", categorie_id=category).first()
+                prix = opt_protection.prix
+                total = prix * nb_jour
+
+                if total > reservation.opt_protection_total:
+                    total_pay = total - reservation.opt_protection_total
+                    if reservation.opt_payment_name:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            "to_pay":total_pay
+                            }
+                    else:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            }
+                else : 
+                    to_refund = reservation.opt_protection_total - total
+                    if reservation.opt_payment_name:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            "to_refund":to_refund
+                            }
+                    else:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            }
+                    
+            elif protection == "MAX":
+                opt_protection = Options.objects.filter(option_code__icontains="MAX", categorie_id=category).first()
+                prix = opt_protection.prix
+                total = prix * nb_jour
+
+                if total > reservation.opt_protection_total:
+                    total_pay = total - reservation.opt_protection_total
+                    if reservation.opt_payment_name:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            "to_pay":total_pay
+                            }
+                    else:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            }
+                else : 
+                    to_refund = reservation.opt_protection_total - total
+                    if reservation.opt_payment_name:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            "to_refund":to_refund
+                            }
+                    else:
+                        return {
+                            "new_protection_price":prix,
+                            "new_protection_total":total,
+                            }
+                    
+            else : 
+                return {"message": "pas possible de modifier"}
+        
+        else : 
+                return {"message": "pas possible de modifier"}
+
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
+
 def verify_client(email, nom, prenom, birthday, permis, phone):
     try:
         client_id=ListeClient.objects.filter(nom=nom, prenom=prenom).first()
@@ -985,7 +1097,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
@@ -1043,7 +1155,7 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total,
