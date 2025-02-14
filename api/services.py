@@ -1835,6 +1835,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_c_caution = max_c["caution"]
 
         modeles_ajoutes = set()
+        total_brut = 0
 
 
         for vehicle in available_vehicles:
@@ -1854,7 +1855,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = float(tarif.prix) * taux_change
-                total += (prix_jour * total_days)
+                total_brut = total + (prix_jour * total_days)
                 for supplement in supplements:
 
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
@@ -1864,26 +1865,26 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
                     if duration > supplement.reatrd:
                         total += (prix_jour * supplement.valeur) / 100
-                if total > 0 and total_days > 0:
-                    prix_unitaire = total / total_days
+                if total_brut > 0 and total_days > 0:
+                    prix_unitaire = total_brut / total_days
                 
                 modeles_ajoutes.add(vehicle.modele.id)
                 if int(client_pr) > 0 :
                     promotion = "yes"
                     percentage = client_pr
-                    total_red = (100 - percentage) * total / 100
+                    total_red = (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
                 else :
                     promotion = "no"
                     percentage = 0
-                    total_red = total
+                    total_red = total_brut
                     prix_unitaire_red = prix_unitaire 
 
                 if int(client_sold) > 0 : 
-                    total = total - client_sold
+                    total_brut = total_brut - client_sold
                 
                 if int(prime_red) > 0 :
-                    total = total - prime_red
+                    total_brut = total_brut - prime_red
 
                 if vehicle.categorie.id == base_a_category :
 
@@ -1893,7 +1894,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
-                        "total": total,
+                        "total": total_brut,
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
@@ -1952,10 +1953,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
-                        "total": total,
+                        "total": total_brut,
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
@@ -2013,10 +2014,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
-                        "total": total,
+                        "total": total_brut,
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
@@ -2464,7 +2465,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                     })
-
+                    
+    result.sort(key=lambda x: x["prix"])
     return result 
 
             
