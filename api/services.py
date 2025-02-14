@@ -1594,48 +1594,56 @@ def disponibilite_resultat(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     })
 
     return free_options,result 
-
 def free_options_f(client_id):
     free_options = []
     if client_id:
-            client_status = check_client(client_id)  
-            client = ListeClient.objects.filter(id=client_id).first()
-            
-            if not client:
-                return {"message": "Client introuvable"}
-            
-            if client_status.get("message") == "negatif":
-                return {"message": "Client has a high risk, cannot proceed"}
-            elif client_status.get("message") == "positif":
-                client_categori_id = client.categorie_client.id
-                category_client = CategorieClient.objects.filter(id=client_categori_id).first()
-                option_one = category_client.option_one
-                option_two = category_client.option_two
-                option_three = category_client.option_three
-                option_four = category_client.option_four
-                option_five = category_client.option_five
-                option_six = category_client.option_six
-                option_seven = category_client.option_seven
-                option_eight = category_client.option_eight
-                option_nine = category_client.option_nine
-                option_ten = category_client.option_ten
+        client_status = check_client(client_id)
+        client = ListeClient.objects.filter(id=client_id).first()
 
-                free_options.append({
-                    "option_one": option_one.name if option_one else None,
-                    "option_two": option_two.name if option_two else None,
-                    "option_three": option_three.name if option_three else None,
-                    "option_four": option_four.name if option_four else None,
-                    "option_five": option_five.name if option_five else None,
-                    "option_six": option_six.name if option_six else None,
-                    "option_seven": option_seven.name if option_seven else None,
-                    "option_eight": option_eight.name if option_eight else None,
-                    "option_nine": option_nine.name if option_nine else None,
-                    "option_ten": option_ten.name if option_ten else None
+        if not client:
+            return {"message": "Client introuvable"}
+
+        if client_status.get("message") == "negatif":
+            return {"message": "Client has a high risk, cannot proceed"}
+        elif client_status.get("message") == "positif":
+            client_categori_id = client.categorie_client.id
+            category_client = CategorieClient.objects.filter(id=client_categori_id).first()
+            
+            options = [
+                category_client.option_one,
+                category_client.option_two,
+                category_client.option_three,
+                category_client.option_four,
+                category_client.option_five,
+                category_client.option_six,
+                category_client.option_seven,
+                category_client.option_eight,
+                category_client.option_nine,
+                category_client.option_ten,
+            ]
+
+            option_un = any(opt and "KLM" in opt.option_code for opt in options)
+            option_deux = any(opt and "ANTICIPE" in opt.option_code for opt in options)
+            option_trois= any(opt and "MAX" in opt.option_code for opt in options)
+            option_quatre= any(opt and "DRIVER" in opt.option_code for opt in options)
+            option_cinq= any(opt and "CARBURANT" in opt.option_code for opt in options)
+            option_sixe= any(opt and "S_BEBE_5" in opt.option_code for opt in options)
+            option_sept= any(opt and "S_BEBE_13" in opt.option_code for opt in options)
+            option_huite= any(opt and "S_BEBE_18" in opt.option_code for opt in options)
+
+            free_options.append({
+                "option_one": option_quatre,
+                "option_two": option_cinq,
+                "option_three": option_sixe,
+                "option_four": option_sept,
+                "option_five": option_huite,
+                "option_six": option_deux,
+                "option_seven": option_un,
+                "option_eight": option_trois,
                 })
+        else:
+            return client_status
 
-            else:
-                return client_status
-    
     return free_options
 
 def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
