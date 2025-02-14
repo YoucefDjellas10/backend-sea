@@ -1621,16 +1621,16 @@ def free_options_f(client_id):
                 option_ten = category_client.option_ten
 
                 free_options.append({
-                    "option_one": option_one if option_one else None,
-                    "option_two": option_two if option_two else None,
-                    "option_three": option_three if option_three else None,
-                    "option_four": option_four if option_four else None,
-                    "option_five": option_five if option_five else None,
-                    "option_six": option_six if option_six else None,
-                    "option_seven": option_seven if option_seven else None,
-                    "option_eight": option_eight if option_eight else None,
-                    "option_nine": option_nine if option_nine else None,
-                    "option_ten": option_ten if option_ten else None
+                    "option_one": option_one.name if option_one else None,
+                    "option_two": option_two.name if option_two else None,
+                    "option_three": option_three.name if option_three else None,
+                    "option_four": option_four.name if option_four else None,
+                    "option_five": option_five.name if option_five else None,
+                    "option_six": option_six.name if option_six else None,
+                    "option_seven": option_seven.name if option_seven else None,
+                    "option_eight": option_eight.name if option_eight else None,
+                    "option_nine": option_nine.name if option_nine else None,
+                    "option_ten": option_ten.name if option_ten else None
                 })
 
             else:
@@ -1689,31 +1689,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             elif client_status.get("message") == "positif":
                 client_pr = client.reduction if client.reduction is not None else 0
                 client_sold = float(client.solde) * taux_change if client.solde is not None else 0
-                client_categori_id = client.categorie_client.id
-                category_client = CategorieClient.objects.filter(id=client_categori_id).first()
-                option_one = category_client.option_one
-                option_two = category_client.option_two
-                option_three = category_client.option_three
-                option_four = category_client.option_four
-                option_five = category_client.option_five
-                option_six = category_client.option_six
-                option_seven = category_client.option_seven
-                option_eight = category_client.option_eight
-                option_nine = category_client.option_nine
-                option_ten = category_client.option_ten
-
-                free_options.append({
-                    "option_one": option_one if option_one else None,
-                    "option_two": option_two if option_two else None,
-                    "option_three": option_three if option_three else None,
-                    "option_four": option_four if option_four else None,
-                    "option_five": option_five if option_five else None,
-                    "option_six": option_six if option_six else None,
-                    "option_seven": option_seven if option_seven else None,
-                    "option_eight": option_eight if option_eight else None,
-                    "option_nine": option_nine if option_nine else None,
-                    "option_ten": option_ten if option_ten else None
-                })
 
             else:
                 return client_status 
@@ -2083,32 +2058,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             elif client_status.get("message") == "positif":
                 client_pr = client.reduction if client.reduction is not None else 0
                 client_sold = client.solde if client.solde is not None else 0
-                client_categori_id = client.categorie_client.id
-                category_client = CategorieClient.objects.filter(id=client_categori_id).first()
-                option_one = category_client.option_one
-                option_two = category_client.option_two
-                option_three = category_client.option_three
-                option_four = category_client.option_four
-                option_five = category_client.option_five
-                option_six = category_client.option_six
-                option_seven = category_client.option_seven
-                option_eight = category_client.option_eight
-                option_nine = category_client.option_nine
-                option_ten = category_client.option_ten
-
-                free_options.append({
-                    "option_one": option_one if option_one else None,
-                    "option_two": option_two if option_two else None,
-                    "option_three": option_three if option_three else None,
-                    "option_four": option_four if option_four else None,
-                    "option_five": option_five if option_five else None,
-                    "option_six": option_six if option_six else None,
-                    "option_seven": option_seven if option_seven else None,
-                    "option_eight": option_eight if option_eight else None,
-                    "option_nine": option_nine if option_nine else None,
-                    "option_ten": option_ten if option_ten else None
-                })
-
             else:
                 return client_status 
             
@@ -2465,7 +2414,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                     })
-                    
+
     result.sort(key=lambda x: x["prix"])
     return result 
 
