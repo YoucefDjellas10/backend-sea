@@ -22,9 +22,11 @@ def protections(ref):
         selected_protection = reservation.opt_protection_name
         category = reservation.categorie.id
 
-        protections = Options.objects.filter(
-            categorie_id=category,
-            option_code__in="BASE"
+        protections = Options.objects.filter(    
+            (Q(option_code__icontains="BASE") | 
+            Q(option_code__icontains="MAX") | 
+            Q(option_code__icontains="STANDART"))
+            & Q(categorie_id=category)
         )
         print("protections :", protections)
         protections_return.append({
