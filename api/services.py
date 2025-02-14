@@ -10,6 +10,41 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 
+def protections(ref):
+    try:
+        protections_return = []
+        reservation = Reservation.objects.filter(name=ref).first()
+        nb_jour = reservation.nbr_jour_reservation
+        
+        if not reservation:
+            return {"message": "Réservation non trouvée"}
+
+        selected_protection = reservation.opt_protection_name
+        category = reservation.categorie.id
+
+        protections = Options.objects.filter(
+            categorie_id=category,
+            option_code__in="BASE"
+        )
+        print("protections :", protections)
+        protections_return.append({
+            "selected_protection":selected_protection,
+        })
+        for protection in protections:
+            protections_return.append({
+                "protection_name":protection.name,
+                "protection_prix":protection.prix,
+                "protection_total":protection.prix * nb_jour,
+                "protection_caution":protection.caution,
+            })
+
+
+        return protections_return  
+
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
+
+
 def modify_protection_request(ref, protection):
     try:   
         reservation = Reservation.objects.filter(name=ref).first()
@@ -1721,7 +1756,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             total += float(supplement.montant) * taux_change if supplement else 0
 
         frais_dossier = search_option_dzd("FRAIS_DOSSIER", total_days)
-        total += frais_dossier["total"]
+        total += frais_dossier["total"] * taux_change
 
         paiement_anticipe = search_option_dzd("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
