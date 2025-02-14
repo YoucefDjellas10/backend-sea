@@ -1186,7 +1186,8 @@ def ma_reservation_view(request):
             ref=ref,
             email=email,
         )
-        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        protection = protections(ref=ref)
+        return JsonResponse({"protections":protection ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
