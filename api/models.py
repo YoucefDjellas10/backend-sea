@@ -429,6 +429,7 @@ class ListeClient(models.Model):
         blank=True,
         null=True
     )
+    category_client_name = models.CharField()
 
     reduction = models.IntegerField(verbose_name="Réduction %", blank=True, null=True)
 
