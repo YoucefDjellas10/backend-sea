@@ -1307,7 +1307,7 @@ class ListeAttente(models.Model):
     class Meta:
         db_table = 'lite_atente'
 
-
+#test
 class ConditionAnnulation(models.Model):
     name = models.CharField(max_length=255, default='condition d annulation')
     haute_saison = models.ForeignKey(Saison, on_delete=models.SET_NULL, db_column='haute_saison', null=True, related_name='haute_saison')
