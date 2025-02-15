@@ -679,7 +679,10 @@ def ma_reservation_detail(ref, email, country_code):
         can_midify = "yes" if (date - today).days >= 2 else "no"
         retour = ma_reservation.date_heure_fin.date()
         can_modify_return = "yes" if (retour - today).days >= 2 else "no"
-
+        address = ma_reservation.lieu_depart.address
+        frais_livraison = ma_reservation.frais_de_dossier
+        lieu_rdv = ma_reservation.lieu_depart.rendez_vous
+        
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
@@ -694,6 +697,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'client_perenom': ma_reservation.prenom,
                     'lieu_depart': ma_reservation.lieu_depart.id,
                     'lieu_retour': ma_reservation.lieu_retour.id,
+                    'address_lieu': address,
+                    'lieu_rdv': lieu_rdv,
+                    'frais_livraison':frais_livraison,
                     'date_depart': ma_reservation.date_heure_debut,
                     'date_retour': ma_reservation.date_heure_fin,
                     'mobile': ma_reservation.numero_lieu,
@@ -750,6 +756,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'client_perenom': ma_reservation.prenom,
                     'lieu_depart': ma_reservation.lieu_depart.id,
                     'lieu_retour': ma_reservation.lieu_retour.id,
+                    'address_lieu': address,
+                    'lieu_rdv': lieu_rdv,
+                    'frais_livraison':frais_livraison,
                     'date_depart': ma_reservation.date_heure_debut,
                     'date_retour': ma_reservation.date_heure_fin,
                     'mobile': ma_reservation.numero_lieu,

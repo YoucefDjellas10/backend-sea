@@ -62,6 +62,7 @@ class Lieux(models.Model):
     name_en = models.CharField(max_length=255, verbose_name="Agence")
     name_ar = models.CharField(max_length=255, verbose_name="Agence")
     address = models.CharField(max_length=255, verbose_name="Adresse")
+    rendez_vous = models.CharField(max_length=255, verbose_name="rendez vous")
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE,db_column='zone', verbose_name="Zone de livraison")
     city = models.ForeignKey(AlgerianCities, on_delete=models.CASCADE,db_column='city', verbose_name="Ville")
     lieu_type_choices = [
