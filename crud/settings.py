@@ -19,6 +19,9 @@ EMAIL_HOST_USER = 'ghalemmohsen@gmail.com'
 EMAIL_HOST_PASSWORD = 'VOvkEXrRB5J2qfAD'
 ROOT_URLCONF = 'crud.urls'
 
+APPEND_SLASH = False
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

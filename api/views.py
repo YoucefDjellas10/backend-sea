@@ -19,6 +19,77 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+@csrf_exempt
+@require_http_methods(["PUT"])
+def protection_put_view(request):
+    try:
+        print(request.body)
+        data = json.loads(request.body)
+        ref = data.get("ref")
+        protection = data.get("protection")
+
+        try:
+            resultats = modify_protection_request(
+                ref=ref,
+                protection=protection,
+            )
+            reservation = Reservation.objects.filter(name=ref).first()
+
+            to_pay_value = resultats.get("to_pay")
+
+            if to_pay_value is not None:
+                request_factory = RequestFactory()
+                fake_request = request_factory.post(
+                    path="/create-payment-session/",
+                    data=json.dumps({
+                        "product_name": reservation.name,
+                        "description": "test",
+                        "images": [reservation.photo_link] if reservation.photo_link else [],
+                        "unit_amount": int(to_pay_value * 100),
+                        "quantity": 1,
+                        "currency": "eur",
+                        "reservation_id": reservation.id
+                    }),
+                    content_type="application/json"
+                )
+
+                payment_session_response = create_payment_session(fake_request)
+
+                if payment_session_response.status_code != 200:
+                    return JsonResponse({"message": "Erreur lors de la création de la session de paiement."}, status=500)
+
+                payment_session_data = json.loads(payment_session_response.content)
+                session_id = payment_session_data.get("session_id", "")
+                payment_url = payment_session_data.get("url", "")
+
+                return JsonResponse({"refund_message": False, "message": "Modification effectuée avec succès.", "session_id": session_id, "payment_url": payment_url}, status=200)
+
+            return JsonResponse({"message": "Aucune modification requise."}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Données JSON invalides."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+def protection_request_view(request):
+
+    ref = request.GET.get("ref")
+    protection = request.GET.get("protection")
+
+    if not ref or not protection:
+        return JsonResponse({"error": "Les paramètres 'ref' et 'protection' sont requis."}, status=400)
+
+    try:
+        resultats = modify_protection_request(
+            ref=ref,
+            protection=protection,
+        )
+        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
 def disponibilite_view(request):
     lieu_depart_id = request.GET.get("lieu_depart_id")
@@ -942,17 +1013,17 @@ def add_options_put_view(request):
             reservation.opt_siege_c_prix = None
             reservation.opt_siege_c_total = None
 
-        if (new_total < opt_total and not reservation.opt_payment_name) or (new_total == opt_total):
+        if (int(new_total) < int(opt_total) and not reservation.opt_payment_name) or (new_total == opt_total):
             reservation.save()
             return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès."}, status=200)
 
-        elif new_total < opt_total and reservation.opt_payment_name:
+        elif int(new_total) < int(opt_total) and reservation.opt_payment_name:
             reservation.save()
             return JsonResponse({"refund_message":True,"message": "Modification effectuée avec succès."}, status=200)
-        elif (new_total > opt_total and not reservation.opt_payment_name) or (new_total == opt_total):
+        elif (int(new_total) > int(opt_total) and not reservation.opt_payment_name) or (new_total == opt_total):
             reservation.save()
             return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès."}, status=200)
-        elif new_total > opt_total and reservation.opt_payment_name:
+        elif int(new_total) > int(opt_total) and reservation.opt_payment_name:
             diff = new_total - opt_total 
             request_factory = RequestFactory()
             fake_request = request_factory.post(
@@ -965,11 +1036,9 @@ def add_options_put_view(request):
                     "quantity": 1,
                     "currency": "eur",
                     "reservation_id": reservation.id
-
                 }),
                 content_type="application/json"
             )
-
             payment_session_response = create_payment_session(fake_request)
 
             if payment_session_response.status_code != 200:
@@ -980,12 +1049,8 @@ def add_options_put_view(request):
                 session_id = payment_session_data.get("session_id", "")
                 payment_url = payment_session_data.get("url", "")
 
-            
-
             return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès.","session_id":session_id,"payment_url":payment_url}, status=200)
             
-
-
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
@@ -998,9 +1063,15 @@ def add_options_request_view(request):
     sb_a = request.GET.get("sb_a")
     sb_b = request.GET.get("sb_b")
     sb_c = request.GET.get("sb_c")
+    nom = request.GET.get("nom")
+    prenom = request.GET.get("prenom")
+    birthday = request.GET.get("birthday")
+    permis_date = request.GET.get("permis_date")
 
     if not ref or not nd_driver or not carburant or not sb_a or not sb_b or not sb_c:
         return JsonResponse({"error": "Tout les parametres sont requis."}, status=400)
+    if nd_driver == "yes" and (not nom or not prenom or not birthday or not permis_date):
+        return JsonResponse({"error": "information client requis."}, status=400)
 
     try:
         resultats = add_options_request(
@@ -1010,6 +1081,10 @@ def add_options_request_view(request):
             sb_a=sb_a,
             sb_b=sb_b,
             sb_c=sb_c,
+            nom=nom,
+            prenom=prenom,
+            birthday=birthday,
+            permis_date=permis_date,
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
@@ -1115,7 +1190,8 @@ def ma_reservation_view(request):
             ref=ref,
             email=email,
         )
-        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        protection = protections(ref=ref)
+        return JsonResponse({"protections":protection ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
@@ -1163,6 +1239,12 @@ def search_result_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+    client_id = request.GET.get("client_id")
+    prime_code = request.GET.get("prime_code")
+    country_code = request.GET.get("country_code")
+
+    if not country_code :
+        country_code = request.headers.get("country_code")
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
@@ -1175,21 +1257,27 @@ def search_result_view(request):
             heure_depart=heure_depart,
             date_retour=date_retour,
             heure_retour=heure_retour,
+            client_id=client_id,
+            prime_code=prime_code,
+            country_code=country_code,
         )
-        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        free_options = []
+        if client_id :
+            free_options = free_options_f(client_id)
+        return JsonResponse({"free_options":free_options,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
 
 
 def search_price_view(request):
-    # Récupérer les paramètres GET
     lieu_depart_id = request.GET.get("lieu_depart_id")
     lieu_retour_id = request.GET.get("lieu_retour_id")
     date_depart = request.GET.get("date_depart")
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)

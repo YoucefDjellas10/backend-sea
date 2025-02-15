@@ -59,6 +59,8 @@ class AlgerianCities(models.Model):
 class Lieux(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, verbose_name="Agence")
+    name_en = models.CharField(max_length=255, verbose_name="Agence")
+    name_ar = models.CharField(max_length=255, verbose_name="Agence")
     address = models.CharField(max_length=255, verbose_name="Adresse")
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE,db_column='zone', verbose_name="Zone de livraison")
     city = models.ForeignKey(AlgerianCities, on_delete=models.CASCADE,db_column='city', verbose_name="Ville")
@@ -429,6 +431,7 @@ class ListeClient(models.Model):
         blank=True,
         null=True
     )
+    category_client_name = models.CharField()
 
     reduction = models.IntegerField(verbose_name="Réduction %", blank=True, null=True)
 
