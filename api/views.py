@@ -1181,6 +1181,7 @@ def verify_and_calculate_view(request):
 def ma_reservation_view(request):
     ref = request.GET.get("ref")
     email = request.GET.get("email")
+    country_code = request.GET.get("country_code")
 
     if not ref or not email:
         return JsonResponse({"error": "Les paramètres 'ref' et 'email' sont requis."}, status=400)
@@ -1189,9 +1190,11 @@ def ma_reservation_view(request):
         resultats = ma_reservation_detail(
             ref=ref,
             email=email,
+            country_code=country_code
         )
-        protection = protections(ref=ref)
-        return JsonResponse({"protections":protection ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        protection = protections(ref=ref, country_code=country_code)
+        options = option_ma_reservation(ref=ref , country_code=country_code)
+        return JsonResponse({"protections":protection,"options": options ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
@@ -2081,6 +2084,47 @@ class BookCarViewset(viewsets.ViewSet):
         taux_change = self.queryset.get(pk=pk)
         taux_change.delete()
         return Response(status=204)
+
+
+class ConditionAnnulationViewset(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = ConditionAnnulation.objects.all()
+    serializer_class = ConditionAnnulationSerializer
+
+    def list(self, request):
+        queryset = ConditionAnnulation.objects.all()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=400)
+
+    def retrieve(self, request, pk=None):
+        taux_change = self.queryset.get(pk=pk)
+        serializer = self.serializer_class(taux_change)
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        taux_change = self.queryset.get(pk=pk)
+        serializer = self.serializer_class(taux_change,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=400)
+
+
+
+    def destroy(self, request, pk=None):
+        taux_change = self.queryset.get(pk=pk)
+        taux_change.delete()
+        return Response(status=204)
+
 
 
 

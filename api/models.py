@@ -1306,3 +1306,16 @@ class ListeAttente(models.Model):
 
     class Meta:
         db_table = 'lite_atente'
+
+
+class ConditionAnnulation(models.Model):
+    name = models.CharField(max_length=255, default='condition d annulation')
+    haute_saison = models.ForeignKey(Saison, on_delete=models.SET_NULL, db_column='haute_saison', null=True, related_name='haute_saison')
+    basse_saison = models.ForeignKey(Saison, on_delete=models.SET_NULL, db_column='basse_saison', null=True, related_name='basse_saison')
+    haute_montant = models.IntegerField(verbose_name='Jour Haute saison')
+    basse_montant = models.IntegerField(verbose_name='Jour Basse saison')
+
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'condition_annulation'

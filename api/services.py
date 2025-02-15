@@ -10,36 +10,68 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 
-def protections(ref):
+def protections(ref, country_code):
     try:
-        protections_return = []
-        reservation = Reservation.objects.filter(name=ref).first()
-        nb_jour = reservation.nbr_jour_reservation
-        
-        if not reservation:
-            return {"message": "Réservation non trouvée"}
+        nb_jour = 0
+        if country_code == "DZ":
+            protections_return = []
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
+            reservation = Reservation.objects.filter(name=ref).first()
+            if reservation : 
+                nb_jour = reservation.nbr_jour_reservation
+            
+            if not reservation:
+                return {"message": "Réservation non trouvée"}
 
-        selected_protection = reservation.opt_protection_name
-        category = reservation.categorie.id
+            selected_protection = reservation.opt_protection_name
+            category = reservation.categorie.id
 
-        protections = Options.objects.filter(    
-            (Q(option_code__icontains="BASE") | 
-            Q(option_code__icontains="MAX") | 
-            Q(option_code__icontains="STANDART"))
-            & Q(categorie_id=category)
-        )
-        print("protections :", protections)
-        protections_return.append({
-            "selected_protection":selected_protection,
-        })
-        for protection in protections:
+            protections = Options.objects.filter(    
+                (Q(option_code__icontains="BASE") | 
+                Q(option_code__icontains="MAX") | 
+                Q(option_code__icontains="STANDART"))
+                & Q(categorie_id=category)
+            )
             protections_return.append({
-                "protection_name":protection.name,
-                "protection_prix":protection.prix,
-                "protection_total":protection.prix * nb_jour,
-                "protection_caution":protection.caution,
+                "selected_protection":selected_protection,
             })
+            for protection in protections:
+                protections_return.append({
+                    "protection_name":protection.name,
+                    "protection_prix":protection.prix *taux_change,
+                    "protection_total":protection.prix * nb_jour * taux_change,
+                    "protection_caution":protection.caution * taux_change,
+                })
+        else :
+            protections_return = []
+            reservation = Reservation.objects.filter(name=ref).first()
+            if reservation : 
+                nb_jour = reservation.nbr_jour_reservation
+            
+            if not reservation:
+                return {"message": "Réservation non trouvée"}
 
+            selected_protection = reservation.opt_protection_name
+            category = reservation.categorie.id
+
+            protections = Options.objects.filter(    
+                (Q(option_code__icontains="BASE") | 
+                Q(option_code__icontains="MAX") | 
+                Q(option_code__icontains="STANDART"))
+                & Q(categorie_id=category)
+            )
+            protections_return.append({
+                "selected_protection":selected_protection,
+            })
+            for protection in protections:
+                protections_return.append({
+                    "protection_name":protection.name,
+                    "protection_prix":protection.prix,
+                    "protection_total":protection.prix * nb_jour,
+                    "protection_caution":protection.caution,
+                })
+            
 
         return protections_return  
 
@@ -563,63 +595,205 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def ma_reservation_detail(ref, email):
+def option_ma_reservation(ref, country_code):
     try:
-        ma_reservation=Reservation.objects.filter(name=ref, email=email)
+        result = []
+        reservation = Reservation.objects.filter(name=ref).first()
+        category = reservation.categorie.id
+        nb_jour = reservation.nbr_jour_reservation
+        options = Options.objects.filter(    
+            (Q(option_code__icontains="KLM_ILLIMITED") | 
+            Q(option_code__icontains="P_ANTICIPE") | 
+            Q(option_code__icontains="P_CARBURANT") | 
+            Q(option_code__icontains="S_BEBE_5") | 
+            Q(option_code__icontains="S_BEBE_13") | 
+            Q(option_code__icontains="S_BEBE_18") | 
+            Q(option_code__icontains="ND_DRIVER"))
+            & (Q(categorie_id=category)|
+            Q(categorie=None)
+            ))
+        if country_code == "DZ":
+            taux= TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
+            for option in options :
+                option_total = option.prix * nb_jour * taux_change if option.type_tarif == "jour" else option.prix * taux_change
+                if "KLM_ILLIMITED" in option.option_code :
+                    result.append({
+                        "option_name": option.name,
+                        "option_prix":option.prix * taux_change,
+                        "option_total": option_total,
+                        "klm_limit":option.limit_Klm * nb_jour,
+                        "penalite_klm": option.penalite_Klm * int(taux_change)
+                    })
+                else :
+                    result.append({
+                        "option_name": option.name,
+                        "option_prix":option.prix * taux_change,
+                        "option_total": option_total,
+                    })
+        else :
+            for option in options :
+                option_total = option.prix * nb_jour if option.type_tarif == "jour" else option.prix
+                if "KLM_ILLIMITED" in option.option_code :
+                    result.append({
+                        "option_name": option.name,
+                        "option_prix":option.prix,
+                        "option_total": option_total,
+                        "klm_limit":option.limit_Klm * nb_jour,
+                        "penalite_klm": option.penalite_Klm
+                    })
+                else :
+                    result.append({
+                        "option_name": option.name,
+                        "option_prix":option.prix,
+                        "option_total": option_total,
+                    })
+
+        return result
+
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
+
+def ma_reservation_detail(ref, email, country_code):
+    try:
+        ma_reservation =Reservation.objects.filter(name=ref, email=email).first()
+        if not ma_reservation :
+            return {"error": "reservation non trouvé"}
         result =[]
-        for record in ma_reservation:
+        annulation = ConditionAnnulation.objects.filter(id=1).first()
+        periodes = Periode.objects.all()
+        date = ma_reservation.date_heure_debut.date()
+        saison_id = None
+        for periode in periodes:
+            if periode.date_debut <= date <= periode.date_fin:
+                saison_id = periode.saison
+                break
+        jour_annulation = 0
+        if saison_id == annulation.haute_saison :
+            jour_annulation += annulation.haute_montant
+        else :
+            jour_annulation += annulation.basse_montant
+        
+        today = datetime.today().date()
+        can_cancel = "yes" if (date - today).days >= jour_annulation else "no"
+        can_midify = "yes" if (date - today).days >= 2 else "no"
+        retour = ma_reservation.date_heure_fin.date()
+        can_modify_return = "yes" if (retour - today).days >= 2 else "no"
+
+        if country_code =="DZ":
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
             if ma_reservation :
                 result.append({
-                    'id':record.id,
-                    'reference': record.name,
-                    'client_nom': record.nom,
-                    'client_perenom': record.prenom,
-                    'lieu_depart': record.lieu_depart.id,
-                    'lieu_retour': record.lieu_retour.id,
-                    'date_depart': record.date_heure_debut,
-                    'date_retour': record.date_heure_fin,
-                    'mobile': record.numero_lieu,
-                    'status': record.status,
-                    'opt_payment': record.opt_payment_name,
-                    'opt_payment_price': record.opt_payment_price,
-                    'opt_payment_total': record.opt_payment_total,
-                    'opt_klm': record.opt_klm_name ,
-                    'opt_kilometrage': record.opt_kilometrage,
-                    'opt_klm_price': record.opt_klm_price,
-                    'opt_klm_total': record.opt_klm_total,
-                    'opt_protection': record.opt_protection_name,
-                    'opt_protection_caution': record.opt_protection_caution,
-                    'opt_protection_price': record.opt_protection_price,
-                    'opt_protection_total': record.opt_protection_total,
-                    'opt_nd_driver': record.opt_nd_driver_name,
-                    'opt_nd_driver_price': record.opt_nd_driver_price,
-                    'opt_nd_driver_total': record.opt_nd_driver_total,
-                    'opt_plein_carburant': record.opt_plein_carburant_name,
-                    'opt_plein_carburant_price': record.opt_plein_carburant_prix,
-                    'opt_plein_carburant_total': record.opt_plein_carburant_total,
-                    'opt_siege_a': record.opt_siege_a_name,
-                    'opt_siege_a_price': record.opt_siege_a_prix,
-                    'opt_siege_a_total': record.opt_siege_a_total,
-                    'opt_siege_b': record.opt_siege_b_name,
-                    'opt_siege_b_price': record.opt_siege_b_prix,
-                    'opt_siege_b_total': record.opt_siege_b_total,
-                    'opt_siege_c': record.opt_siege_c_name,
-                    'opt_siege_c_price': record.opt_siege_c_prix,
-                    'opt_siege_c_total': record.opt_siege_c_total,
-                    'vehicule_id': record.vehicule.id,
-                    'modele_name': record.model_name,
-                    'marketing_text_fr': record.marketing_text_fr,
-                    'photo_link': record.photo_link,
-                    'photo_link_nd': record.photo_link_nd,
-                    'nombre_deplace': record.nombre_deplace,
-                    'nombre_de_porte': record.nombre_de_porte,
-                    'nombre_de_bagage': record.nombre_de_bagage,
-                    'boite_vitesse': record.boite_vitesse,
-                    'carburant': record.carburant,
-                    'age_min': record.age_min,
-                    'nbr_jour_reservation': record.nbr_jour_reservation,
-                    'total_reduit_euro': record.total_reduit_euro,
+                    'can_cancel': can_cancel,
+                    "can_midify":can_midify,
+                    "can_modify_return":can_modify_return,
+                    'id': ma_reservation.id,
+                    'reference': ma_reservation.name,
+                    'client_nom': ma_reservation.nom,
+                    'client_perenom': ma_reservation.prenom,
+                    'lieu_depart': ma_reservation.lieu_depart.id,
+                    'lieu_retour': ma_reservation.lieu_retour.id,
+                    'date_depart': ma_reservation.date_heure_debut,
+                    'date_retour': ma_reservation.date_heure_fin,
+                    'mobile': ma_reservation.numero_lieu,
+                    'status': ma_reservation.status,
+                    'opt_payment': ma_reservation.opt_payment_name,
+                    'opt_payment_price': ma_reservation.opt_payment_price * taux_change if ma_reservation.opt_payment_price else 0,
+                    'opt_payment_total': ma_reservation.opt_payment_total * taux_change if ma_reservation.opt_payment_total else 0,
+                    'opt_klm': ma_reservation.opt_klm_name ,
+                    'opt_kilometrage': ma_reservation.opt_kilometrage,
+                    'opt_klm_price': ma_reservation.opt_klm_price * taux_change if ma_reservation.opt_klm_price else 0,
+                    'opt_klm_total': ma_reservation.opt_klm_total * taux_change if ma_reservation.opt_klm_total else 0,
+                    'opt_protection': ma_reservation.opt_protection_name,
+                    'opt_protection_caution': ma_reservation.opt_protection_caution * taux_change if ma_reservation.opt_protection_caution else 0,
+                    'opt_protection_price': ma_reservation.opt_protection_price * taux_change if ma_reservation.opt_protection_price else 0,
+                    'opt_protection_total': ma_reservation.opt_protection_total * taux_change if ma_reservation.opt_protection_total else 0,
+                    'opt_nd_driver': ma_reservation.opt_nd_driver_name,
+                    'opt_nd_driver_price': ma_reservation.opt_nd_driver_price * taux_change if ma_reservation.opt_nd_driver_price else 0,
+                    'opt_nd_driver_total': ma_reservation.opt_nd_driver_total * taux_change if ma_reservation.opt_nd_driver_total else 0,
+                    'opt_plein_carburant': ma_reservation.opt_plein_carburant_name,
+                    'opt_plein_carburant_price': ma_reservation.opt_plein_carburant_prix * taux_change if ma_reservation.opt_plein_carburant_prix else 0,
+                    'opt_plein_carburant_total': ma_reservation.opt_plein_carburant_total * taux_change if ma_reservation.opt_plein_carburant_total else 0,
+                    'opt_siege_a': ma_reservation.opt_siege_a_name,
+                    'opt_siege_a_price': ma_reservation.opt_siege_a_prix * taux_change if ma_reservation.opt_siege_a_prix else 0,
+                    'opt_siege_a_total': ma_reservation.opt_siege_a_total * taux_change if ma_reservation.opt_siege_a_total else 0,
+                    'opt_siege_b': ma_reservation.opt_siege_b_name,
+                    'opt_siege_b_price': ma_reservation.opt_siege_b_prix * taux_change if ma_reservation.opt_siege_b_prix else 0,
+                    'opt_siege_b_total': ma_reservation.opt_siege_b_total * taux_change if ma_reservation.opt_siege_b_total else 0,
+                    'opt_siege_c': ma_reservation.opt_siege_c_name,
+                    'opt_siege_c_price': ma_reservation.opt_siege_c_prix * taux_change if ma_reservation.opt_siege_c_prix else 0,
+                    'opt_siege_c_total': ma_reservation.opt_siege_c_total * taux_change if ma_reservation.opt_siege_c_total else 0,
+                    'vehicule_id': ma_reservation.vehicule.id,
+                    'modele_name': ma_reservation.model_name,
+                    'marketing_text_fr': ma_reservation.marketing_text_fr,
+                    'photo_link': ma_reservation.photo_link,
+                    'photo_link_nd': ma_reservation.photo_link_nd,
+                    'nombre_deplace': ma_reservation.nombre_deplace,
+                    'nombre_de_porte': ma_reservation.nombre_de_porte,
+                    'nombre_de_bagage': ma_reservation.nombre_de_bagage,
+                    'boite_vitesse': ma_reservation.boite_vitesse,
+                    'carburant': ma_reservation.carburant,
+                    'age_min': ma_reservation.age_min,
+                    'nbr_jour_reservation': ma_reservation.nbr_jour_reservation,
+                    'total_reduit_euro': ma_reservation.total_reduit_euro * taux_change if ma_reservation.total_reduit_euro else 0,
                 })
+        else :  
+            if ma_reservation :
+                result.append({
+                    'can_cancel': can_cancel,
+                    "can_midify":can_midify,
+                    "can_modify_return":can_modify_return,
+                    'id':ma_reservation.id,
+                    'reference': ma_reservation.name,
+                    'client_nom': ma_reservation.nom,
+                    'client_perenom': ma_reservation.prenom,
+                    'lieu_depart': ma_reservation.lieu_depart.id,
+                    'lieu_retour': ma_reservation.lieu_retour.id,
+                    'date_depart': ma_reservation.date_heure_debut,
+                    'date_retour': ma_reservation.date_heure_fin,
+                    'mobile': ma_reservation.numero_lieu,
+                    'status': ma_reservation.status,
+                    'opt_payment': ma_reservation.opt_payment_name,
+                    'opt_payment_price': ma_reservation.opt_payment_price,
+                    'opt_payment_total': ma_reservation.opt_payment_total,
+                    'opt_klm': ma_reservation.opt_klm_name ,
+                    'opt_kilometrage': ma_reservation.opt_kilometrage,
+                    'opt_klm_price': ma_reservation.opt_klm_price,
+                    'opt_klm_total': ma_reservation.opt_klm_total,
+                    'opt_protection': ma_reservation.opt_protection_name,
+                    'opt_protection_caution': ma_reservation.opt_protection_caution,
+                    'opt_protection_price': ma_reservation.opt_protection_price,
+                    'opt_protection_total': ma_reservation.opt_protection_total,
+                    'opt_nd_driver': ma_reservation.opt_nd_driver_name,
+                    'opt_nd_driver_price': ma_reservation.opt_nd_driver_price,
+                    'opt_nd_driver_total': ma_reservation.opt_nd_driver_total,
+                    'opt_plein_carburant': ma_reservation.opt_plein_carburant_name,
+                    'opt_plein_carburant_price': ma_reservation.opt_plein_carburant_prix,
+                    'opt_plein_carburant_total': ma_reservation.opt_plein_carburant_total,
+                    'opt_siege_a': ma_reservation.opt_siege_a_name,
+                    'opt_siege_a_price': ma_reservation.opt_siege_a_prix,
+                    'opt_siege_a_total': ma_reservation.opt_siege_a_total,
+                    'opt_siege_b': ma_reservation.opt_siege_b_name,
+                    'opt_siege_b_price': ma_reservation.opt_siege_b_prix,
+                    'opt_siege_b_total': ma_reservation.opt_siege_b_total,
+                    'opt_siege_c': ma_reservation.opt_siege_c_name,
+                    'opt_siege_c_price': ma_reservation.opt_siege_c_prix,
+                    'opt_siege_c_total': ma_reservation.opt_siege_c_total,
+                    'vehicule_id': ma_reservation.vehicule.id,
+                    'modele_name': ma_reservation.model_name,
+                    'marketing_text_fr': ma_reservation.marketing_text_fr,
+                    'photo_link': ma_reservation.photo_link,
+                    'photo_link_nd': ma_reservation.photo_link_nd,
+                    'nombre_deplace': ma_reservation.nombre_deplace,
+                    'nombre_de_porte': ma_reservation.nombre_de_porte,
+                    'nombre_de_bagage': ma_reservation.nombre_de_bagage,
+                    'boite_vitesse': ma_reservation.boite_vitesse,
+                    'carburant': ma_reservation.carburant,
+                    'age_min': ma_reservation.age_min,
+                    'nbr_jour_reservation': ma_reservation.nbr_jour_reservation,
+                    'total_reduit_euro': ma_reservation.total_reduit_euro,
+                })  
 
         return result
 
