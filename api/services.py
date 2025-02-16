@@ -2187,7 +2187,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     percentage = client_pr
                     total_red = (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
-                elif promotion_value > int(client_pr):
+                elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
                     promotion = "yes"
                     percentage = promotion_value
                     total_red = (100 - percentage) * total_brut / 100
