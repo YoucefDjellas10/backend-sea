@@ -2014,6 +2014,75 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             model_five = promotions.model_five
         else :
             model_five = None
+    elif promotions and promotions.tout_modele == "non" and promotions.tout_zone == "non":
+        if lieu_depart.zone == promotions.zone_one :
+            promotion_value = promotions.reduction
+            if promotions.model_one :
+                model_one = promotions.model_one
+            else :
+                model_one = None
+            if promotions.model_two :
+                model_two = promotions.model_two
+            else :
+                model_two = None
+            if promotions.model_three :
+                model_three = promotions.model_three
+            else :
+                model_three = None
+            if promotions.model_four :
+                model_four = promotions.model_four
+            else :
+                model_four = None
+            if promotions.model_five :
+                model_five = promotions.model_five
+            else :
+                model_five = None
+        elif lieu_depart.zone == promotions.zone_two :
+            promotion_value = promotions.reduction
+            if promotions.model_one :
+                model_one = promotions.model_one
+            else :
+                model_one = None
+            if promotions.model_two :
+                model_two = promotions.model_two
+            else :
+                model_two = None
+            if promotions.model_three :
+                model_three = promotions.model_three
+            else :
+                model_three = None
+            if promotions.model_four :
+                model_four = promotions.model_four
+            else :
+                model_four = None
+            if promotions.model_five :
+                model_five = promotions.model_five
+            else :
+                model_five = None
+        elif lieu_depart.zone == promotions.zone_three :
+            promotion_value = promotions.reduction
+            if promotions.model_one :
+                model_one = promotions.model_one
+            else :
+                model_one = None
+            if promotions.model_two :
+                model_two = promotions.model_two
+            else :
+                model_two = None
+            if promotions.model_three :
+                model_three = promotions.model_three
+            else :
+                model_three = None
+            if promotions.model_four :
+                model_four = promotions.model_four
+            else :
+                model_four = None
+            if promotions.model_five :
+                model_five = promotions.model_five
+            else :
+                model_five = None
+        else :
+            promotion_value = 0
 
     if country_code == "DZ":
         if client_id:
@@ -2149,7 +2218,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         modeles_ajoutes = set()
         total_brut = 0
-
 
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
@@ -2587,7 +2655,32 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     percentage = client_pr
                     total_red = (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
-                elif promotion_value >int(client_pr):
+                elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
+                    promotion = "yes"
+                    percentage = promotion_value
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif model_one is not None and model_one.id == vehicle.modele.id :
+                    promotion = "yes"
+                    percentage = promotion_value
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif model_two is not None and model_two.id == vehicle.modele.id :
+                    promotion = "yes"
+                    percentage = promotion_value
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif model_three is not None and model_three.id == vehicle.modele.id :
+                    promotion = "yes"
+                    percentage = promotion_value
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif model_four is not None and model_four.id == vehicle.modele.id :
+                    promotion = "yes"
+                    percentage = promotion_value
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif model_five is not None and model_five.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
                     total_red = (100 - percentage) * total_brut / 100
@@ -2596,7 +2689,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     promotion = "no"
                     percentage = 0
                     total_red = total_brut
-                    prix_unitaire_red = prix_unitaire 
+                    prix_unitaire_red = prix_unitaire
 
                 if client_pr is not None and int(client_sold) > 0: 
                     total_brut = total_brut - client_sold
