@@ -2529,9 +2529,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     prix_unitaire = total_brut / total_days
                 
                 modeles_ajoutes.add(vehicle.modele.id)
-                if client_pr is not None and int(client_pr) > 0 :
+                if int(client_pr) > promotion_value :
                     promotion = "yes"
                     percentage = client_pr
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif promotion_value >int(client_pr):
+                    promotion = "yes"
+                    percentage = promotion_value
                     total_red = (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
                 else :
