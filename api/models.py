@@ -856,6 +856,12 @@ class Promotion(models.Model):
         verbose_name="Active",
         default=False
     )
+    tout_zone = models.CharField(
+        max_length=3,
+        choices=[('oui', 'Oui'), ('non', 'Non')],
+        default='oui',
+        verbose_name="Appliquer sur tout les modèles"
+    )
 
     class Meta:
         db_table = 'promotion'

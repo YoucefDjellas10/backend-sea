@@ -1942,6 +1942,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     try:
         date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
         date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
+        today = datetime.today().date()
     except ValueError:
         return {"message": "Invalid date format"}
     
@@ -1966,7 +1967,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         return {"message": "Zone introuvable pour ce lieu de départ"}
 
     result = []
-    free_options = []
     client_pr = 0 
     client_sold = 0
     total = 0
@@ -1976,6 +1976,16 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     prix_jour = 0
     promotion_models = []
     promotion_zone = []
+    promotions = Promotion.objects.filter(
+        debut_visibilite__lte=today,
+        fin_visibilite__gte=today,
+        date_debut__lte=date_depart,
+        date_fin__gte=date_retour,
+        active_passive=True
+    ).first()
+    promotion_value = 0
+    if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
+        promotion_value = promotions.reduction
 
     if country_code == "DZ":
         if client_id:
@@ -2144,9 +2154,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     prix_unitaire = total_brut / total_days
                 
                 modeles_ajoutes.add(vehicle.modele.id)
-                if int(client_pr) > 0 :
+                if int(client_pr) > promotion_value :
                     promotion = "yes"
                     percentage = client_pr
+                    total_red = (100 - percentage) * total_brut / 100
+                    prix_unitaire_red = total_red / total_days
+                elif promotion_value > int(client_pr):
+                    promotion = "yes"
+                    percentage = promotion_value
                     total_red = (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
                 else :
