@@ -1993,36 +1993,27 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             zone_promo = "non"
             promotion_value = 0
     elif promotions and promotions.tout_modele == "non" and promotions.tout_zone == "oui":
+        promotion_value = promotions.reduction
         if promotions.model_one :
             model_one = promotions.model_one
-            promotion_value = promotions.reduction
         else :
             model_one = None
-            promotion_value = 0
         if promotions.model_two :
             model_two = promotions.model_two
-            promotion_value = promotions.reduction
         else :
             model_two = None
-            promotion_value = 0
         if promotions.model_three :
             model_three = promotions.model_three
-            promotion_value = promotions.reduction
         else :
             model_three = None
-            promotion_value = 0
         if promotions.model_four :
             model_four = promotions.model_four
-            promotion_value = promotions.reduction
         else :
             model_four = None
-            promotion_value = 0
         if promotions.model_five :
             model_five = promotions.model_five
-            promotion_value = promotions.reduction
         else :
             model_five = None
-            promotion_value = 0
 
     if country_code == "DZ":
         if client_id:
