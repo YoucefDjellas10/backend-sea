@@ -1992,10 +1992,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         promotion_value = promotions.reduction
     elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
         if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one :
-            zone_promo = "oui"
             promotion_value = promotions.reduction
         else :
-            zone_promo = "non"
             promotion_value = 0
     elif promotions and promotions.tout_modele == "non" and promotions.tout_zone == "oui":
         promotion_value = promotions.reduction
