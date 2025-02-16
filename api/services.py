@@ -1983,6 +1983,11 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         active_passive=True
     ).first()
     promotion_value = 0
+    model_one = None
+    model_two = None
+    model_three = None
+    model_four = None
+    model_five = None
     if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
         promotion_value = promotions.reduction
     elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
