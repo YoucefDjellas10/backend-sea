@@ -848,10 +848,7 @@ class Promotion(models.Model):
         'Zone',
         on_delete=models.SET_NULL,
         db_column='zone',
-        verbose_name="Zone",
-        null=True,
-        blank=True
-    )
+        verbose_name="Zone", null=True, blank=True)
     active_passive = models.BooleanField(
         verbose_name="Active",
         default=False
@@ -862,6 +859,15 @@ class Promotion(models.Model):
         default='oui',
         verbose_name="Appliquer sur tout les modèles"
     )
+    model_one = models.ForeignKey(Modele, on_delete=models.SET_NULL,related_name='model_one', db_column='model_one', verbose_name="Modèle", null=True, blank=True)
+    model_two = models.ForeignKey(Modele, on_delete=models.SET_NULL,related_name='model_two', db_column='model_two', verbose_name="Modèle", null=True, blank=True)
+    model_three = models.ForeignKey(Modele, on_delete=models.SET_NULL,related_name='model_three', db_column='model_three', verbose_name="Modèle", null=True, blank=True)
+    model_four = models.ForeignKey(Modele, on_delete=models.SET_NULL,related_name='model_four', db_column='model_four', verbose_name="Modèle", null=True, blank=True)
+    model_five = models.ForeignKey(Modele, on_delete=models.SET_NULL,related_name='model_five', db_column='model_five', verbose_name="Modèle", null=True, blank=True)
+    zone_one = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_one', db_column='zone_one', verbose_name="Modèle", null=True, blank=True)
+    zone_two = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_two', db_column='zone_two', verbose_name="Modèle", null=True, blank=True)
+    zone_three = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_three', db_column='zone_three', verbose_name="Modèle", null=True, blank=True)
+
 
     class Meta:
         db_table = 'promotion'

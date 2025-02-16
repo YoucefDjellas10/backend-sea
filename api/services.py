@@ -1974,8 +1974,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     prix_unitaire = 0
     prix_unitaire_red = 0
     prix_jour = 0
-    promotion_models = []
-    promotion_zone = []
+    zone_promo = "non"
     promotions = Promotion.objects.filter(
         debut_visibilite__lte=today,
         fin_visibilite__gte=today,
@@ -1986,7 +1985,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     promotion_value = 0
     if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
         promotion_value = promotions.reduction
-
+    elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
+        if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one :
+            zone_promo = "oui"
+            promotion_value = promotions.reduction
+        else :
+            zone_promo = "non"
+            promotion_value = 0
+        
     if country_code == "DZ":
         if client_id:
             client_status = check_client(client_id)  
