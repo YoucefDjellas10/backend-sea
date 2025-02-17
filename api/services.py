@@ -2104,9 +2104,9 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             records = Modele.objects.order_by("?")[:3]
             if len(records) == 3:
                 model_one, model_two, model_three = records
-                print('model_one id : ',model_one.id)
-                print('model_two id : ',model_two.id)
-                print('model_three id : ',model_three.id)
+                print('model_one id : ',model_one.name)
+                print('model_two id : ',model_two.name)
+                print('model_three id : ',model_three.name)
             else:
                 model_one = records[0] if len(records) > 0 else None
                 model_two = records[1] if len(records) > 1 else None
@@ -2114,9 +2114,12 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         elif promotions.nbr_model == 4:
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:4]
-            print('records : ',records)
             if len(records) == 4:
                 model_one, model_two, model_three, model_four = records
+                print('model_one id : ',model_one.name)
+                print('model_two id : ',model_two.name)
+                print('model_three id : ',model_three.name)
+                print('model_four id : ',model_four.name)
             else:
                 model_one = records[0] if len(records) > 0 else None
                 model_two = records[1] if len(records) > 1 else None
@@ -2125,9 +2128,13 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         elif promotions.nbr_model == 5:
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:5]
-            print('records : ',records)
             if len(records) == 5:
                 model_one, model_two, model_three, model_four, model_five = records
+                print('model_one id : ',model_one.name)
+                print('model_two id : ',model_two.name)
+                print('model_three id : ',model_three.name)
+                print('model_four id : ',model_four.name)
+                print('model_five id : ',model_five.name)
             else:
                 model_one = records[0] if len(records) > 0 else None
                 model_two = records[1] if len(records) > 1 else None
