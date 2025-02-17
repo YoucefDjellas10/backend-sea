@@ -2095,8 +2095,12 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:2]
             print('records : ',records)
+            print('model_one id : ',records)
+            print('model_two id : ',records)
             if len(records) == 2:
                 model_one, model_two = records
+                print('model_one id : ',model_one.id)
+                print('model_two id : ',model_two.id)
             else:
                 model_one = records[0] if records else None
                 model_two = None
@@ -2132,7 +2136,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 model_two = records[1] if len(records) > 1 else None
                 model_three = records[2] if len(records) > 2 else None
                 model_four = records[3] if len(records) > 3 else None
-                model_five = records[3] if len(records) > 3 else None
+                model_five = records[4] if len(records) > 3 else None
         else :
             model_one = None
             model_two = None
