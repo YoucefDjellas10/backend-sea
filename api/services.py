@@ -1069,7 +1069,7 @@ def search_option_dzd(code, total_days):
         return {
             'name': option.name,
             'prix': prix * montant_taux,
-            'total': prix * float(total_days) * montant_taux if option.type_tarif == 'jour' else prix ,
+            'total': prix * float(total_days) * montant_taux if option.type_tarif == 'jour' else prix * montant_taux,
             'categorie': option.categorie.id if option.categorie else None,
             'limit': limit_Klm * total_days,
             'penalite': penalite_Klm * montant_taux,
@@ -1399,7 +1399,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             total += float(supplement.montant) * taux_change if supplement else 0
 
         frais_dossier = search_option_dzd("FRAIS_DOSSIER", total_days)
-        total += frais_dossier["total"] * taux_change
+        total += frais_dossier["total"] 
 
         paiement_anticipe = search_option_dzd("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
