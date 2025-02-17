@@ -1068,6 +1068,7 @@ def search_option_dzd(code, total_days):
 
         return {
             'name': option.name,
+            'type_tarif': option.type_tarif,
             'prix': prix * montant_taux,
             'total': prix * float(total_days) * montant_taux if option.type_tarif == 'jour' else prix * montant_taux,
             'categorie': option.categorie.id if option.categorie else None,
@@ -1077,7 +1078,7 @@ def search_option_dzd(code, total_days):
         }
     
     except Options.DoesNotExist:
-        return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0} 
+        return {'name': None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0} 
     
 def free_options_f(client_id):
     free_options = []
@@ -1403,11 +1404,13 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         paiement_anticipe = search_option_dzd("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
+        opt_payment_type_tarif = paiement_anticipe["type_tarif"]
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
         klm_illimite = search_option_dzd("KLM_ILLIMITED", total_days)
         opt_klm_name = klm_illimite["name"]
+        opt_klm_type_tarif = klm_illimite["type_tarif"]
         opt_klm_unit = klm_illimite["prix"]
         opt_klm_total = klm_illimite["total"]
         opt_klm_limit = klm_illimite["limit"]
@@ -1415,6 +1418,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         klm_illimite_b = search_option_dzd("KLM_ILLIMITED_B", total_days)
         opt_klm_b_name = klm_illimite_b["name"]
+        opt_klm_b_type_tarif = klm_illimite_b["type_tarif"]
         opt_klm_b_unit = klm_illimite_b["prix"]
         opt_klm_b_total = klm_illimite_b["total"]
         opt_klm_b_limit = klm_illimite_b["limit"]
@@ -1422,6 +1426,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         klm_illimite_c = search_option_dzd("KLM_ILLIMITED_C", total_days)
         opt_klm_c_name = klm_illimite_c["name"]
+        opt_klm_c_type_tarif = klm_illimite_c["type_tarif"]
         opt_klm_c_unit = klm_illimite_c["prix"]
         opt_klm_c_total = klm_illimite_c["total"]
         opt_klm_c_limit = klm_illimite_c["limit"]
@@ -1429,31 +1434,37 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         nd_driver = search_option_dzd("ND_DRIVER", total_days)
         opt_nd_driver_name = nd_driver["name"]
+        opt_nd_driver_type_tarif = nd_driver["type_tarif"]
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
         plein_carburant = search_option_dzd("P_CARBURANT", total_days)
         opt_carburant_name = plein_carburant["name"]
+        opt_carburant_type_tarif = plein_carburant["type_tarif"]
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
         siege_a = search_option_dzd("S_BEBE_5", total_days)
         opt_siege_a_name = siege_a["name"]
+        opt_siege_a_type_tarif = siege_a["type_tarif"]
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
         siege_b = search_option_dzd("S_BEBE_13", total_days)
         opt_siege_b_name = siege_b["name"]
+        opt_siege_b_type_tarif = siege_b["type_tarif"]
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
         siege_c = search_option_dzd("S_BEBE_18", total_days)
         opt_siege_c_name = siege_c["name"]
+        opt_siege_c_type_tarif = siege_c["type_tarif"]
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
     
         base_a = search_option_dzd("BASE_P_1", total_days)
         base_a_name = base_a["name"]
+        base_a_type_tarif = base_a["type_tarif"]
         base_a_unit = base_a["prix"]
         base_a_total = base_a["total"]
         base_a_category = base_a["categorie"]
@@ -1461,6 +1472,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         base_b = search_option_dzd("BASE_P_2", total_days)
         base_b_name = base_b["name"]
+        base_b_type_tarif = base_b["type_tarif"]
         base_b_unit = base_b["prix"]
         base_b_total = base_b["total"]
         base_b_category = base_b["categorie"]
@@ -1468,6 +1480,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         base_c = search_option_dzd("BASE_P_3", total_days)
         base_c_name = base_c["name"]
+        base_c_type_tarif = base_c["type_tarif"]
         base_c_unit = base_c["prix"]
         base_c_total = base_c["total"]
         base_c_category = base_c["categorie"]
@@ -1475,36 +1488,42 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         standart_a = search_option_dzd("STANDART_P_1", total_days)
         standart_a_name = standart_a["name"]
+        standart_a_type_tarif = standart_a["type_tarif"]
         standart_a_unit = standart_a["prix"]
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
         standart_b = search_option_dzd("STANDART_P_2", total_days)
         standart_b_name = standart_b["name"]
+        standart_b_type_tarif = standart_b["type_tarif"]
         standart_b_unit = standart_b["prix"]
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
         
         standart_c = search_option_dzd("STANDART_P_3", total_days)
         standart_c_name = standart_c["name"]
+        standart_c_type_tarif = standart_c["type_tarif"]
         standart_c_unit = standart_c["prix"]
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
         max_a = search_option_dzd("MAX_P_1", total_days)
         max_a_name = max_a["name"]
+        max_a_type_tarif = max_a["type_tarif"]
         max_a_unit = max_a["prix"]
         max_a_total = max_a["total"]
         max_a_caution = max_a["caution"]
 
         max_b = search_option_dzd("MAX_P_2", total_days)
         max_b_name = max_b["name"]
+        max_b_type_tarif = max_b["type_tarif"]
         max_b_unit = max_b["prix"]
         max_b_total = max_b["total"]
         max_b_caution = max_b["caution"]
         
         max_c = search_option_dzd("MAX_P_3", total_days)
         max_c_name = max_c["name"]
+        max_c_type_tarif = max_c["type_tarif"]
         max_c_unit = max_c["prix"]
         max_c_total = max_c["total"]
         max_c_caution = max_c["caution"]
@@ -1603,37 +1622,47 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_name ,
+                        "klm_type_tarif": opt_klm_type_tarif ,
                         "klm_price": opt_klm_unit,
                         "klm_total": opt_klm_total,
                         "klm_limit":opt_klm_limit,
                         "klm_penalite":opt_klm_penalite,
                         "carburant_name": opt_carburant_name,
+                        "carburant_type_tarif": opt_carburant_type_tarif,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
                         "nd_driver_name": opt_nd_driver_name,
+                        "nd_driver_type_tarif": opt_nd_driver_type_tarif,
                         "nd_driver_price": opt_nd_driver_unit,
                         "nd_driver_total": opt_nd_driver_total,
                         "paiement_name": opt_payment_name,
+                        "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
+                        "sb_5_type_tarif": opt_siege_a_type_tarif,
                         "sb_5_price": opt_siege_a_unit,
                         "sb_5_total": opt_siege_a_total,
                         "sb_13_name": opt_siege_b_name,
+                        "sb_13_type_tarif": opt_siege_b_type_tarif,
                         "sb_13_price": opt_siege_b_unit,
                         "sb_13_total": opt_siege_b_total,
                         "sb_18_name": opt_siege_c_name,
+                        "sb_18_type_tarif": opt_siege_c_type_tarif,
                         "sb_18_price": opt_siege_c_unit,
                         "sb_18_total": opt_siege_c_total,
                         "base_protection_name": base_a_name,
+                        "base_protection_type_tarif": base_a_type_tarif,
                         "base_protection_price": base_a_unit,
                         "base_protection_total": base_a_total,
                         "base_protection_caution": base_a_caution,
                         "standart_protection_name": standart_a_name,
+                        "standart_protection_type_tarif": standart_a_type_tarif,
                         "standart_protection_price": standart_a_unit,
                         "standart_protection_total": standart_a_total,
                         "standart_protection_caution": standart_a_caution,
                         "max_protection_name": max_a_name,
+                        "max_protection_name": max_a_type_tarif,
                         "max_protection_price": max_a_unit,
                         "max_protection_total": max_a_total,
                         "max_protection_caution": max_a_caution,
@@ -1666,37 +1695,47 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_b_name ,
+                        "klm_type_tarif": opt_klm_b_type_tarif ,
                         "klm_price": opt_klm_b_unit,
                         "klm_total": opt_klm_b_total,
                         "klm_limit":opt_klm_b_limit,
                         "klm_penalite":opt_klm_b_penalite,
                         "carburant_name": opt_carburant_name,
+                        "carburant_type_tarif": opt_carburant_type_tarif,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
                         "nd_driver_name": opt_nd_driver_name,
+                        "nd_driver_type_tarif": opt_nd_driver_type_tarif,
                         "nd_driver_price": opt_nd_driver_unit,
                         "nd_driver_total": opt_nd_driver_total,
                         "paiement_name": opt_payment_name,
+                        "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
+                        "sb_5_type_tarif": opt_siege_a_type_tarif,
                         "sb_5_price": opt_siege_a_unit,
                         "sb_5_total": opt_siege_a_total,
                         "sb_13_name": opt_siege_b_name,
+                        "sb_13_type_tarif": opt_siege_b_type_tarif,
                         "sb_13_price": opt_siege_b_unit,
                         "sb_13_total": opt_siege_b_total,
                         "sb_18_name": opt_siege_c_name,
+                        "sb_18_type_tarif": opt_siege_c_type_tarif,
                         "sb_18_price": opt_siege_c_unit,
                         "sb_18_total": opt_siege_c_total,
                         "base_protection_name": base_b_name,
+                        "base_protection_type_tarif": base_b_type_tarif,
                         "base_protection_price": base_b_unit,
                         "base_protection_total": base_b_total,
                         "base_protection_caution": base_b_caution,
                         "standart_protection_name": standart_b_name,
+                        "standart_protection_type_tarif": standart_b_type_tarif,
                         "standart_protection_price": standart_b_unit,
                         "standart_protection_total": standart_b_total,
                         "standart_protection_caution": standart_b_caution,
                         "max_protection_name": max_b_name,
+                        "max_protection_name": max_b_type_tarif,
                         "max_protection_price": max_b_unit,
                         "max_protection_total": max_b_total,
                         "max_protection_caution": max_b_caution,
@@ -1728,37 +1767,47 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_c_name ,
+                        "klm_type_tarif": opt_klm_c_type_tarif ,
                         "klm_price": opt_klm_c_unit,
                         "klm_total": opt_klm_c_total,
                         "klm_limit":opt_klm_c_limit,
                         "klm_penalite":opt_klm_c_penalite,
                         "carburant_name": opt_carburant_name,
+                        "carburant_type_tarif": opt_carburant_type_tarif,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
                         "nd_driver_name": opt_nd_driver_name,
+                        "nd_driver_type_tarif": opt_nd_driver_type_tarif,
                         "nd_driver_price": opt_nd_driver_unit,
                         "nd_driver_total": opt_nd_driver_total,
                         "paiement_name": opt_payment_name,
+                        "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
+                        "sb_5_type_tarif": opt_siege_a_type_tarif,
                         "sb_5_price": opt_siege_a_unit,
                         "sb_5_total": opt_siege_a_total,
                         "sb_13_name": opt_siege_b_name,
+                        "sb_13_type_tarif": opt_siege_b_type_tarif,
                         "sb_13_price": opt_siege_b_unit,
                         "sb_13_total": opt_siege_b_total,
                         "sb_18_name": opt_siege_c_name,
+                        "sb_18_type_tarif": opt_siege_c_type_tarif,
                         "sb_18_price": opt_siege_c_unit,
                         "sb_18_total": opt_siege_c_total,
                         "base_protection_name": base_c_name,
+                        "base_protection_type_tarif": base_c_type_tarif,
                         "base_protection_price": base_c_unit,
                         "base_protection_total": base_c_total,
                         "base_protection_caution": base_c_caution,
                         "standart_protection_name": standart_c_name,
+                        "standart_protection_type_tarif": standart_c_type_tarif,
                         "standart_protection_price": standart_c_unit,
                         "standart_protection_total": standart_c_total,
                         "standart_protection_caution": standart_c_caution,
                         "max_protection_name": max_c_name,
+                        "max_protection_name": max_c_type_tarif,
                         "max_protection_price": max_c_unit,
                         "max_protection_total": max_c_total,
                         "max_protection_caution": max_c_caution,
@@ -1819,25 +1868,29 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         paiement_anticipe = search_option("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
+        opt_payment_type_tarif = paiement_anticipe["type_tarif"]
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
         klm_illimite = search_option("KLM_ILLIMITED", total_days)
         opt_klm_name = klm_illimite["name"]
+        opt_klm_type_tarif = klm_illimite["type_tarif"]
         opt_klm_unit = klm_illimite["prix"]
         opt_klm_total = klm_illimite["total"]
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
-               
-        klm_illimite_b = search_option_dzd("KLM_ILLIMITED_B", total_days)
+        
+        klm_illimite_b = search_option("KLM_ILLIMITED_B", total_days)
         opt_klm_b_name = klm_illimite_b["name"]
+        opt_klm_b_type_tarif = klm_illimite_b["type_tarif"]
         opt_klm_b_unit = klm_illimite_b["prix"]
         opt_klm_b_total = klm_illimite_b["total"]
         opt_klm_b_limit = klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
-        klm_illimite_c = search_option_dzd("KLM_ILLIMITED_C", total_days)
+        klm_illimite_c = search_option("KLM_ILLIMITED_C", total_days)
         opt_klm_c_name = klm_illimite_c["name"]
+        opt_klm_c_type_tarif = klm_illimite_c["type_tarif"]
         opt_klm_c_unit = klm_illimite_c["prix"]
         opt_klm_c_total = klm_illimite_c["total"]
         opt_klm_c_limit = klm_illimite_c["limit"]
@@ -1845,31 +1898,37 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         nd_driver = search_option("ND_DRIVER", total_days)
         opt_nd_driver_name = nd_driver["name"]
+        opt_nd_driver_type_tarif = nd_driver["type_tarif"]
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
         plein_carburant = search_option("P_CARBURANT", total_days)
         opt_carburant_name = plein_carburant["name"]
+        opt_carburant_type_tarif = plein_carburant["type_tarif"]
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
         siege_a = search_option("S_BEBE_5", total_days)
         opt_siege_a_name = siege_a["name"]
+        opt_siege_a_type_tarif = siege_a["type_tarif"]
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
         siege_b = search_option("S_BEBE_13", total_days)
         opt_siege_b_name = siege_b["name"]
+        opt_siege_b_type_tarif = siege_b["type_tarif"]
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
         siege_c = search_option("S_BEBE_18", total_days)
         opt_siege_c_name = siege_c["name"]
+        opt_siege_c_type_tarif = siege_c["type_tarif"]
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
     
         base_a = search_option("BASE_P_1", total_days)
         base_a_name = base_a["name"]
+        base_a_type_tarif = base_a["type_tarif"]
         base_a_unit = base_a["prix"]
         base_a_total = base_a["total"]
         base_a_category = base_a["categorie"]
@@ -1877,6 +1936,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         base_b = search_option("BASE_P_2", total_days)
         base_b_name = base_b["name"]
+        base_b_type_tarif = base_b["type_tarif"]
         base_b_unit = base_b["prix"]
         base_b_total = base_b["total"]
         base_b_category = base_b["categorie"]
@@ -1884,6 +1944,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         base_c = search_option("BASE_P_3", total_days)
         base_c_name = base_c["name"]
+        base_c_type_tarif = base_c["type_tarif"]
         base_c_unit = base_c["prix"]
         base_c_total = base_c["total"]
         base_c_category = base_c["categorie"]
@@ -1891,36 +1952,42 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         standart_a = search_option("STANDART_P_1", total_days)
         standart_a_name = standart_a["name"]
+        standart_a_type_tarif = standart_a["type_tarif"]
         standart_a_unit = standart_a["prix"]
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
         standart_b = search_option("STANDART_P_2", total_days)
         standart_b_name = standart_b["name"]
+        standart_b_type_tarif = standart_b["type_tarif"]
         standart_b_unit = standart_b["prix"]
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
         
         standart_c = search_option("STANDART_P_3", total_days)
         standart_c_name = standart_c["name"]
+        standart_c_type_tarif = standart_c["type_tarif"]
         standart_c_unit = standart_c["prix"]
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
         max_a = search_option("MAX_P_1", total_days)
         max_a_name = max_a["name"]
+        max_a_type_tarif = max_a["type_tarif"]
         max_a_unit = max_a["prix"]
         max_a_total = max_a["total"]
         max_a_caution = max_a["caution"]
 
         max_b = search_option("MAX_P_2", total_days)
         max_b_name = max_b["name"]
+        max_b_type_tarif = max_b["type_tarif"]
         max_b_unit = max_b["prix"]
         max_b_total = max_b["total"]
         max_b_caution = max_b["caution"]
         
         max_c = search_option("MAX_P_3", total_days)
         max_c_name = max_c["name"]
+        max_c_type_tarif = max_c["type_tarif"]
         max_c_unit = max_c["prix"]
         max_c_total = max_c["total"]
         max_c_caution = max_c["caution"]
@@ -2008,10 +2075,11 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     total_brut = total_brut - prime_red
 
                 if vehicle.categorie.id == base_a_category :
+
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -2019,37 +2087,47 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_name ,
+                        "klm_type_tarif": opt_klm_type_tarif ,
                         "klm_price": opt_klm_unit,
                         "klm_total": opt_klm_total,
                         "klm_limit":opt_klm_limit,
                         "klm_penalite":opt_klm_penalite,
                         "carburant_name": opt_carburant_name,
+                        "carburant_type_tarif": opt_carburant_type_tarif,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
                         "nd_driver_name": opt_nd_driver_name,
+                        "nd_driver_type_tarif": opt_nd_driver_type_tarif,
                         "nd_driver_price": opt_nd_driver_unit,
                         "nd_driver_total": opt_nd_driver_total,
                         "paiement_name": opt_payment_name,
+                        "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
+                        "sb_5_type_tarif": opt_siege_a_type_tarif,
                         "sb_5_price": opt_siege_a_unit,
                         "sb_5_total": opt_siege_a_total,
                         "sb_13_name": opt_siege_b_name,
+                        "sb_13_type_tarif": opt_siege_b_type_tarif,
                         "sb_13_price": opt_siege_b_unit,
                         "sb_13_total": opt_siege_b_total,
                         "sb_18_name": opt_siege_c_name,
+                        "sb_18_type_tarif": opt_siege_c_type_tarif,
                         "sb_18_price": opt_siege_c_unit,
                         "sb_18_total": opt_siege_c_total,
                         "base_protection_name": base_a_name,
+                        "base_protection_type_tarif": base_a_type_tarif,
                         "base_protection_price": base_a_unit,
                         "base_protection_total": base_a_total,
                         "base_protection_caution": base_a_caution,
                         "standart_protection_name": standart_a_name,
+                        "standart_protection_type_tarif": standart_a_type_tarif,
                         "standart_protection_price": standart_a_unit,
                         "standart_protection_total": standart_a_total,
                         "standart_protection_caution": standart_a_caution,
                         "max_protection_name": max_a_name,
+                        "max_protection_name": max_a_type_tarif,
                         "max_protection_price": max_a_unit,
                         "max_protection_total": max_a_total,
                         "max_protection_caution": max_a_caution,
@@ -2074,7 +2152,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -2082,37 +2160,47 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_b_name ,
+                        "klm_type_tarif": opt_klm_b_type_tarif ,
                         "klm_price": opt_klm_b_unit,
                         "klm_total": opt_klm_b_total,
                         "klm_limit":opt_klm_b_limit,
                         "klm_penalite":opt_klm_b_penalite,
                         "carburant_name": opt_carburant_name,
+                        "carburant_type_tarif": opt_carburant_type_tarif,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
                         "nd_driver_name": opt_nd_driver_name,
+                        "nd_driver_type_tarif": opt_nd_driver_type_tarif,
                         "nd_driver_price": opt_nd_driver_unit,
                         "nd_driver_total": opt_nd_driver_total,
                         "paiement_name": opt_payment_name,
+                        "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
+                        "sb_5_type_tarif": opt_siege_a_type_tarif,
                         "sb_5_price": opt_siege_a_unit,
                         "sb_5_total": opt_siege_a_total,
                         "sb_13_name": opt_siege_b_name,
+                        "sb_13_type_tarif": opt_siege_b_type_tarif,
                         "sb_13_price": opt_siege_b_unit,
                         "sb_13_total": opt_siege_b_total,
                         "sb_18_name": opt_siege_c_name,
+                        "sb_18_type_tarif": opt_siege_c_type_tarif,
                         "sb_18_price": opt_siege_c_unit,
                         "sb_18_total": opt_siege_c_total,
                         "base_protection_name": base_b_name,
+                        "base_protection_type_tarif": base_b_type_tarif,
                         "base_protection_price": base_b_unit,
                         "base_protection_total": base_b_total,
                         "base_protection_caution": base_b_caution,
                         "standart_protection_name": standart_b_name,
+                        "standart_protection_type_tarif": standart_b_type_tarif,
                         "standart_protection_price": standart_b_unit,
                         "standart_protection_total": standart_b_total,
                         "standart_protection_caution": standart_b_caution,
                         "max_protection_name": max_b_name,
+                        "max_protection_name": max_b_type_tarif,
                         "max_protection_price": max_b_unit,
                         "max_protection_total": max_b_total,
                         "max_protection_caution": max_b_caution,
@@ -2136,7 +2224,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "EUR",
+                        "currency": "DZD",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -2144,37 +2232,47 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
                         "klm_name": opt_klm_c_name ,
+                        "klm_type_tarif": opt_klm_c_type_tarif ,
                         "klm_price": opt_klm_c_unit,
                         "klm_total": opt_klm_c_total,
                         "klm_limit":opt_klm_c_limit,
                         "klm_penalite":opt_klm_c_penalite,
                         "carburant_name": opt_carburant_name,
+                        "carburant_type_tarif": opt_carburant_type_tarif,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
                         "nd_driver_name": opt_nd_driver_name,
+                        "nd_driver_type_tarif": opt_nd_driver_type_tarif,
                         "nd_driver_price": opt_nd_driver_unit,
                         "nd_driver_total": opt_nd_driver_total,
                         "paiement_name": opt_payment_name,
+                        "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
+                        "sb_5_type_tarif": opt_siege_a_type_tarif,
                         "sb_5_price": opt_siege_a_unit,
                         "sb_5_total": opt_siege_a_total,
                         "sb_13_name": opt_siege_b_name,
+                        "sb_13_type_tarif": opt_siege_b_type_tarif,
                         "sb_13_price": opt_siege_b_unit,
                         "sb_13_total": opt_siege_b_total,
                         "sb_18_name": opt_siege_c_name,
+                        "sb_18_type_tarif": opt_siege_c_type_tarif,
                         "sb_18_price": opt_siege_c_unit,
                         "sb_18_total": opt_siege_c_total,
                         "base_protection_name": base_c_name,
+                        "base_protection_type_tarif": base_c_type_tarif,
                         "base_protection_price": base_c_unit,
                         "base_protection_total": base_c_total,
                         "base_protection_caution": base_c_caution,
                         "standart_protection_name": standart_c_name,
+                        "standart_protection_type_tarif": standart_c_type_tarif,
                         "standart_protection_price": standart_c_unit,
                         "standart_protection_total": standart_c_total,
                         "standart_protection_caution": standart_c_caution,
                         "max_protection_name": max_c_name,
+                        "max_protection_name": max_c_type_tarif,
                         "max_protection_price": max_c_unit,
                         "max_protection_total": max_c_total,
                         "max_protection_caution": max_c_caution,
