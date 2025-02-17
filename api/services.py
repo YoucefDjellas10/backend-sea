@@ -1403,6 +1403,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         paiement_anticipe = search_option_dzd("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
+        opt_payment_unit = paiement_anticipe["prix"]
+        opt_payment_total = paiement_anticipe["total"]
 
         klm_illimite = search_option_dzd("KLM_ILLIMITED", total_days)
         opt_klm_name = klm_illimite["name"]
@@ -1528,8 +1530,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             if tarif:
                 prix_jour = float(tarif.prix) * taux_change
                 total_brut = total + (prix_jour * total_days)
-                opt_payment_unit = prix_jour
-                opt_payment_total = prix_jour
                 for supplement in supplements:
 
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
@@ -1819,6 +1819,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         
         paiement_anticipe = search_option("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
+        opt_payment_unit = paiement_anticipe["prix"]
+        opt_payment_total = paiement_anticipe["total"]
 
         klm_illimite = search_option("KLM_ILLIMITED", total_days)
         opt_klm_name = klm_illimite["name"]
@@ -1944,8 +1946,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             if tarif:
                 prix_jour = tarif.prix  
                 total_brut = total + (prix_jour * total_days)
-                opt_payment_unit = prix_jour
-                opt_payment_total = prix_jour
+            
                 for supplement in supplements:
 
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
