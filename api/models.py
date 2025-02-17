@@ -653,7 +653,7 @@ class Options(models.Model):
     )
     type_tarif = models.CharField(
         max_length=10,
-        choices=[('jour', 'Par jour'), ('fixe', 'Montant fixe')],
+        choices=[('jour', 'Par jour'), ('fixe', 'Montant fixe'),('un_jour', 'prix un jour')],
         verbose_name="Type de Tarif",
         default='jour'
     )
