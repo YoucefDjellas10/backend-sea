@@ -1412,6 +1412,20 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_total = klm_illimite["total"]
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
+        
+        klm_illimite_b = search_option_dzd("KLM_ILLIMITED_B", total_days)
+        opt_klm_b_name = klm_illimite_b["name"]
+        opt_klm_b_unit = klm_illimite_b["prix"]
+        opt_klm_b_total = klm_illimite_b["total"]
+        opt_klm_b_limit = klm_illimite_b["limit"]
+        opt_klm_b_penalite = klm_illimite_b["penalite"]
+
+        klm_illimite_c = search_option_dzd("KLM_ILLIMITED_C", total_days)
+        opt_klm_c_name = klm_illimite_c["name"]
+        opt_klm_c_unit = klm_illimite_c["prix"]
+        opt_klm_c_total = klm_illimite_c["total"]
+        opt_klm_c_limit = klm_illimite_c["limit"]
+        opt_klm_c_penalite = klm_illimite_c["penalite"]
 
         nd_driver = search_option_dzd("ND_DRIVER", total_days)
         opt_nd_driver_name = nd_driver["name"]
@@ -1651,11 +1665,11 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
-                        "klm_name": opt_klm_name ,
-                        "klm_price": opt_klm_unit,
-                        "klm_total": opt_klm_total,
-                        "klm_limit":opt_klm_limit,
-                        "klm_penalite":opt_klm_penalite,
+                        "klm_name": opt_klm_b_name ,
+                        "klm_price": opt_klm_b_unit,
+                        "klm_total": opt_klm_b_total,
+                        "klm_limit":opt_klm_b_limit,
+                        "klm_penalite":opt_klm_b_penalite,
                         "carburant_name": opt_carburant_name,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
@@ -1713,11 +1727,11 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
-                        "klm_name": opt_klm_name ,
-                        "klm_price": opt_klm_unit,
-                        "klm_total": opt_klm_total,
-                        "klm_limit":opt_klm_limit,
-                        "klm_penalite":opt_klm_penalite,
+                        "klm_name": opt_klm_c_name ,
+                        "klm_price": opt_klm_c_unit,
+                        "klm_total": opt_klm_c_total,
+                        "klm_limit":opt_klm_c_limit,
+                        "klm_penalite":opt_klm_c_penalite,
                         "carburant_name": opt_carburant_name,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
@@ -1814,6 +1828,20 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_total = klm_illimite["total"]
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
+               
+        klm_illimite_b = search_option_dzd("KLM_ILLIMITED_B", total_days)
+        opt_klm_b_name = klm_illimite_b["name"]
+        opt_klm_b_unit = klm_illimite_b["prix"]
+        opt_klm_b_total = klm_illimite_b["total"]
+        opt_klm_b_limit = klm_illimite_b["limit"]
+        opt_klm_b_penalite = klm_illimite_b["penalite"]
+
+        klm_illimite_c = search_option_dzd("KLM_ILLIMITED_C", total_days)
+        opt_klm_c_name = klm_illimite_c["name"]
+        opt_klm_c_unit = klm_illimite_c["prix"]
+        opt_klm_c_total = klm_illimite_c["total"]
+        opt_klm_c_limit = klm_illimite_c["limit"]
+        opt_klm_c_penalite = klm_illimite_c["penalite"]
 
         nd_driver = search_option("ND_DRIVER", total_days)
         opt_nd_driver_name = nd_driver["name"]
@@ -2053,11 +2081,11 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
-                        "klm_name": opt_klm_name ,
-                        "klm_price": opt_klm_unit,
-                        "klm_total": opt_klm_total,
-                        "klm_limit":opt_klm_limit,
-                        "klm_penalite":opt_klm_penalite,
+                        "klm_name": opt_klm_b_name ,
+                        "klm_price": opt_klm_b_unit,
+                        "klm_total": opt_klm_b_total,
+                        "klm_limit":opt_klm_b_limit,
+                        "klm_penalite":opt_klm_b_penalite,
                         "carburant_name": opt_carburant_name,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
@@ -2115,11 +2143,11 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "last_total":total_red,
                         "prix": prix_unitaire,
                         "last_prix": prix_unitaire_red,
-                        "klm_name": opt_klm_name ,
-                        "klm_price": opt_klm_unit,
-                        "klm_total": opt_klm_total,
-                        "klm_limit":opt_klm_limit,
-                        "klm_penalite":opt_klm_penalite,
+                        "klm_name": opt_klm_c_name ,
+                        "klm_price": opt_klm_c_unit,
+                        "klm_total": opt_klm_c_total,
+                        "klm_limit":opt_klm_c_limit,
+                        "klm_penalite":opt_klm_c_penalite,
                         "carburant_name": opt_carburant_name,
                         "carburant_price": opt_carburant_unit,
                         "carburant_total": opt_carburant_total,
