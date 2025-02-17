@@ -867,7 +867,8 @@ class Promotion(models.Model):
     zone_one = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_one', db_column='zone_one', verbose_name="Modèle", null=True, blank=True)
     zone_two = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_two', db_column='zone_two', verbose_name="Modèle", null=True, blank=True)
     zone_three = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_three', db_column='zone_three', verbose_name="Modèle", null=True, blank=True)
-
+    nbr_model = models.IntegerField(null=True, blank=True)
+    nbr_zone = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'promotion'

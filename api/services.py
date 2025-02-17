@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
+import random
 
 def protections(ref, country_code):
     try:
@@ -2086,6 +2087,55 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 model_five = None
         else :
             promotion_value = 0
+    elif promotions and promotions.tout_modele == "aleatoire" and promotions.tout_zone == "oui":
+        if promotions.nbr_model == 1:
+            promotion_value = promotions.reductio
+            model_one = Modele.objects.order_by("?").first()
+        elif promotions.nbr_model == 2:
+            promotion_value = promotions.reduction
+            records = Modele.objects.order_by("?")[:2]
+            if len(records) == 2:
+                model_one, model_two = records
+            else:
+                model_one = records[0] if records else None
+                model_two = None
+        elif promotions.nbr_model == 3:
+            promotion_value = promotions.reduction
+            records = Modele.objects.order_by("?")[:3]
+            if len(records) == 3:
+                model_one, model_two, model_three = records
+            else:
+                model_one = records[0] if len(records) > 0 else None
+                model_two = records[1] if len(records) > 1 else None
+                model_three = records[2] if len(records) > 2 else None
+        elif promotions.nbr_model == 4:
+            promotion_value = promotions.reduction
+            records = Modele.objects.order_by("?")[:4]
+            if len(records) == 4:
+                model_one, model_two, model_three, model_four = records
+            else:
+                model_one = records[0] if len(records) > 0 else None
+                model_two = records[1] if len(records) > 1 else None
+                model_three = records[2] if len(records) > 2 else None
+                model_four = records[3] if len(records) > 3 else None
+        elif promotions.nbr_model == 5:
+            promotion_value = promotions.reduction
+            records = Modele.objects.order_by("?")[:5]
+            if len(records) == 5:
+                model_one, model_two, model_three, model_four, model_five = records
+            else:
+                model_one = records[0] if len(records) > 0 else None
+                model_two = records[1] if len(records) > 1 else None
+                model_three = records[2] if len(records) > 2 else None
+                model_four = records[3] if len(records) > 3 else None
+                model_five = records[3] if len(records) > 3 else None
+        else :
+            model_one = None
+            model_two = None
+            model_three = None
+            model_four = None
+            model_five = None
+
 
     if country_code == "DZ":
         if client_id:
