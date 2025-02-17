@@ -2094,6 +2094,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         elif promotions.nbr_model == 2:
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:2]
+            print('records : ',records)
             if len(records) == 2:
                 model_one, model_two = records
             else:
@@ -2102,6 +2103,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         elif promotions.nbr_model == 3:
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:3]
+            print('records : ',records)
             if len(records) == 3:
                 model_one, model_two, model_three = records
             else:
@@ -2111,6 +2113,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         elif promotions.nbr_model == 4:
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:4]
+            print('records : ',records)
             if len(records) == 4:
                 model_one, model_two, model_three, model_four = records
             else:
@@ -2121,6 +2124,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         elif promotions.nbr_model == 5:
             promotion_value = promotions.reduction
             records = Modele.objects.order_by("?")[:5]
+            print('records : ',records)
             if len(records) == 5:
                 model_one, model_two, model_three, model_four, model_five = records
             else:
