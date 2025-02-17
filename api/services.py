@@ -2089,7 +2089,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             promotion_value = 0
     elif promotions and promotions.tout_modele == "aleatoire" and promotions.tout_zone == "oui":
         if promotions.nbr_model == 1:
-            promotion_value = promotions.reductio
+            promotion_value = promotions.reduction
             model_one = Modele.objects.order_by("?").first()
         elif promotions.nbr_model == 2:
             promotion_value = promotions.reduction
