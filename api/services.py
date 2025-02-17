@@ -1069,7 +1069,7 @@ def search_option_dzd(code, total_days):
         return {
             'name': option.name,
             'prix': prix * montant_taux,
-            'total': prix * float(total_days) * montant_taux if option.type_tarif == 'jour' else prix * montant_taux,
+            'total': prix * float(total_days) * montant_taux if option.type_tarif == 'jour' else prix ,
             'categorie': option.categorie.id if option.categorie else None,
             'limit': limit_Klm * total_days,
             'penalite': penalite_Klm * montant_taux,
