@@ -2090,10 +2090,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     elif promotions and promotions.tout_modele == "aleatoire" and promotions.tout_zone == "oui":
         if promotions.nbr_model == 1:
             promotion_value = promotions.reduction
-            model_one = Modele.objects.order_by("?").first()
+            model_one = Modele.objects.filter(zone_id=zone_id).order_by("?").first()
         elif promotions.nbr_model == 2:
             promotion_value = promotions.reduction
-            records = Modele.objects.order_by("?")[:2]
+            records = Modele.objects.filter(zone_id=zone_id).order_by("?")[:2]
             if len(records) == 2:
                 model_one, model_two = records
             else:
@@ -2101,7 +2101,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 model_two = None
         elif promotions.nbr_model == 3:
             promotion_value = promotions.reduction
-            records = Modele.objects.order_by("?")[:3]
+            records = Modele.objects.filter(zone_id=zone_id).order_by("?")[:3]
             if len(records) == 3:
                 model_one, model_two, model_three = records
                 print('model_one id : ',model_one.name)
@@ -2113,7 +2113,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 model_three = records[2] if len(records) > 2 else None
         elif promotions.nbr_model == 4:
             promotion_value = promotions.reduction
-            records = Modele.objects.order_by("?")[:4]
+            records = Modele.objects.filter(zone_id=zone_id).order_by("?")[:4]
             if len(records) == 4:
                 model_one, model_two, model_three, model_four = records
                 print('model_one id : ',model_one.name)
@@ -2127,7 +2127,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 model_four = records[3] if len(records) > 3 else None
         elif promotions.nbr_model == 5:
             promotion_value = promotions.reduction
-            records = Modele.objects.order_by("?")[:5]
+            records = Modele.objects.filter(zone_id=zone_id).order_by("?")[:5]
             if len(records) == 5:
                 model_one, model_two, model_three, model_four, model_five = records
                 print('model_one id : ',model_one.name)
