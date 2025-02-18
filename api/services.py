@@ -2292,7 +2292,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "date_annulation":date_annulation,
                     })
 
-    result.sort(key=lambda x: x["prix"])
+    result.sort(key=lambda x: x["last_total"])
     return result 
 
             
