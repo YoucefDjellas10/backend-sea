@@ -91,38 +91,6 @@ def protection_request_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-def disponibilite_view(request):
-    lieu_depart_id = request.GET.get("lieu_depart_id")
-    lieu_retour_id = request.GET.get("lieu_retour_id")
-    date_depart = request.GET.get("date_depart")
-    heure_depart = request.GET.get("heure_depart")
-    date_retour = request.GET.get("date_retour")
-    heure_retour = request.GET.get("heure_retour")
-    client_id = request.GET.get("client_id")
-    prime_code = request.GET.get("prime_code")
-    country_code = request.GET.get("country_code")
-
-    if not date_depart or not date_retour:
-        return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
-
-    try:
-        resultats = disponibilite_resultat(
-            lieu_depart_id=int(lieu_depart_id),
-            lieu_retour_id=int(lieu_retour_id),
-            date_depart=date_depart,
-            heure_depart=heure_depart,
-            date_retour=date_retour,
-            heure_retour=heure_retour,
-            client_id=client_id,
-            prime_code=prime_code,
-            country_code=country_code,
-        )
-        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
-
-
-
 def get_all_categories(request):
     categories = CategorieClient.objects.all() 
 
@@ -448,6 +416,360 @@ def verify_client_view(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def post_reservation_view(request):
+    try:
+        data = json.loads(request.body)
+        lieu_depart = data.get("lieu_depart")
+        lieu_retour = data.get("lieu_retour")
+        date_depart = data.get("date_depart")
+        heure_depart = data.get("heure_depart")
+        date_retour = data.get("date_retour")
+        heure_retour = data.get("heure_depart")
+        vehicule_id = data.get("vehicule_id")
+        opt_paiement = data.get("opt_paiement")
+        opt_klm = data.get("opt_klm")
+        opt_protection = data.get("opt_protection")
+        opt_nd_driver = data.get("opt_nd_driver")
+        opt_carburant = data.get("opt_carburant")
+        opt_sb_a = data.get("opt_sb_a")
+        opt_sb_b = data.get("opt_sb_b")
+        opt_sb_c = data.get("opt_sb_c")
+        client_id = data.get("client_id")
+        nd_driver_id = data.get("nd_driver_id")
+        num_vol = data.get("num_vol")
+
+        if not all([lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour]):
+            return JsonResponse({"error": "Tous les champs requis doivent être remplis."}, status=400)
+        
+        date_heure_debut = parse_datetime(f"{date_depart}T{heure_depart}")
+        date_heure_fin = parse_datetime(f"{date_retour}T{heure_retour}")
+        total_days = (date_heure_fin - date_heure_debut).days
+
+        if date_heure_debut and date_heure_fin:
+            date_heure_debut_formate = date_heure_debut.strftime("%d/%m/%Y %H:%M")
+            date_heure_fin_formate = date_heure_fin.strftime("%d/%m/%Y %H:%M")
+            du_au_string = f"{date_heure_debut_formate} → {date_heure_fin_formate}"
+        else :
+            return JsonResponse({"error": "Les dates ou heures fournies sont invalides."}, status=400)
+
+        if client_id :
+            client = ListeClient.objects.filter(id=client_id).first()
+            client_name = client.name
+            client_date_permis = client.date_de_permis
+            client_birthday = client.date_de_naissance
+            client_phine = client.telephone
+            client_email = client.email
+            client_risque = client.risque
+            client_prime = client.code_prime
+            client_category = client.categorie_client
+            client_solde = client.solde
+        else:
+            return JsonResponse({"error": "client invalides."}, status=400)
+
+        vehicule = Vehicule.objects.filter(id=vehicule_id).first()
+
+        total = 0
+
+        frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
+        total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
+
+        
+        if opt_paiement == "yes" :
+            paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE").first()
+            opt_payment_name = paiement_anticipe.name
+            opt_payment_unit = paiement_anticipe.prix
+            opt_payment_total = paiement_anticipe.prix * total_days if paiement_anticipe.type_option =="jour" else paiement_anticipe.prix
+        else :
+            paiement_anticipe = None
+            opt_payment_name = None
+            opt_payment_unit = 0
+            opt_payment_total = 0
+        
+        if opt_klm == "yes" :
+            klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED").first()
+            opt_klm_a_name = klm_a_illimite.name
+            opt_klm_a_unit = klm_a_illimite.prix
+            opt_klm_a_total = klm_a_illimite.prix * total_days if klm_a_illimite.type_tarif == "jour" else klm_a_illimite.prix
+            opt_klm_a_categorie = klm_a_illimite.categorie.id
+            
+            klm_illimite_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
+            opt_klm_b_name = klm_illimite_b.name
+            opt_klm_b_unit = klm_illimite_b.prix
+            opt_klm_b_total = klm_illimite_b.prix * total_days if klm_illimite_b.type_tarif == "jour" else klm_illimite_b.prix
+            opt_klm_b_categorie = klm_illimite_b.categorie.id
+
+            klm_illimite_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()
+            opt_klm_c_name = klm_illimite_c.name
+            opt_klm_c_unit = klm_illimite_c.prix
+            opt_klm_c_total = klm_illimite_c.prix * total_days if klm_illimite_c.type_tarif == "jour" else klm_illimite_c.prix
+            opt_klm_c_categorie = klm_illimite_c.categorie.id
+            if vehicule.categorie.id == opt_klm_a_categorie :
+                opt_klm = klm_a_illimite
+                opt_klm_name = opt_klm_a_name
+                opt_klm_unit = opt_klm_a_unit
+                opt_klm_total = opt_klm_a_total
+            elif vehicule.categorie.id == opt_klm_b_categorie :
+                opt_klm = klm_illimite_b
+                opt_klm_name = opt_klm_b_name
+                opt_klm_unit = opt_klm_b_unit
+                opt_klm_total = opt_klm_b_total
+            elif vehicule.categorie.id == opt_klm_c_categorie :
+                opt_klm = klm_illimite_c
+                opt_klm_name = opt_klm_c_name
+                opt_klm_unit = opt_klm_c_unit
+                opt_klm_total = opt_klm_c_total
+            else :
+                opt_klm = None
+                opt_klm_name = None
+                opt_klm_unit = 0
+                opt_klm_total = 0
+
+        else :
+            opt_klm = None
+            opt_klm_name = None
+            opt_klm_unit = 0
+            opt_klm_total = 0
+        
+        if opt_protection == "BASE" :
+            base_a = Options.objects.filter(option_code="BASE_P_1").first()
+            base_a_name = base_a.name
+            base_a_unit = base_a.prix
+            base_a_total = base_a.prix * total_days if base_a.type_tarif == "jour" else base_a.prix
+            base_a_category = base_a.categorie.id
+            base_a_caution = base_a.caution
+            base_b = Options.objects.filter(option_code="BASE_P_2").first()
+            base_b_name = base_b.name
+            base_b_unit = base_b.prix
+            base_b_total = base_b.prix * total_days if base_b.type_tarif == "jour" else base_b.prix
+            base_b_category = base_b.categorie.id
+            base_b_caution = base_b.caution
+            base_c = Options.objects.filter(option_code="BASE_P_3").first()
+            base_c_name = base_c.name
+            base_c_unit = base_c.prix
+            base_c_total = base_c.prix * total_days if base_c.type_tarif == "jour" else base_c.prix
+            base_c_category = base_c.categorie.id
+            base_c_caution = base_c.caution
+
+            if vehicule.categorie.id == base_a_category :
+                protection = base_a
+                protection_name = base_a_name
+                protection_unit = base_a_unit
+                protection_total = base_a_total
+                protection_caution = base_a_caution
+            elif vehicule.categorie.id == base_b_category :
+                protection = base_b
+                protection_name = base_b_name
+                protection_unit = base_b_unit
+                protection_total = base_b_total
+                protection_caution = base_b_caution
+            elif vehicule.categorie.id == base_c_category :
+                protection = base_c
+                protection_name = base_c_name
+                protection_unit = base_c_unit
+                protection_total = base_c_total
+                protection_caution = base_c_caution
+            else :
+                protection = None
+                protection_name = None
+                protection_unit = 0
+                protection_total = 0
+                protection_caution = 0
+        
+        elif opt_protection == "STANDART" :
+            standart_a = Options.objects.filter(option_code="STANDART_P_1").first()
+            standart_a_name = standart_a.name
+            standart_a_unit = standart_a.prix
+            standart_a_total = standart_a.prix * total_days if standart_a.type_tarif == "jour" else standart_a.prix
+            standart_a_caution = standart_a.caution
+
+            standart_b = Options.objects.filter(option_code="STANDART_P_2").first()
+            standart_b_name = standart_b.name
+            standart_b_unit = standart_b.prix
+            standart_b_total = standart_b.prix * total_days if standart_b.type_tarif == "jour" else standart_b.prix
+            standart_b_caution = standart_b.caution
+            
+            standart_c = Options.objects.filter(option_code="STANDART_P_3").first()
+            standart_c_name = standart_c.name
+            standart_c_unit = standart_c.prix
+            standart_c_total = standart_c.prix * total_days if standart_c.type_tarif == "jour" else standart_c.prix
+            standart_c_caution = standart_c.caution
+            if vehicule.categorie == standart_a.categorie :
+                protection = standart_a
+                protection_name = standart_a_name
+                protection_unit = standart_a_unit
+                protection_total = standart_a_total
+                protection_caution = standart_a_caution
+            elif vehicule.categorie == standart_b.categorie :
+                protection = standart_b
+                protection_name = standart_b_name
+                protection_unit = standart_b_unit
+                protection_total = standart_b_total
+                protection_caution = standart_b_caution
+            elif vehicule.categorie == standart_c.categorie :
+                protection = standart_c
+                protection_name = standart_c_name
+                protection_unit = standart_c_unit
+                protection_total = standart_c_total
+                protection_caution = standart_c_caution
+            else :
+                protection = None
+                protection_name = None
+                protection_unit = 0
+                protection_total = 0
+                protection_caution = 0
+        elif opt_protection == "MAX" :
+            max_a = Options.objects.filter(option_code="MAX_P_1").first()
+            max_a_name = max_a.name
+            max_a_unit = max_a.prix
+            max_a_total = max_a.prix * total_days if max_a.type_tarif == "jour" else max_a.prix
+            max_a_caution = max_a.caution
+
+            max_b = Options.objects.filter(option_code="MAX_P_2").first()
+            max_b_name = max_b.name
+            max_b_unit = max_b.prix
+            max_b_total = max_b.prix * total_days if max_b.type_tarif == "jour" else max_b.prix
+            max_b_caution = max_b.caution
+            
+            max_c = Options.objects.filter(option_code="MAX_P_3").first()
+            max_c_name = max_c.name
+            max_c_unit = max_c.prix
+            max_c_total = max_c.prix * total_days if max_c.type_tarif == "jour" else max_c.prix
+            max_c_caution = max_c.caution
+            if vehicule.categorie == max_a.categorie :
+                protection = max_a
+                protection_name = max_a_name
+                protection_unit = max_a_unit
+                protection_total = max_a_total
+                protection_caution = max_a_caution
+            elif vehicule.categorie == max_b.categorie :
+                protection = max_b
+                protection_name = max_b_name
+                protection_unit = max_b_unit
+                protection_total = max_b_total
+                protection_caution = max_b_caution
+            elif vehicule.categorie == max_c.categorie :
+                protection = max_c
+                protection_name = max_c_name
+                protection_unit = max_c_unit
+                protection_total = max_c_total
+                protection_caution = max_c_caution
+            else :
+                protection = None
+                protection_name = None
+                protection_unit = 0
+                protection_total = 0
+                protection_caution = 0
+
+        else :
+            protection = None
+            protection_name = None
+            protection_unit = 0
+            protection_total = 0
+            protection_caution = 0
+        
+        if opt_carburant == "yes":
+            carburant = Options.objects.filter(option_code="P_CARBURANT").first()
+            carburant_name = carburant.name
+            carburant_unit = carburant.prix
+            carburant_total = carburant.prix * total_days if carburant.type_tarif == "jour" else carburant.prix
+        else :
+            carburant = None
+            carburant_name = None
+            carburant_unit = 0
+            carburant_total = 0
+        
+        if opt_sb_a == "yes":
+            sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
+            sb_a_name = sb_a.name
+            sb_a_unit = sb_a.prix
+            sb_a_total = sb_a.prix * total_days if sb_a.type_tarif == "jour" else sb_a.prix
+        else :
+            sb_a = None
+            sb_a_name = None
+            sb_a_unit = 0
+            sb_a_total = 0
+        
+        if opt_sb_b == "yes":
+            sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
+            sb_b_name = sb_b.name
+            sb_b_unit = sb_b.prix
+            sb_b_total = sb_b.prix * total_days if sb_b.type_tarif == "jour" else sb_b.prix
+        else :
+            sb_b = None
+            sb_b_name = None
+            sb_b_unit = 0
+            sb_b_total = 0
+        
+        if opt_sb_c == "yes":
+            sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
+            sb_c_name = sb_c.name
+            sb_c_unit = sb_c.prix
+            sb_c_total = sb_c.prix * total_days if sb_c.type_tarif == "jour" else sb_c.prix
+        else :
+            sb_c = None
+            sb_c_name = None
+            sb_c_unit = 0
+            sb_c_total = 0
+        
+        if opt_nd_driver == "yes":
+            if nd_driver_id :
+                nd_driver = ListeClient.objects.filter(id=nd_driver_id).first()
+                nd_driver_name = nd_driver.name
+                nd_driver_date_permis = nd_driver.date_de_permis
+                nd_driver_birthday = nd_driver.date_de_naissance
+                nd_driver_phine = nd_driver.telephone
+                nd_driver_email = nd_driver.email
+                nd_driver_risque = nd_driver.risque
+                nd_driver_prime = nd_driver.code_prime
+                nd_driver_category = nd_driver.categorie_client
+                nd_driver_solde = nd_driver.solde
+
+                nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER").first()
+                nd_driver_opt_name = nd_driver_opt.name
+                nd_driver_opt_unit = nd_driver_opt.prix
+                nd_driver_opt_total = nd_driver_opt.prix * total_days if nd_driver_opt.type_tarif == "jour" else nd_driver_opt.prix
+
+            else :
+                return JsonResponse({"error": "nd client invalides."}, status=400)
+        else :
+            nd_driver = None
+            nd_driver_name = None
+            nd_driver_date_permis = None
+            nd_driver_birthday = None
+            nd_driver_phine = None
+            nd_driver_email = None
+            nd_driver_risque = None
+            nd_driver_prime = None
+            nd_driver_category = None
+            nd_driver_solde = 0
+            nd_driver_opt = None
+            nd_driver_opt_name = None
+            nd_driver_opt_unit = 0
+            nd_driver_opt_total = 0
+
+
+            
+
+
+        
+
+        
+        
+
+
+
+         
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Données JSON invalides."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def add_reservation_post_view(request):
     try:
         data = json.loads(request.body)
@@ -494,7 +816,9 @@ def add_reservation_post_view(request):
         client = ListeClient.objects.filter(id=client_id).first()
         if not vehicule or not client:
             return JsonResponse({"error": "Véhicule ou client introuvable."}, status=404)
+        print("client : ", client)
         client_nom = client.nom
+        print("client.nom : ", client.nom)
         client_prenom = client.prenom
         client_date_permis = client.date_de_permis
         client_date_naissance = client.date_de_naissance
