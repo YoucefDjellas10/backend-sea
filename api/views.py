@@ -18,6 +18,8 @@ from decimal import Decimal
 from rest_framework.decorators import api_view
 from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
+from django.utils import timezone
+
 
 @csrf_exempt
 @require_http_methods(["PUT"])
@@ -424,7 +426,7 @@ def post_reservation_view(request):
         date_depart = data.get("date_depart")
         heure_depart = data.get("heure_depart")
         date_retour = data.get("date_retour")
-        heure_retour = data.get("heure_depart")
+        heure_retour = data.get("heure_retour")
         vehicule_id = data.get("vehicule_id")
         opt_paiement = data.get("opt_paiement")
         opt_klm = data.get("opt_klm")
@@ -438,12 +440,13 @@ def post_reservation_view(request):
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
 
-        if not all([lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour]):
-            return JsonResponse({"error": "Tous les champs requis doivent être remplis."}, status=400)
+        if not all([date_depart, heure_depart, date_retour, heure_retour]):
+            return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
         
         date_heure_debut = parse_datetime(f"{date_depart}T{heure_depart}")
         date_heure_fin = parse_datetime(f"{date_retour}T{heure_retour}")
         total_days = (date_heure_fin - date_heure_debut).days
+        duree = f"{total_days} jours"
 
         if date_heure_debut and date_heure_fin:
             date_heure_debut_formate = date_heure_debut.strftime("%d/%m/%Y %H:%M")
@@ -454,31 +457,93 @@ def post_reservation_view(request):
 
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
-            client_name = client.name
-            client_date_permis = client.date_de_permis
-            client_birthday = client.date_de_naissance
-            client_phine = client.telephone
-            client_email = client.email
-            client_risque = client.risque
-            client_prime = client.code_prime
-            client_category = client.categorie_client
-            client_solde = client.solde
+            client_red_pr = client.categorie_client.reduction 
+            
         else:
             return JsonResponse({"error": "client invalides."}, status=400)
-
-        vehicule = Vehicule.objects.filter(id=vehicule_id).first()
-
+        
+        prix_jour = 0
         total = 0
+        last_total = 0
+        prix_unitaire = 0
+        last_prix_unitaire = 0
+        supp_total = 0 
 
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
         total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
 
+        if vehicule_id :
+            vehicule = Vehicule.objects.filter(id=vehicule_id).first()
+
+            tarif = Tarifs.objects.filter(
+               ( Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
+                Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
+                Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
+                Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)),
+                Q(nbr_de__lte=total_days, nbr_au__gte=total_days),
+                modele=vehicule.modele
+            ).first()
+
+            if tarif :
+                prix_jour = tarif.prix
+                total += prix_jour * total_days
+            else:
+                return JsonResponse({"error": "tarifs invalides."}, status=400)
+        else:
+            return JsonResponse({"error": "vehucule invalides."}, status=400)
         
+        if lieu_depart and lieu_retour:
+            depart = Lieux.objects.filter(id=lieu_depart).first()
+            retour = Lieux.objects.filter(id=lieu_retour).first()
+            depart_retour_string = f"{depart.name} → {retour.name}"
+            if depart.zone != retour.zone:
+                return JsonResponse({"error": "zone invalides."}, status=400)
+            
+        frais_livraison = FraisLivraison.objects.filter(depart=depart,retour=retour).first()
+        total += frais_livraison.montant
+
+        
+        supplements = Supplement.objects.filter(
+            Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
+            Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
+        )
+        for supplement in supplements:
+            supp_total += supplement.montant
+            total += supplement.montant if supplement else 0
+        
+        ecart_montant = 0
+
+        ecart = Supplement.objects.filter(valeur__gt=0).first()
+        start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+        end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+        duration = end_hour - start_hour
+        if duration > ecart.reatrd:
+            ecart_montant = (prix_jour * ecart.valeur) / 100
+            total+= ecart_montant
+        
+        prix_unitaire = total / total_days
+        total_afficher_red = 0
+        total_afficher = total
+
+        if client_red_pr and client_red_pr > 0:
+            last_total = (100-client_red_pr) * total / 100
+            last_prix_unitaire = (100-client_red_pr) * prix_jour / 100
+            total_afficher_red = last_total
+        else : 
+            total_afficher_red = total
+            last_total = total
+            last_prix_unitaire = prix_unitaire
+        
+        total_option = 0
+                    
         if opt_paiement == "yes" :
             paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE").first()
             opt_payment_name = paiement_anticipe.name
             opt_payment_unit = paiement_anticipe.prix
             opt_payment_total = paiement_anticipe.prix * total_days if paiement_anticipe.type_option =="jour" else paiement_anticipe.prix
+            total_option += opt_payment_total
+            total += opt_payment_total
+            last_total += opt_payment_total
         else :
             paiement_anticipe = None
             opt_payment_name = None
@@ -523,6 +588,10 @@ def post_reservation_view(request):
                 opt_klm_name = None
                 opt_klm_unit = 0
                 opt_klm_total = 0
+            
+            total += opt_klm_total
+            last_total += opt_klm_total
+            total_option += opt_klm_total
 
         else :
             opt_klm = None
@@ -574,6 +643,12 @@ def post_reservation_view(request):
                 protection_unit = 0
                 protection_total = 0
                 protection_caution = 0
+
+            total += protection_total
+            last_total += protection_total
+            total_option += protection_total
+            print("total : ", total)
+            print("prix unitaire : ", protection_unit)
         
         elif opt_protection == "STANDART" :
             standart_a = Options.objects.filter(option_code="STANDART_P_1").first()
@@ -617,6 +692,10 @@ def post_reservation_view(request):
                 protection_unit = 0
                 protection_total = 0
                 protection_caution = 0
+            total += protection_total
+            last_total += protection_total
+            total_option += protection_total
+
         elif opt_protection == "MAX" :
             max_a = Options.objects.filter(option_code="MAX_P_1").first()
             max_a_name = max_a.name
@@ -659,6 +738,9 @@ def post_reservation_view(request):
                 protection_unit = 0
                 protection_total = 0
                 protection_caution = 0
+            total += protection_total
+            last_total += protection_total
+            total_option += protection_total
 
         else :
             protection = None
@@ -672,6 +754,9 @@ def post_reservation_view(request):
             carburant_name = carburant.name
             carburant_unit = carburant.prix
             carburant_total = carburant.prix * total_days if carburant.type_tarif == "jour" else carburant.prix
+            total += carburant_total
+            last_total += carburant_total
+            total_option += carburant_total
         else :
             carburant = None
             carburant_name = None
@@ -683,6 +768,9 @@ def post_reservation_view(request):
             sb_a_name = sb_a.name
             sb_a_unit = sb_a.prix
             sb_a_total = sb_a.prix * total_days if sb_a.type_tarif == "jour" else sb_a.prix
+            total += sb_a_total
+            last_total += sb_a_total
+            total_option += sb_a_total
         else :
             sb_a = None
             sb_a_name = None
@@ -694,6 +782,9 @@ def post_reservation_view(request):
             sb_b_name = sb_b.name
             sb_b_unit = sb_b.prix
             sb_b_total = sb_b.prix * total_days if sb_b.type_tarif == "jour" else sb_b.prix
+            total += sb_b_total 
+            last_total += sb_b_total
+            total_option += sb_b_total
         else :
             sb_b = None
             sb_b_name = None
@@ -705,6 +796,9 @@ def post_reservation_view(request):
             sb_c_name = sb_c.name
             sb_c_unit = sb_c.prix
             sb_c_total = sb_c.prix * total_days if sb_c.type_tarif == "jour" else sb_c.prix
+            total += sb_c_total
+            last_total += sb_c_total
+            total_option += sb_c_total
         else :
             sb_c = None
             sb_c_name = None
@@ -728,7 +822,9 @@ def post_reservation_view(request):
                 nd_driver_opt_name = nd_driver_opt.name
                 nd_driver_opt_unit = nd_driver_opt.prix
                 nd_driver_opt_total = nd_driver_opt.prix * total_days if nd_driver_opt.type_tarif == "jour" else nd_driver_opt.prix
-
+                total += nd_driver_opt_total
+                last_total += nd_driver_opt_total
+                total_option += nd_driver_opt_total
             else :
                 return JsonResponse({"error": "nd client invalides."}, status=400)
         else :
@@ -746,26 +842,136 @@ def post_reservation_view(request):
             nd_driver_opt_name = None
             nd_driver_opt_unit = 0
             nd_driver_opt_total = 0
-
-
-            
-
-
         
 
+        reservation = Reservation.objects.create(
+            create_date=timezone.now(),
+            status="en_attend",
+            etat_reservation="reserve",
+            date_heure_debut = date_heure_debut ,
+            date_heure_fin = date_heure_fin,
+            du_au = du_au_string,
+            nbr_jour_reservation = total_days,
+            duree_dereservation = duree,
+            lieu_depart = depart,
+            zone = depart.zone,
+            lieu_retour = retour,
+            depart_retour = depart_retour_string,
+            vehicule = vehicule,
+            modele = vehicule.modele,
+            categorie = vehicule.categorie,
+            carburant = vehicule.carburant,
+            matricule = vehicule.matricule,
+            numero = vehicule.numero,
+            model_name = vehicule.model_name,
+            marketing_text_fr = vehicule.marketing_text_fr,
+            photo_link_nd = vehicule.photo_link_nd,
+            photo_link = vehicule.photo_link,
+            nombre_deplace = vehicule.nombre_deplace,
+            nombre_de_porte = vehicule.nombre_de_porte,
+            nombre_de_bagage = vehicule.nombre_de_bagage,
+            boite_vitesse = vehicule.boite_vitesse,
+            age_min = vehicule.age_min,
+            client = client,
+            nom = client.nom,
+            prenom = client.prenom,
+            email = client.email,
+            date_de_naissance = client.date_de_naissance,
+            mobile = client.mobile,
+            telephone = client.telephone,
+            risque = client.risque,
+            note = client.note,
+            categorie_client = client.categorie_client,
+            code_prime = client.code_prime,
+            solde = client.solde,
+            nom_nd_condicteur = nd_driver.nom,
+            prenom_nd_condicteur = nd_driver.prenom,
+            date_de_permis=nd_driver_date_permis ,
+            date_nd_condicteur=nd_driver_birthday, 
+            email_nd_condicteur=nd_driver_email, 
+            opt_klm = opt_klm ,
+            opt_klm_name = opt_klm_name,
+            opt_klm_price = opt_klm_unit,
+            opt_klm_total = opt_klm_total,
+            opt_payment = paiement_anticipe,
+            opt_payment_name = opt_payment_name,
+            opt_payment_price = opt_payment_unit,
+            opt_payment_total = opt_payment_total,
+            opt_protection = protection,
+            opt_protection_name = protection_name,
+            opt_protection_caution= protection_caution,
+            opt_protection_price=protection_unit,
+            opt_protection_total=protection_total,
+            opt_nd_driver=nd_driver_opt,
+            opt_nd_driver_name=nd_driver_opt_name,
+            opt_nd_driver_price=nd_driver_opt_unit,
+            opt_nd_driver_total=nd_driver_opt_total,
+            opt_plein_carburant=carburant,
+            opt_plein_carburant_name=carburant_name,
+            opt_plein_carburant_prix= carburant_unit,
+            opt_plein_carburant_total=carburant_total,
+            opt_siege_a = sb_a,
+            opt_siege_a_name=sb_a_name,
+            opt_siege_a_prix=sb_a_unit,
+            opt_siege_a_total=sb_a_total,
+            opt_siege_b = sb_b,
+            opt_siege_b_name= sb_b_name,
+            opt_siege_b_prix=sb_b_unit,
+            opt_siege_b_total=sb_b_total,
+            opt_siege_c=sb_c,
+            opt_siege_c_prix=sb_c_unit,
+            opt_siege_c_name=sb_c_name,
+            opt_siege_c_total=sb_c_total,
+            num_vol=num_vol,
+            frais_de_dossier = frais_dossier.prix,
+            prix_jour = prix_jour,
+            nbr_jour_one = total_days,
+            frais_de_livraison = frais_livraison.montant,
+            supplements = supp_total ,
+            retour_tard = ecart_montant,
+            total_afficher = total_afficher,
+            prix_jour_afficher = prix_unitaire,
+            options_total = total_option,
+            total = total ,
+            reduction = client_red_pr,
+            total_afficher_reduit = total_afficher_red,
+            prix_jour_afficher_reduit = last_prix_unitaire,
+            total_reduit = last_total,
+            total_reduit_euro = last_total
+        )  
+
         
-        
+        request_factory = RequestFactory()
+        fake_request = request_factory.post(
+            path="/create-payment-session/",
+            data=json.dumps({
+                "product_name": "Réservation N° : {reservation.name}",
+                "description": "test",
+                "images": [vehicule.photo_link] if vehicule.photo_link else [],
+                "unit_amount": int(total * 100),
+                "quantity": 1,
+                "currency": "eur",
+                "reservation_id": reservation.id
 
+            }),
+            content_type="application/json"
+        )
 
+        payment_session_response = create_payment_session(fake_request)
 
-         
+        if payment_session_response.status_code == 200:
+            payment_session_data = json.loads(payment_session_response.content)
+            session_id = payment_session_data.get("session_id", "")
+            payment_url = payment_session_data.get("url", "")
+            return JsonResponse({"message": "Réservation créée avec succès.", "reservation_id": reservation.id, "session_id": session_id, "payment_url": payment_url}, status=201)
+        else:
+            return JsonResponse({"error": "Échec de la création de la session de paiement.", "response": payment_session_response.content.decode('utf-8')}, status=500)
+
 
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
-
 
 
 @csrf_exempt
@@ -1348,6 +1554,7 @@ def add_options_put_view(request):
             reservation.save()
             return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès."}, status=200)
         elif int(new_total) > int(opt_total) and reservation.opt_payment_name:
+            reservation.save()
             diff = new_total - opt_total 
             request_factory = RequestFactory()
             fake_request = request_factory.post(
@@ -1378,6 +1585,7 @@ def add_options_put_view(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
+        print(f"Erreur: {e}")
         return JsonResponse({"error": str(e)}, status=500)
 
 def add_options_request_view(request):

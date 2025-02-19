@@ -1327,6 +1327,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             model_three = None
             model_four = None
             model_five = None
+            
     date_annulation = None
     annulation = ConditionAnnulation.objects.filter(id=1).first()
     if annulation:
