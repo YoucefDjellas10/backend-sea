@@ -388,7 +388,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
 
         if carburant == "yes" and reservations.opt_plein_carburant is None:
             tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
-            if free_options and free_options.get("option_one") == True:
+            if free_options and free_options.get("option_two") == True:
                 carburant = tarif_carburant.name
                 carburant_price = tarif_carburant.prix
                 carburant_last_price = 0
@@ -414,7 +414,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
 
         if sb_a == "yes" and reservations.opt_siege_a is None:
             tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
-            if free_options and free_options.get("option_one") == True:
+            if free_options and free_options.get("option_three") == True:
                 sb_a_name = tarif_sb_a.name
                 sb_a_price = tarif_sb_a.prix
                 sb_a_last_price = 0
@@ -440,7 +440,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
 
         if sb_b == "yes" and reservations.opt_siege_b is None:
             tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
-            if free_options and free_options.get("option_one") == True:
+            if free_options and free_options.get("option_four") == True:
                 sb_b_name = tarif_sb_b.name
                 sb_b_price = tarif_sb_b.prix
                 sb_b_last_price = 0
@@ -465,7 +465,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                 })
         if sb_c == "yes" and reservations.opt_siege_c_name is None:
             tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
-            if free_options and free_options.get("option_one") == True:
+            if free_options and free_options.get("option_five") == True:
                 sb_c_name = tarif_sb_c.name
                 sb_c_price = tarif_sb_c.prix
                 sb_c_last_price = 0
