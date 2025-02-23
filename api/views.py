@@ -1454,7 +1454,7 @@ def add_options_put_view(request):
         reservation = Reservation.objects.filter(name=ref).first()
         jr = reservation.nbr_jour_reservation
         opt_total = reservation.options_total
-        new_total = 0
+        new_total = 500
         if not reservation:
             return JsonResponse({"error": "Réservation non trouvée avec la référence spécifiée."}, status=404)
 
@@ -1469,11 +1469,6 @@ def add_options_put_view(request):
             else :
                 reservation.opt_nd_driver_total = tarif_nd.prix
                 new_total += tarif_nd.prix
-        else :
-            reservation.opt_nd_driver = None
-            reservation.opt_nd_driver_name = None
-            reservation.opt_nd_driver_price = None
-            reservation.opt_nd_driver_total = None
 
         if carburant == "yes" and not reservation.opt_plein_carburant_name:
             tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
@@ -1486,11 +1481,6 @@ def add_options_put_view(request):
             else :
                 reservation.opt_plein_carburant_total = tarif_carburant.prix
                 new_total += tarif_carburant.prix
-        else :
-            reservation.opt_plein_carburant = None
-            reservation.opt_plein_carburant_name = None
-            reservation.opt_plein_carburant_prix = None
-            reservation.opt_plein_carburant_total = None
 
         if sb_a == "yes" and not reservation.opt_siege_a_name:
             tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
@@ -1503,11 +1493,6 @@ def add_options_put_view(request):
             else :
                 reservation.opt_siege_a_total = tarif_sb_a.prix
                 new_total += tarif_sb_a.prix
-        else :
-            reservation.opt_siege_a = None
-            reservation.opt_siege_a_name = None
-            reservation.opt_siege_a_prix = None
-            reservation.opt_siege_a_total = None
 
         if sb_b == "yes" and not reservation.opt_siege_b_name:
             tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
@@ -1520,11 +1505,6 @@ def add_options_put_view(request):
             else :
                 reservation.opt_siege_b_total = tarif_sb_b.prix
                 new_total += tarif_sb_b.prix
-        else :
-            reservation.opt_siege_b = None
-            reservation.opt_siege_b_name = None
-            reservation.opt_siege_b_prix = None
-            reservation.opt_siege_b_total = None
 
         if sb_c == "yes" and not reservation.opt_siege_c_name:
             tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
@@ -1537,11 +1517,6 @@ def add_options_put_view(request):
             else :
                 reservation.opt_siege_c_total = tarif_sb_c.prix
                 new_total += tarif_sb_c.prix
-        else :
-            reservation.opt_siege_c = None
-            reservation.opt_siege_c_name = None
-            reservation.opt_siege_c_prix = None
-            reservation.opt_siege_c_total = None
 
         if (int(new_total) < int(opt_total) and not reservation.opt_payment_name) or (new_total == opt_total):
             reservation.save()

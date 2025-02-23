@@ -334,65 +334,6 @@ def add_options_request(ref, nd_driver, carburant, sb_a, sb_b, sb_c,nom, prenom,
                 "to_pay_total": to_pay_total,
             })
         
-        to_refund_total = 0
-        
-        if nd_driver == "no" and reservations.opt_nd_driver_name:
-            tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
-            nd_driver_price = tarif_nd.prix
-            nd_driver_name = tarif_nd.name
-            nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
-            to_refund_total += nd_driver_total
-            result.append({
-                "nd_driver_name":nd_driver_name,
-                "to_refund": nd_driver_total,
-            })
-        if carburant == "no" and reservations.opt_plein_carburant_name:
-            tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
-            carburant = tarif_carburant.name
-            carburant_price = tarif_carburant.prix
-            carburant_total = carburant_price * reservations.nbr_jour_reservation
-            to_refund_total += carburant_total
-            result.append({
-                "carburant_name": carburant,
-                "to_refund": carburant_total,
-            })
-        if sb_a == "no" and reservations.opt_siege_a_name:
-            tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
-            sb_a_name = tarif_sb_a.name
-            sb_a_price = tarif_sb_a.prix
-            sb_a_total = sb_a_price * reservations.nbr_jour_reservation
-            to_refund_total += sb_a_total
-            result.append({
-                "sb_a_name": sb_a_name,
-                "to_refund": sb_a_total,
-            })
-
-        if sb_b == "no" and reservations.opt_siege_b_name:
-            tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
-            sb_b_name = tarif_sb_b.name
-            sb_b_price = tarif_sb_b.prix
-            sb_b_total = sb_b_price * reservations.nbr_jour_reservation
-            to_refund_total += sb_b_total
-            result.append({
-                "sb_b_name": sb_b_name,
-                "to_refund": sb_b_total,
-            })
-        if sb_c == "no" and reservations.opt_siege_c_name:
-            tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
-            sb_c_name = tarif_sb_c.name
-            sb_c_price = tarif_sb_c.prix
-            sb_c_total = sb_c_price * reservations.nbr_jour_reservation
-            to_refund_total += sb_c_total
-            result.append({
-                "sb_c_name": sb_c_name,
-                "to_refund": sb_c_total,
-            })
-        
-        if to_refund_total > 0 :
-            result.append({
-                "to_refund_total": to_refund_total,
-            })
-
         return result
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
