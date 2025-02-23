@@ -268,7 +268,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
             klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
             klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()   
             if klM_a.categorie == reservations.categorie :
-                if free_options and free_options.get("option_seven") == True: 
+                if free_options and free_options[0].get("option_seven") == True: 
                     klM_a_price = klM_a.prix
                     klm_a_last_price = 0
                     klM_a_name = klM_a.name
@@ -294,7 +294,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                     })
 
             elif klM_b.categorie == reservations.categorie :
-                if free_options and free_options.get("option_seven") == True:
+                if free_options and free_options[0].get("option_seven") == True:
                     klM_b_price = klM_b.prix
                     klm_b_last_price = 0
                     klM_b_name = klM_b.name
@@ -318,7 +318,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                         "klM_total": klM_b_total,
                     })
             elif klM_c.categorie == reservations.categorie :
-                if free_options and free_options.get("option_seven") == True:
+                if free_options and free_options[0].get("option_seven") == True:
                     klM_c_price = klM_c.prix
                     klm_c_last_price = 0
                     klM_c_name = klM_c.name
@@ -362,7 +362,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                 return {"message" : "nd client info are required"}
 
             tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
-            if free_options and free_options.get("option_one") == True:
+            if free_options and free_options[0].get("option_one") == True:
                 nd_driver_price = tarif_nd.prix
                 nd_driver_last_price = 0
                 nd_driver_name = tarif_nd.name
@@ -388,7 +388,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
 
         if carburant == "yes" and not reservations.opt_plein_carburant_name:
             tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
-            if free_options and free_options.get("option_two") == True:
+            if free_options and free_options[0].get("option_two") == True:
                 carburant = tarif_carburant.name
                 carburant_price = tarif_carburant.prix
                 carburant_last_price = 0
@@ -414,7 +414,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
 
         if sb_a == "yes" and not reservations.opt_siege_a_name:
             tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
-            if free_options and free_options.get("option_three") == True:
+            if free_options and free_options[0].get("option_three") == True:
                 sb_a_name = tarif_sb_a.name
                 sb_a_price = tarif_sb_a.prix
                 sb_a_last_price = 0
@@ -440,7 +440,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
 
         if sb_b == "yes" and not reservations.opt_siege_b_name:
             tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
-            if free_options and free_options.get("option_four") == True:
+            if free_options and free_options[0].get("option_four") == True:
                 sb_b_name = tarif_sb_b.name
                 sb_b_price = tarif_sb_b.prix
                 sb_b_last_price = 0
@@ -465,7 +465,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                 })
         if sb_c == "yes" and not reservations.opt_siege_c_name:
             tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
-            if free_options and free_options.get("option_five") == True:
+            if free_options and free_options[0].get("option_five") == True:
                 sb_c_name = tarif_sb_c.name
                 sb_c_price = tarif_sb_c.prix
                 sb_c_last_price = 0
