@@ -263,7 +263,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
         })
         to_pay_total = 0
 
-        if klm == "yes" and reservations.opt_klm is None:
+        if klm == "yes" and not reservations.opt_klm_name:
             klM_a = Options.objects.filter(option_code="KLM_ILLIMITED").first()
             klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
             klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()   
@@ -344,7 +344,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
             else :
                 pass
 
-        if nd_driver == "yes" and reservations.opt_nd_driver is None:
+        if nd_driver == "yes" and not reservations.opt_nd_driver_name:
             if nom and prenom and birthday and permis_date :
                 email = reservations.email
                 phone = reservations.telephone
@@ -386,7 +386,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                     "nd_driver_total": nd_driver_total,
                 })
 
-        if carburant == "yes" and reservations.opt_plein_carburant is None:
+        if carburant == "yes" and not reservations.opt_plein_carburant_name:
             tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
             if free_options and free_options.get("option_two") == True:
                 carburant = tarif_carburant.name
@@ -412,7 +412,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                     "carburant_total": carburant_total,
                 })
 
-        if sb_a == "yes" and reservations.opt_siege_a is None:
+        if sb_a == "yes" and not reservations.opt_siege_a_name:
             tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
             if free_options and free_options.get("option_three") == True:
                 sb_a_name = tarif_sb_a.name
@@ -438,7 +438,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                     "sb_a_total": sb_a_total,
                 })
 
-        if sb_b == "yes" and reservations.opt_siege_b is None:
+        if sb_b == "yes" and not reservations.opt_siege_b_name:
             tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
             if free_options and free_options.get("option_four") == True:
                 sb_b_name = tarif_sb_b.name
@@ -463,7 +463,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                     "sb_b_price": sb_b_price ,
                     "sb_b_total": sb_b_total,
                 })
-        if sb_c == "yes" and reservations.opt_siege_c_name is None:
+        if sb_c == "yes" and not reservations.opt_siege_c_name:
             tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
             if free_options and free_options.get("option_five") == True:
                 sb_c_name = tarif_sb_c.name
