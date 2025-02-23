@@ -1574,6 +1574,7 @@ def add_options_request_view(request):
     prenom = request.GET.get("prenom")
     birthday = request.GET.get("birthday")
     permis_date = request.GET.get("permis_date")
+    klm = request.GET.get("klm")
 
     if not ref or not nd_driver or not carburant or not sb_a or not sb_b or not sb_c:
         return JsonResponse({"error": "Tout les parametres sont requis."}, status=400)
@@ -1583,6 +1584,7 @@ def add_options_request_view(request):
     try:
         resultats = add_options_request(
             ref=ref,
+            klm=klm,
             nd_driver=nd_driver,
             carburant=carburant,
             sb_a=sb_a,

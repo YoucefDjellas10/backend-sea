@@ -248,87 +248,247 @@ def new_models():
         return {"message": f"Erreur: {str(e)}"}
 
 
-def add_options_request(ref, nd_driver, carburant, sb_a, sb_b, sb_c,nom, prenom, birthday, permis_date):
+def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, prenom, birthday, permis_date):
     try:
         result = []
         reservations = Reservation.objects.filter(name=ref).first()
-
-        if nom and prenom and birthday and permis_date :
-            email = reservations.email
-            phone = reservations.telephone
-            verify_client(                
-                email = email,
-                nom = nom,
-                prenom = prenom,
-                birthday = birthday,
-                permis = permis_date,
-                phone =  phone
-            )
         if not reservations:
             return {"message" : "pas de reservation avce cet id "}
+
+        if reservations.client :
+            free_options = free_options_f(reservations.client.id)
+
         result.append({
             "nbr_jour": reservations.nbr_jour_reservation,
         })
         to_pay_total = 0
-        if nd_driver == "yes" and not reservations.opt_nd_driver_name:
+
+        if klm == "yes" and reservations.opt_klm is None:
+            klM_a = Options.objects.filter(option_code="KLM_ILLIMITED").first()
+            klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
+            klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()   
+            if klM_a.categorie == reservations.categorie :
+                if free_options and free_options.get("option_seven") == True: 
+                    klM_a_price = klM_a.prix
+                    klm_a_last_price = 0
+                    klM_a_name = klM_a.name
+                    klM_a_total = klM_a_price * reservations.nbr_jour_reservation
+                    klm_a_last_total = 0
+                    result.append({
+                        "klm_name":klM_a_name,
+                        "klM_price": klM_a_price,
+                        "klM_last_price": klm_a_last_price,
+                        "klM_total": klM_a_total,
+                        "klM_last_total": klm_a_last_total,
+                    })
+
+                else : 
+                    klM_a_price = klM_a.prix
+                    klM_a_name = klM_a.name
+                    klM_a_total = klM_a_price * reservations.nbr_jour_reservation
+                    to_pay_total += klM_a_total
+                    result.append({
+                        "klM_name":klM_a_name,
+                        "klM_price": klM_a_price,
+                        "klM_total": klM_a_total,
+                    })
+
+            elif klM_b.categorie == reservations.categorie :
+                if free_options and free_options.get("option_seven") == True:
+                    klM_b_price = klM_b.prix
+                    klm_b_last_price = 0
+                    klM_b_name = klM_b.name
+                    klM_b_total = klM_b_price * reservations.nbr_jour_reservation
+                    klm_b_last_total = 0
+                    result.append({
+                        "klM_name":klM_b_name,
+                        "klM_price": klM_b_price,
+                        "klM_last_price": klm_b_last_price,
+                        "klM_total": klM_b_total,
+                        "klM_last_total": klm_b_last_total,
+                    })
+                else :
+                    klM_b_price = klM_b.prix
+                    klM_b_name = klM_b.name
+                    klM_b_total = klM_b_price * reservations.nbr_jour_reservation
+                    to_pay_total += klM_b_total
+                    result.append({
+                        "klM_name":klM_b_name,
+                        "klM_price": klM_b_price,
+                        "klM_total": klM_b_total,
+                    })
+            elif klM_c.categorie == reservations.categorie :
+                if free_options and free_options.get("option_seven") == True:
+                    klM_c_price = klM_c.prix
+                    klm_c_last_price = 0
+                    klM_c_name = klM_c.name
+                    klM_c_total = klM_c_price * reservations.nbr_jour_reservation
+                    klm_c_last_total = 0
+                    result.append({
+                        "klM_name":klM_c_name,
+                        "klM_price": klM_c_price,
+                        "klM_last_price": klm_c_last_price,
+                        "klM_total": klM_c_total,
+                        "klM_last_total": klm_c_last_total,
+                    })
+                else : 
+                    klM_c_price = klM_c.prix
+                    klM_c_name = klM_c.name
+                    klM_c_total = klM_c_price * reservations.nbr_jour_reservation
+                    to_pay_total += klM_c_total
+                    result.append({
+                        "klM_name":klM_c_name,
+                        "klM_price": klM_c_price,
+                        "klM_total": klM_c_total,
+                    })
+            else :
+                pass
+
+        if nd_driver == "yes" and reservations.opt_nd_driver is None:
+            if nom and prenom and birthday and permis_date :
+                email = reservations.email
+                phone = reservations.telephone
+                client_status = verify_client(                
+                    email = email,
+                    nom = nom,
+                    prenom = prenom,
+                    birthday = birthday,
+                    permis = permis_date,
+                    phone =  phone
+                )
+                if client_status.get("message") == "negatif":
+                    return {"message": "Client has a high risk, cannot proceed"}
+            else :
+                return {"message" : "nd client info are required"}
+
             tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
-            nd_driver_price = tarif_nd.prix
-            nd_driver_name = tarif_nd.name
-            nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
-            to_pay_total += nd_driver_total
-            result.append({
-                "nd_driver_name":nd_driver_name,
-                "nd_driver_price": nd_driver_price,
-                "nd_driver_total": nd_driver_total,
-            })
+            if free_options and free_options.get("option_one") == True:
+                nd_driver_price = tarif_nd.prix
+                nd_driver_last_price = 0
+                nd_driver_name = tarif_nd.name
+                nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
+                nd_driver_last_total = 0
+                result.append({
+                    "nd_driver_name":nd_driver_name,
+                    "nd_driver_price": nd_driver_price,
+                    "nd_driver_last_price": nd_driver_last_price,
+                    "nd_driver_total": nd_driver_total,
+                    "nd_driver_last_total": nd_driver_last_total,
+                })
+            else :
+                nd_driver_price = tarif_nd.prix
+                nd_driver_name = tarif_nd.name
+                nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
+                to_pay_total += nd_driver_total
+                result.append({
+                    "nd_driver_name":nd_driver_name,
+                    "nd_driver_price": nd_driver_price,
+                    "nd_driver_total": nd_driver_total,
+                })
 
-        if carburant == "yes" and not reservations.opt_plein_carburant_name:
+        if carburant == "yes" and reservations.opt_plein_carburant is None:
             tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
-            carburant = tarif_carburant.name
-            carburant_price = tarif_carburant.prix
-            carburant_total = carburant_price * reservations.nbr_jour_reservation
-            to_pay_total += carburant_total
-            result.append({
-                "carburant_name": carburant,
-                "carburant_price": carburant_price ,
-                "carburant_total": carburant_total,
-            })
+            if free_options and free_options.get("option_one") == True:
+                carburant = tarif_carburant.name
+                carburant_price = tarif_carburant.prix
+                carburant_last_price = 0
+                carburant_total = carburant_price * reservations.nbr_jour_reservation
+                carburant_last_total = 0
+                result.append({
+                    "carburant_name": carburant,
+                    "carburant_price": carburant_price,
+                    "carburant_last_price": carburant_last_price,
+                    "carburant_total": carburant_total,
+                    "carburant_last_total": carburant_last_total,
+                })
+            else :
+                carburant = tarif_carburant.name
+                carburant_price = tarif_carburant.prix
+                carburant_total = carburant_price * reservations.nbr_jour_reservation
+                to_pay_total += carburant_total
+                result.append({
+                    "carburant_name": carburant,
+                    "carburant_price": carburant_price ,
+                    "carburant_total": carburant_total,
+                })
 
-        if sb_a == "yes" and not reservations.opt_siege_a_name:
+        if sb_a == "yes" and reservations.opt_siege_a is None:
             tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
-            sb_a_name = tarif_sb_a.name
-            sb_a_price = tarif_sb_a.prix
-            sb_a_total = sb_a_price * reservations.nbr_jour_reservation
-            to_pay_total += sb_a_total
-            result.append({
-                "sb_a_name": sb_a_name,
-                "sb_a_price": sb_a_price ,
-                "sb_a_total": sb_a_total,
-            })
+            if free_options and free_options.get("option_one") == True:
+                sb_a_name = tarif_sb_a.name
+                sb_a_price = tarif_sb_a.prix
+                sb_a_last_price = 0
+                sb_a_total = sb_a_price * reservations.nbr_jour_reservation
+                sb_a_last_total = 0
+                result.append({
+                    "sb_a_name": sb_a_name,
+                    "sb_a_price": sb_a_price,
+                    "sb_a_last_price": sb_a_last_price,
+                    "sb_a_total": sb_a_total,
+                    "sb_a_last_total": sb_a_last_total,
+                })
+            else :
+                sb_a_name = tarif_sb_a.name
+                sb_a_price = tarif_sb_a.prix
+                sb_a_total = sb_a_price * reservations.nbr_jour_reservation
+                to_pay_total += sb_a_total
+                result.append({
+                    "sb_a_name": sb_a_name,
+                    "sb_a_price": sb_a_price ,
+                    "sb_a_total": sb_a_total,
+                })
 
-        if sb_b == "yes" and not reservations.opt_siege_b_name:
+        if sb_b == "yes" and reservations.opt_siege_b is None:
             tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
-            sb_b_name = tarif_sb_b.name
-            sb_b_price = tarif_sb_b.prix
-            sb_b_total = sb_b_price * reservations.nbr_jour_reservation
-            to_pay_total += sb_b_total
-            result.append({
-                "sb_b_name": sb_b_name,
-                "sb_b_price": sb_b_price ,
-                "sb_b_total": sb_b_total,
-            })
-        if sb_c == "yes" and not reservations.opt_siege_c_name:
+            if free_options and free_options.get("option_one") == True:
+                sb_b_name = tarif_sb_b.name
+                sb_b_price = tarif_sb_b.prix
+                sb_b_last_price = 0
+                sb_b_total = sb_b_price * reservations.nbr_jour_reservation
+                sb_b_last_total = 0
+                result.append({
+                    "sb_b_name": sb_b_name,
+                    "sb_b_price": sb_b_price ,
+                    "sb_b_last_price": sb_b_last_price ,
+                    "sb_b_total": sb_b_total,
+                    "sb_b_last_total": sb_b_last_total ,
+                })
+            else : 
+                sb_b_name = tarif_sb_b.name
+                sb_b_price = tarif_sb_b.prix
+                sb_b_total = sb_b_price * reservations.nbr_jour_reservation
+                to_pay_total += sb_b_total
+                result.append({
+                    "sb_b_name": sb_b_name,
+                    "sb_b_price": sb_b_price ,
+                    "sb_b_total": sb_b_total,
+                })
+        if sb_c == "yes" and reservations.opt_siege_c_name is None:
             tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
-            sb_c_name = tarif_sb_c.name
-            sb_c_price = tarif_sb_c.prix
-            sb_c_total = sb_c_price * reservations.nbr_jour_reservation
-            to_pay_total += sb_c_total
-            result.append({
-                "sb_c_name": sb_c_name,
-                "sb_c_price": sb_c_price ,
-                "sb_c_total": sb_c_total,
-            })
-        
+            if free_options and free_options.get("option_one") == True:
+                sb_c_name = tarif_sb_c.name
+                sb_c_price = tarif_sb_c.prix
+                sb_c_last_price = 0
+                sb_c_total = sb_c_price * reservations.nbr_jour_reservation
+                sb_c_last_total = 0
+                result.append({
+                    "sb_c_name": sb_c_name,
+                    "sb_c_price": sb_c_price ,
+                    "sb_c_last_price": sb_c_last_price ,
+                    "sb_c_total": sb_c_total,
+                    "sb_c_last_total": sb_c_last_total,
+                })
+            else : 
+                sb_c_name = tarif_sb_c.name
+                sb_c_price = tarif_sb_c.prix
+                sb_c_total = sb_c_price * reservations.nbr_jour_reservation
+                to_pay_total += sb_c_total
+                result.append({
+                    "sb_c_name": sb_c_name,
+                    "sb_c_price": sb_c_price ,
+                    "sb_c_total": sb_c_total,
+                })
+            
         if to_pay_total > 0 :
             result.append({
                 "to_pay_total": to_pay_total,
