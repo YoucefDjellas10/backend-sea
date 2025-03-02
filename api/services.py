@@ -1143,6 +1143,7 @@ def search_option(code, total_days):
         option = Options.objects.filter(option_code=code).first()
         return {
             'name': option.name,
+            'type_tarif': option.type_tarif,
             'prix': option.prix,
             'total': option.prix * total_days if option.type_tarif == 'jour' else option.prix,
             'categorie': option.categorie.id if option.categorie else None,
@@ -1151,7 +1152,7 @@ def search_option(code, total_days):
             'caution': option.caution or 0
         }
     except Options.DoesNotExist:
-        return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
+        return {'name': None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
  
 def search_option_dzd(code, total_days):
     try:
@@ -1240,7 +1241,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         today = datetime.today().date()
     except ValueError:
         return {"message": "Invalid date format"}
-    
+    print("country_code : ",country_code)
     taux = TauxChange.objects.filter(id=2).first()
     taux_change = taux.montant
     if taux_change and taux_change is not None :
