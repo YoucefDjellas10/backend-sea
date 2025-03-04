@@ -2182,7 +2182,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "DZD",
+                        "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -2255,7 +2255,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "DZD",
+                        "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -2327,7 +2327,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "DZD",
+                        "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,

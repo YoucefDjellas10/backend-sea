@@ -440,6 +440,13 @@ def post_reservation_view(request):
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
 
+        prix_jour = 0
+        total = 0
+        last_total = 0
+        prix_unitaire = 0
+        last_prix_unitaire = 0
+        supp_total = 0 
+
         if not all([date_depart, heure_depart, date_retour, heure_retour]):
             return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
         
@@ -458,16 +465,12 @@ def post_reservation_view(request):
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
             client_red_pr = client.categorie_client.reduction 
+            categorie_client = client.categorie_client
             
         else:
             return JsonResponse({"error": "client invalides."}, status=400)
         
-        prix_jour = 0
-        total = 0
-        last_total = 0
-        prix_unitaire = 0
-        last_prix_unitaire = 0
-        supp_total = 0 
+        
 
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
         total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
