@@ -1777,6 +1777,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'boite_vitesse': vehicle.boite_vitesse,
                         'carburant': vehicle.carburant,
                         'marketing_text_fr': vehicle.marketing_text_fr,
+                        'description': vehicle,
                         'photo_link': vehicle.photo_link,
                         'photo_link_nd': vehicle.photo_link_nd,
                         'age_min': vehicle.age_min,
