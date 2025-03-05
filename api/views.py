@@ -1683,7 +1683,7 @@ def verify_and_calculate_view(request):
 def ma_reservation_view(request):
     ref = request.GET.get("ref")
     email = request.GET.get("email")
-    country_code = request.GET.get("country_code")
+    country_code = request.headers.get("X-Country-Code")
 
     if not ref or not email:
         return JsonResponse({"error": "Les paramètres 'ref' et 'email' sont requis."}, status=400)
