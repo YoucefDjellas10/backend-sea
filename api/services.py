@@ -272,11 +272,10 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
             price = tarif.prix * taux_change if country_code == "DZ" else tarif.prix
             total = price * reservations.nbr_jour_reservation
 
-            # Vérifier si l'option est gratuite
-            if free_options and free_options[0].get(free_option_key, False):
+            if any(opt.get(free_option_key, False) for opt in free_options):
                 price = 0
                 total = 0
-            
+
             total_price += total
 
             return {
