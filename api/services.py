@@ -26,13 +26,13 @@ def protections(ref, country_code):
                 return {"message": "Réservation non trouvée"}
 
             selected_protection = reservation.opt_protection_name
-            category = reservation.categorie.id
+            category = reservation.categorie
 
             protections = Options.objects.filter(    
                 (Q(option_code__icontains="BASE") | 
                 Q(option_code__icontains="MAX") | 
                 Q(option_code__icontains="STANDART"))
-                & Q(categorie_id=category)
+                & Q(categorie=category)
             )
             protections_return.append({
                 "selected_protection":selected_protection,

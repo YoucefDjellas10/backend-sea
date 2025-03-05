@@ -1045,6 +1045,7 @@ def add_reservation_post_view(request):
             du_au=du_au_string,
             vehicule=vehicule,
             modele=vehicule.modele,
+            categorie = vehicule.categorie,
             client=client,
             nom=client_nom,
             prenom=client_prenom,
@@ -1588,9 +1589,9 @@ def ma_reservation_view(request):
             email=email,
             country_code=country_code
         )
-        #protection = protections(ref=ref, country_code=country_code)
-        #options = option_ma_reservation(ref=ref , country_code=country_code)
-        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        protection = protections(ref=ref, country_code=country_code)
+        options = option_ma_reservation(ref=ref , country_code=country_code)
+        return JsonResponse({"protections":protection,"options": options ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
