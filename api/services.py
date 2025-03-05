@@ -251,22 +251,19 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
         result = {}
         total_price = 0
 
-        # Récupérer la réservation
         reservations = Reservation.objects.filter(name=ref).first()
         if not reservations:
             return {"message": "Aucune réservation trouvée avec cet ID."}
 
-        # Vérifier les options gratuites pour ce client
         free_options = []
         if reservations.client:
             free_options = free_options_f(reservations.client.id)
 
-        # Récupérer le taux de change
         taux = TauxChange.objects.filter(id=2).first()
-        taux_change = taux.montant if taux else 1  # Éviter une erreur si pas de taux
+        taux_change = taux.montant if taux else 1  
 
         def get_option(option_code, free_option_key):
-            nonlocal total_price  # Permet d'accéder à `total_price` dans la fonction interne
+            nonlocal total_price  
             
             tarif = Options.objects.filter(option_code=option_code).first()
             if not tarif:
@@ -287,8 +284,20 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 "price": price,
                 "total": total
             }
+        
+        if klm == "yes" and not reservations.opt_klm_name:
+            klm_a = Options.objects.filter(option_code="KLM_ILLIMITED").first()
+            klm_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
+            klm_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()
+            if klm_a.categorie == reservations.categorie :
+                result["klm"] = get_option("KLM_ILLIMITED", "option_one")
+            elif klm_b.categorie == reservations.categorie :
+                result["klm"] = get_option("KLM_ILLIMITED_B", "option_one")
+            elif klm_c.categorie == reservations.categorie :
+                result["klm"] = get_option("KLM_ILLIMITED_C", "option_one")
+            else :
+                result["klm"] = get_option("KLM_ILLIMITED", "option_one")
 
-        # Vérifier et ajouter chaque option si demandée
         if nd_driver == "yes" and not reservations.opt_nd_driver_name:
             result["nd_driver"] = get_option("ND_DRIVER", "option_one")
 
