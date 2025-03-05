@@ -246,245 +246,72 @@ def new_models():
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
-
-
 def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, country_code):
     try:
-        result = []
+        result = {}
+        total_price = 0
+
+        # Récupérer la réservation
         reservations = Reservation.objects.filter(name=ref).first()
         if not reservations:
-            return {"message" : "pas de reservation avce cet id "}
+            return {"message": "Aucune réservation trouvée avec cet ID."}
 
-        if reservations.client :
+        # Vérifier les options gratuites pour ce client
+        free_options = []
+        if reservations.client:
             free_options = free_options_f(reservations.client.id)
 
-        result.append({
-            "nbr_jour": reservations.nbr_jour_reservation,
-        })
-        to_pay_total = 0
-
+        # Récupérer le taux de change
         taux = TauxChange.objects.filter(id=2).first()
-        taux_change = taux.montant
+        taux_change = taux.montant if taux else 1  # Éviter une erreur si pas de taux
 
-        if klm == "yes" and not reservations.opt_klm_name:
-            klM_a = Options.objects.filter(option_code="KLM_ILLIMITED").first()
-            klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
-            klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()   
-            if klM_a.categorie == reservations.categorie :
-                if free_options and free_options[0].get("option_seven") == True: 
-                    klM_a_price = klM_a.prix * taux_change if country_code =="DZ" else klM_a.prix
-                    klm_a_last_price = 0
-                    klM_a_name = klM_a.name
-                    klM_a_total = klM_a_price * reservations.nbr_jour_reservation
-                    klm_a_last_total = 0
-                    result.append({
-                        "klm_name":klM_a_name,
-                        "klM_price": klM_a_price,
-                        "klM_last_price": klm_a_last_price,
-                        "klM_total": klM_a_total,
-                        "klM_last_total": klm_a_last_total,
-                    })
+        def get_option(option_code, free_option_key):
+            nonlocal total_price  # Permet d'accéder à `total_price` dans la fonction interne
+            
+            tarif = Options.objects.filter(option_code=option_code).first()
+            if not tarif:
+                return None
 
-                else : 
-                    klM_a_price = klM_a.prix * taux_change if country_code =="DZ" else klM_a.prix
-                    klM_a_name = klM_a.name
-                    klM_a_total = klM_a_price * reservations.nbr_jour_reservation
-                    to_pay_total += klM_a_total
-                    result.append({
-                        "klM_name":klM_a_name,
-                        "klM_price": klM_a_price,
-                        "klM_total": klM_a_total,
-                    })
+            price = tarif.prix * taux_change if country_code == "DZ" else tarif.prix
+            total = price * reservations.nbr_jour_reservation
 
-            elif klM_b.categorie == reservations.categorie :
-                if free_options and free_options[0].get("option_seven") == True:
-                    klM_b_price = klM_b.prix * taux_change if country_code=="DZ" else klM_b.prix
-                    klm_b_last_price = 0
-                    klM_b_name = klM_b.name
-                    klM_b_total = klM_b_price * reservations.nbr_jour_reservation
-                    klm_b_last_total = 0
-                    result.append({
-                        "klM_name":klM_b_name,
-                        "klM_price": klM_b_price,
-                        "klM_last_price": klm_b_last_price,
-                        "klM_total": klM_b_total,
-                        "klM_last_total": klm_b_last_total,
-                    })
-                else :
-                    klM_b_price = klM_b.prix * taux_change if country_code=="DZ" else klM_b.prix
-                    klM_b_name = klM_b.name
-                    klM_b_total = klM_b_price * reservations.nbr_jour_reservation
-                    to_pay_total += klM_b_total
-                    result.append({
-                        "klM_name":klM_b_name,
-                        "klM_price": klM_b_price,
-                        "klM_total": klM_b_total,
-                    })
-            elif klM_c.categorie == reservations.categorie :
-                if free_options and free_options[0].get("option_seven") == True:
-                    klM_c_price = klM_c.prix * taux_change if country_code=="DZ" else klM_c.prix
-                    klm_c_last_price = 0
-                    klM_c_name = klM_c.name
-                    klM_c_total = klM_c_price * reservations.nbr_jour_reservation
-                    klm_c_last_total = 0
-                    result.append({
-                        "klM_name":klM_c_name,
-                        "klM_price": klM_c_price,
-                        "klM_last_price": klm_c_last_price,
-                        "klM_total": klM_c_total,
-                        "klM_last_total": klm_c_last_total,
-                    })
-                else : 
-                    klM_c_price = klM_c.prix * taux_change if country_code=="DZ" else klM_c.prix
-                    klM_c_name = klM_c.name
-                    klM_c_total = klM_c_price * reservations.nbr_jour_reservation
-                    to_pay_total += klM_c_total
-                    result.append({
-                        "klM_name":klM_c_name,
-                        "klM_price": klM_c_price,
-                        "klM_total": klM_c_total,
-                    })
-            else :
-                pass
+            # Vérifier si l'option est gratuite
+            if free_options and free_options[0].get(free_option_key, False):
+                price = 0
+                total = 0
+            
+            total_price += total
 
+            return {
+                "name": tarif.name,
+                "price": price,
+                "total": total
+            }
+
+        # Vérifier et ajouter chaque option si demandée
         if nd_driver == "yes" and not reservations.opt_nd_driver_name:
-            tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
-            if free_options and free_options[0].get("option_one") == True:
-                nd_driver_price = tarif_nd.prix * taux_change if country_code=="DZ" else tarif_nd.prix
-                nd_driver_last_price = 0
-                nd_driver_name = tarif_nd.name
-                nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
-                nd_driver_last_total = 0
-                result.append({
-                    "nd_driver_name":nd_driver_name,
-                    "nd_driver_price": nd_driver_price,
-                    "nd_driver_last_price": nd_driver_last_price,
-                    "nd_driver_total": nd_driver_total,
-                    "nd_driver_last_total": nd_driver_last_total,
-                })
-            else :
-                nd_driver_price = tarif_nd.prix * taux_change if country_code=="DZ" else tarif_nd.prix
-                nd_driver_name = tarif_nd.name
-                nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
-                to_pay_total += nd_driver_total
-                result.append({
-                    "nd_driver_name":nd_driver_name,
-                    "nd_driver_price": nd_driver_price,
-                    "nd_driver_total": nd_driver_total,
-                })
+            result["nd_driver"] = get_option("ND_DRIVER", "option_one")
 
         if carburant == "yes" and not reservations.opt_plein_carburant_name:
-            tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
-            if free_options and free_options[0].get("option_two") == True:
-                carburant = tarif_carburant.name
-                carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
-                carburant_last_price = 0
-                carburant_total = carburant_price * reservations.nbr_jour_reservation
-                carburant_last_total = 0
-                result.append({
-                    "carburant_name": carburant,
-                    "carburant_price": carburant_price,
-                    "carburant_last_price": carburant_last_price,
-                    "carburant_total": carburant_total,
-                    "carburant_last_total": carburant_last_total,
-                })
-            else :
-                carburant = tarif_carburant.name
-                carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
-                carburant_total = carburant_price * reservations.nbr_jour_reservation
-                to_pay_total += carburant_total
-                result.append({
-                    "carburant_name": carburant,
-                    "carburant_price": carburant_price ,
-                    "carburant_total": carburant_total,
-                })
+            result["carburant"] = get_option("P_CARBURANT", "option_two")
 
         if sb_a == "yes" and not reservations.opt_siege_a_name:
-            tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
-            if free_options and free_options[0].get("option_three") == True:
-                sb_a_name = tarif_sb_a.name
-                sb_a_price = tarif_sb_a.prix * taux_change if country_code=="DZ" else tarif_sb_a.prix
-                sb_a_last_price = 0
-                sb_a_total = sb_a_price * reservations.nbr_jour_reservation
-                sb_a_last_total = 0
-                result.append({
-                    "sb_a_name": sb_a_name,
-                    "sb_a_price": sb_a_price,
-                    "sb_a_last_price": sb_a_last_price,
-                    "sb_a_total": sb_a_total,
-                    "sb_a_last_total": sb_a_last_total,
-                })
-            else :
-                sb_a_name = tarif_sb_a.name
-                sb_a_price = tarif_sb_a.prix * taux_change if country_code=="DZ" else tarif_sb_a.prix
-                sb_a_total = sb_a_price * reservations.nbr_jour_reservation
-                to_pay_total += sb_a_total
-                result.append({
-                    "sb_a_name": sb_a_name,
-                    "sb_a_price": sb_a_price ,
-                    "sb_a_total": sb_a_total,
-                })
+            result["sb_a"] = get_option("S_BEBE_5", "option_three")
 
         if sb_b == "yes" and not reservations.opt_siege_b_name:
-            tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
-            if free_options and free_options[0].get("option_four") == True:
-                sb_b_name = tarif_sb_b.name
-                sb_b_price = tarif_sb_b.prix * taux_change if country_code=="DZ" else tarif_sb_b.prix
-                sb_b_last_price = 0
-                sb_b_total = sb_b_price * reservations.nbr_jour_reservation
-                sb_b_last_total = 0
-                result.append({
-                    "sb_b_name": sb_b_name,
-                    "sb_b_price": sb_b_price ,
-                    "sb_b_last_price": sb_b_last_price ,
-                    "sb_b_total": sb_b_total,
-                    "sb_b_last_total": sb_b_last_total ,
-                })
-            else : 
-                sb_b_name = tarif_sb_b.name
-                sb_b_price = tarif_sb_b.prix * taux_change if country_code=="DZ" else tarif_sb_b.prix
-                sb_b_total = sb_b_price * reservations.nbr_jour_reservation
-                to_pay_total += sb_b_total
-                result.append({
-                    "sb_b_name": sb_b_name,
-                    "sb_b_price": sb_b_price ,
-                    "sb_b_total": sb_b_total,
-                })
+            result["sb_b"] = get_option("S_BEBE_13", "option_four")
+
         if sb_c == "yes" and not reservations.opt_siege_c_name:
-            tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
-            if free_options and free_options[0].get("option_five") == True:
-                sb_c_name = tarif_sb_c.name
-                sb_c_price = tarif_sb_c.prix * taux_change if country_code=="DZ" else tarif_sb_c.prix
-                sb_c_last_price = 0
-                sb_c_total = sb_c_price * reservations.nbr_jour_reservation
-                sb_c_last_total = 0
-                result.append({
-                    "sb_c_name": sb_c_name,
-                    "sb_c_price": sb_c_price ,
-                    "sb_c_last_price": sb_c_last_price ,
-                    "sb_c_total": sb_c_total,
-                    "sb_c_last_total": sb_c_last_total,
-                })
-            else : 
-                sb_c_name = tarif_sb_c.name
-                sb_c_price = tarif_sb_c.prix * taux_change if country_code=="DZ" else tarif_sb_c.prix
-                sb_c_total = sb_c_price * reservations.nbr_jour_reservation
-                to_pay_total += sb_c_total
-                result.append({
-                    "sb_c_name": sb_c_name,
-                    "sb_c_price": sb_c_price ,
-                    "sb_c_total": sb_c_total,
-                })
-            
-        if to_pay_total > 0 :
-            result.append({
-                "to_pay_total": to_pay_total,
-            })
-        
+            result["sb_c"] = get_option("S_BEBE_18", "option_five")
+
+        # Ajouter le total final
+        result["total_price"] = total_price
+
         return result
+
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
-
+    
 def mes_reservations(client_id):
     try:
         reservations = Reservation.objects.filter(client__id=client_id)
