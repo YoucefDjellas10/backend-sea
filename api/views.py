@@ -1573,17 +1573,11 @@ def add_options_request_view(request):
     sb_a = request.GET.get("sb_a")
     sb_b = request.GET.get("sb_b")
     sb_c = request.GET.get("sb_c")
-    nom = request.GET.get("nom")
-    prenom = request.GET.get("prenom")
-    birthday = request.GET.get("birthday")
-    permis_date = request.GET.get("permis_date")
     klm = request.GET.get("klm")
 
     if not ref or not nd_driver or not carburant or not sb_a or not sb_b or not sb_c:
         return JsonResponse({"error": "Tout les parametres sont requis."}, status=400)
-    if nd_driver == "yes" and (not nom or not prenom or not birthday or not permis_date):
-        return JsonResponse({"error": "information client requis."}, status=400)
-
+    
     try:
         resultats = add_options_request(
             ref=ref,
@@ -1593,10 +1587,6 @@ def add_options_request_view(request):
             sb_a=sb_a,
             sb_b=sb_b,
             sb_c=sb_c,
-            nom=nom,
-            prenom=prenom,
-            birthday=birthday,
-            permis_date=permis_date,
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:

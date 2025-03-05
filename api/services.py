@@ -248,7 +248,7 @@ def new_models():
         return {"message": f"Erreur: {str(e)}"}
 
 
-def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, prenom, birthday, permis_date):
+def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
     try:
         result = []
         reservations = Reservation.objects.filter(name=ref).first()
@@ -345,22 +345,6 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c,nom, pr
                 pass
 
         if nd_driver == "yes" and not reservations.opt_nd_driver_name:
-            if nom and prenom and birthday and permis_date :
-                email = reservations.email
-                phone = reservations.telephone
-                client_status = verify_client(                
-                    email = email,
-                    nom = nom,
-                    prenom = prenom,
-                    birthday = birthday,
-                    permis = permis_date,
-                    phone =  phone
-                )
-                if client_status.get("message") == "negatif":
-                    return {"message": "Client has a high risk, cannot proceed"}
-            else :
-                return {"message" : "nd client info are required"}
-
             tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
             if free_options and free_options[0].get("option_one") == True:
                 nd_driver_price = tarif_nd.prix
