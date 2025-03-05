@@ -25,7 +25,6 @@ from django.utils import timezone
 @require_http_methods(["PUT"])
 def protection_put_view(request):
     try:
-        print(request.body)
         data = json.loads(request.body)
         ref = data.get("ref")
         protection = data.get("protection")
@@ -650,8 +649,6 @@ def post_reservation_view(request):
             total += protection_total
             last_total += protection_total
             total_option += protection_total
-            print("total : ", total)
-            print("prix unitaire : ", protection_unit)
         
         elif opt_protection == "STANDART" :
             standart_a = Options.objects.filter(option_code="STANDART_P_1").first()
@@ -1025,9 +1022,7 @@ def add_reservation_post_view(request):
         client = ListeClient.objects.filter(id=client_id).first()
         if not vehicule or not client:
             return JsonResponse({"error": "Véhicule ou client introuvable."}, status=404)
-        print("client : ", client)
         client_nom = client.nom
-        print("client.nom : ", client.nom)
         client_prenom = client.prenom
         client_date_permis = client.date_de_permis
         client_date_naissance = client.date_de_naissance
@@ -1443,122 +1438,19 @@ def new_modeles_view(request):
 @require_http_methods(["PUT"])
 def add_options_put_view(request):
     try:
-        print(request.body)
         data = json.loads(request.body)
         ref = data.get("ref")
         nd_driver = data.get("nd_driver")
         carburant = data.get("carburant")
         sb_a = data.get("sb_a")
         sb_b = data.get("sb_b")
-        sb_c = data.get("rsb_cef")
+        sb_c = data.get("sb_c")
 
         if not ref:
             return JsonResponse({"error": "Le champ 'ref' est requis."}, status=400)
         reservation = Reservation.objects.filter(name=ref).first()
         jr = reservation.nbr_jour_reservation
-        opt_total = reservation.options_total
-        new_total = 500
-        if not reservation:
-            return JsonResponse({"error": "Réservation non trouvée avec la référence spécifiée."}, status=404)
-
-        if nd_driver == "yes" and not reservation.opt_nd_driver_name:
-            tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
-            reservation.opt_nd_driver = tarif_nd
-            reservation.opt_nd_driver_name = tarif_nd.name
-            reservation.opt_nd_driver_price = tarif_nd.prix
-            if tarif_nd.type_tarif == "jour":
-                reservation.opt_nd_driver_total = tarif_nd.prix * jr
-                new_total += tarif_nd.prix * jr
-            else :
-                reservation.opt_nd_driver_total = tarif_nd.prix
-                new_total += tarif_nd.prix
-
-        if carburant == "yes" and not reservation.opt_plein_carburant_name:
-            tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
-            reservation.opt_plein_carburant = tarif_carburant
-            reservation.opt_plein_carburant_name = tarif_carburant.name
-            reservation.opt_plein_carburant_prix = tarif_carburant.prix
-            if tarif_carburant.type_tarif == "jour":
-                reservation.opt_plein_carburant_total = tarif_carburant.prix * jr
-                new_total += tarif_carburant.prix * jr
-            else :
-                reservation.opt_plein_carburant_total = tarif_carburant.prix
-                new_total += tarif_carburant.prix
-
-        if sb_a == "yes" and not reservation.opt_siege_a_name:
-            tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
-            reservation.opt_siege_a = tarif_sb_a
-            reservation.opt_siege_a_name = tarif_sb_a.name
-            reservation.opt_siege_a_prix = tarif_sb_a.prix
-            if tarif_sb_a.type_tarif == "jour":
-                reservation.opt_siege_a_total = tarif_sb_a.prix * jr
-                new_total +=  tarif_sb_a.prix * jr
-            else :
-                reservation.opt_siege_a_total = tarif_sb_a.prix
-                new_total += tarif_sb_a.prix
-
-        if sb_b == "yes" and not reservation.opt_siege_b_name:
-            tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
-            reservation.opt_siege_b = tarif_sb_b
-            reservation.opt_siege_b_name = tarif_sb_b.name
-            reservation.opt_siege_b_prix = tarif_sb_b.prix
-            if tarif_sb_b.type_tarif == "jour":
-                reservation.opt_siege_b_total = tarif_sb_b.prix * jr
-                new_total += tarif_sb_b.prix * jr
-            else :
-                reservation.opt_siege_b_total = tarif_sb_b.prix
-                new_total += tarif_sb_b.prix
-
-        if sb_c == "yes" and not reservation.opt_siege_c_name:
-            tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
-            reservation.opt_siege_c = tarif_sb_c
-            reservation.opt_siege_c_name = tarif_sb_c.name
-            reservation.opt_siege_c_prix = tarif_sb_c.prix
-            if tarif_sb_c.type_tarif == "jour":
-                reservation.opt_siege_c_total = tarif_sb_c.prix * jr
-                new_total += tarif_sb_c.prix
-            else :
-                reservation.opt_siege_c_total = tarif_sb_c.prix
-                new_total += tarif_sb_c.prix
-
-        if (int(new_total) < int(opt_total) and not reservation.opt_payment_name) or (new_total == opt_total):
-            reservation.save()
-            return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès."}, status=200)
-
-        elif int(new_total) < int(opt_total) and reservation.opt_payment_name:
-            reservation.save()
-            return JsonResponse({"refund_message":True,"message": "Modification effectuée avec succès."}, status=200)
-        elif (int(new_total) > int(opt_total) and not reservation.opt_payment_name) or (new_total == opt_total):
-            reservation.save()
-            return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès."}, status=200)
-        elif int(new_total) > int(opt_total) and reservation.opt_payment_name:
-            reservation.save()
-            diff = new_total - opt_total 
-            request_factory = RequestFactory()
-            fake_request = request_factory.post(
-                path="/create-payment-session/",
-                data=json.dumps({
-                    "product_name": reservation.name,
-                    "description": "test",
-                    "images": [reservation.photo_link] if reservation.photo_link else [],
-                    "unit_amount": int(diff * 100),
-                    "quantity": 1,
-                    "currency": "eur",
-                    "reservation_id": reservation.id
-                }),
-                content_type="application/json"
-            )
-            payment_session_response = create_payment_session(fake_request)
-
-            if payment_session_response.status_code != 200:
-                return {"message": "Erreur lors de la création de la session de paiement."}
-
-            if payment_session_response.status_code == 200:
-                payment_session_data = json.loads(payment_session_response.content)
-                session_id = payment_session_data.get("session_id", "")
-                payment_url = payment_session_data.get("url", "")
-
-            return JsonResponse({"refund_message":False , "message": "Modification effectuée avec succès.","session_id":session_id,"payment_url":payment_url}, status=200)
+        
             
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
@@ -1696,9 +1588,9 @@ def ma_reservation_view(request):
             email=email,
             country_code=country_code
         )
-        protection = protections(ref=ref, country_code=country_code)
-        options = option_ma_reservation(ref=ref , country_code=country_code)
-        return JsonResponse({"protections":protection,"options": options ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+        #protection = protections(ref=ref, country_code=country_code)
+        #options = option_ma_reservation(ref=ref , country_code=country_code)
+        return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 

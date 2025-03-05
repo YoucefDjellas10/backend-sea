@@ -1242,7 +1242,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         today = datetime.today().date()
     except ValueError:
         return {"message": "Invalid date format"}
-    print("country_code : ",country_code)
     taux = TauxChange.objects.filter(id=2).first()
     taux_change = taux.montant
     if taux_change and taux_change is not None :
