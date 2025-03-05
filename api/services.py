@@ -248,7 +248,7 @@ def new_models():
         return {"message": f"Erreur: {str(e)}"}
 
 
-def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
+def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, country_code):
     try:
         result = []
         reservations = Reservation.objects.filter(name=ref).first()
@@ -263,13 +263,16 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
         })
         to_pay_total = 0
 
+        taux = TauxChange.objects.filter(id=2).first()
+        taux_change = taux.montant
+
         if klm == "yes" and not reservations.opt_klm_name:
             klM_a = Options.objects.filter(option_code="KLM_ILLIMITED").first()
             klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
             klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()   
             if klM_a.categorie == reservations.categorie :
                 if free_options and free_options[0].get("option_seven") == True: 
-                    klM_a_price = klM_a.prix
+                    klM_a_price = klM_a.prix * taux_change if country_code =="DZ" else klM_a.prix
                     klm_a_last_price = 0
                     klM_a_name = klM_a.name
                     klM_a_total = klM_a_price * reservations.nbr_jour_reservation
@@ -283,7 +286,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                     })
 
                 else : 
-                    klM_a_price = klM_a.prix
+                    klM_a_price = klM_a.prix * taux_change if country_code =="DZ" else klM_a.prix
                     klM_a_name = klM_a.name
                     klM_a_total = klM_a_price * reservations.nbr_jour_reservation
                     to_pay_total += klM_a_total
@@ -295,7 +298,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
 
             elif klM_b.categorie == reservations.categorie :
                 if free_options and free_options[0].get("option_seven") == True:
-                    klM_b_price = klM_b.prix
+                    klM_b_price = klM_b.prix * taux_change if country_code=="DZ" else klM_b.prix
                     klm_b_last_price = 0
                     klM_b_name = klM_b.name
                     klM_b_total = klM_b_price * reservations.nbr_jour_reservation
@@ -308,7 +311,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                         "klM_last_total": klm_b_last_total,
                     })
                 else :
-                    klM_b_price = klM_b.prix
+                    klM_b_price = klM_b.prix * taux_change if country_code=="DZ" else klM_b.prix
                     klM_b_name = klM_b.name
                     klM_b_total = klM_b_price * reservations.nbr_jour_reservation
                     to_pay_total += klM_b_total
@@ -319,7 +322,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                     })
             elif klM_c.categorie == reservations.categorie :
                 if free_options and free_options[0].get("option_seven") == True:
-                    klM_c_price = klM_c.prix
+                    klM_c_price = klM_c.prix * taux_change if country_code=="DZ" else klM_c.prix
                     klm_c_last_price = 0
                     klM_c_name = klM_c.name
                     klM_c_total = klM_c_price * reservations.nbr_jour_reservation
@@ -332,7 +335,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                         "klM_last_total": klm_c_last_total,
                     })
                 else : 
-                    klM_c_price = klM_c.prix
+                    klM_c_price = klM_c.prix * taux_change if country_code=="DZ" else klM_c.prix
                     klM_c_name = klM_c.name
                     klM_c_total = klM_c_price * reservations.nbr_jour_reservation
                     to_pay_total += klM_c_total
@@ -347,7 +350,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
         if nd_driver == "yes" and not reservations.opt_nd_driver_name:
             tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
             if free_options and free_options[0].get("option_one") == True:
-                nd_driver_price = tarif_nd.prix
+                nd_driver_price = tarif_nd.prix * taux_change if country_code=="DZ" else tarif_nd.prix
                 nd_driver_last_price = 0
                 nd_driver_name = tarif_nd.name
                 nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
@@ -360,7 +363,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                     "nd_driver_last_total": nd_driver_last_total,
                 })
             else :
-                nd_driver_price = tarif_nd.prix
+                nd_driver_price = tarif_nd.prix * taux_change if country_code=="DZ" else tarif_nd.prix
                 nd_driver_name = tarif_nd.name
                 nd_driver_total = nd_driver_price * reservations.nbr_jour_reservation
                 to_pay_total += nd_driver_total
@@ -374,7 +377,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
             tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
             if free_options and free_options[0].get("option_two") == True:
                 carburant = tarif_carburant.name
-                carburant_price = tarif_carburant.prix
+                carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
                 carburant_last_price = 0
                 carburant_total = carburant_price * reservations.nbr_jour_reservation
                 carburant_last_total = 0
@@ -387,7 +390,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                 })
             else :
                 carburant = tarif_carburant.name
-                carburant_price = tarif_carburant.prix
+                carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
                 carburant_total = carburant_price * reservations.nbr_jour_reservation
                 to_pay_total += carburant_total
                 result.append({
@@ -400,7 +403,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
             tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
             if free_options and free_options[0].get("option_three") == True:
                 sb_a_name = tarif_sb_a.name
-                sb_a_price = tarif_sb_a.prix
+                sb_a_price = tarif_sb_a.prix * taux_change if country_code=="DZ" else tarif_sb_a.prix
                 sb_a_last_price = 0
                 sb_a_total = sb_a_price * reservations.nbr_jour_reservation
                 sb_a_last_total = 0
@@ -413,7 +416,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                 })
             else :
                 sb_a_name = tarif_sb_a.name
-                sb_a_price = tarif_sb_a.prix
+                sb_a_price = tarif_sb_a.prix * taux_change if country_code=="DZ" else tarif_sb_a.prix
                 sb_a_total = sb_a_price * reservations.nbr_jour_reservation
                 to_pay_total += sb_a_total
                 result.append({
@@ -426,7 +429,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
             tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
             if free_options and free_options[0].get("option_four") == True:
                 sb_b_name = tarif_sb_b.name
-                sb_b_price = tarif_sb_b.prix
+                sb_b_price = tarif_sb_b.prix * taux_change if country_code=="DZ" else tarif_sb_b.prix
                 sb_b_last_price = 0
                 sb_b_total = sb_b_price * reservations.nbr_jour_reservation
                 sb_b_last_total = 0
@@ -439,7 +442,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                 })
             else : 
                 sb_b_name = tarif_sb_b.name
-                sb_b_price = tarif_sb_b.prix
+                sb_b_price = tarif_sb_b.prix * taux_change if country_code=="DZ" else tarif_sb_b.prix
                 sb_b_total = sb_b_price * reservations.nbr_jour_reservation
                 to_pay_total += sb_b_total
                 result.append({
@@ -451,7 +454,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
             tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
             if free_options and free_options[0].get("option_five") == True:
                 sb_c_name = tarif_sb_c.name
-                sb_c_price = tarif_sb_c.prix
+                sb_c_price = tarif_sb_c.prix * taux_change if country_code=="DZ" else tarif_sb_c.prix
                 sb_c_last_price = 0
                 sb_c_total = sb_c_price * reservations.nbr_jour_reservation
                 sb_c_last_total = 0
@@ -464,7 +467,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c):
                 })
             else : 
                 sb_c_name = tarif_sb_c.name
-                sb_c_price = tarif_sb_c.prix
+                sb_c_price = tarif_sb_c.prix * taux_change if country_code=="DZ" else tarif_sb_c.prix
                 sb_c_total = sb_c_price * reservations.nbr_jour_reservation
                 to_pay_total += sb_c_total
                 result.append({

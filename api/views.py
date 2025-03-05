@@ -1574,6 +1574,7 @@ def add_options_request_view(request):
     sb_b = request.GET.get("sb_b")
     sb_c = request.GET.get("sb_c")
     klm = request.GET.get("klm")
+    country_code = request.headers.get("X-Country-Code")
 
     if not ref or not nd_driver or not carburant or not sb_a or not sb_b or not sb_c:
         return JsonResponse({"error": "Tout les parametres sont requis."}, status=400)
@@ -1587,6 +1588,7 @@ def add_options_request_view(request):
             sb_a=sb_a,
             sb_b=sb_b,
             sb_c=sb_c,
+            country_code = country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
