@@ -1050,8 +1050,6 @@ class Reservation(models.Model):
     opt_siege_c_total = models.IntegerField(null=True, blank=True)
     num_vol = models.CharField()
 
-
-
     class Meta:
         db_table = 'reservation'
 

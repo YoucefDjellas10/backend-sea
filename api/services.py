@@ -199,7 +199,7 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
             if client_id.risque == "eleve":
                 return {"message":"negatif"}
             else :
-                return client_id.id
+                return {"message":"positif", "client_id": client_id.id}
 
         else :
             client_verify=ListeClient.objects.filter(nom=prenom, prenom=nom).first()
@@ -207,7 +207,7 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
                 if client_verify.risque == "eleve":
                     return {"message":"negatif"}
                 else :
-                    return client_verify.id
+                    return {"message":"positif", "client_id": client_verify.id}
             else:
                 client = ListeClient.objects.create(
                     email=email,
@@ -218,8 +218,7 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
                     date_de_permis=permis,
                     risque="faible"
                 )
-                return client.id
-
+                return {"message":"positif", "client_id": client.id}
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
@@ -492,7 +491,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
             
         if to_pay_total > 0 :
             result["total_price"] = to_pay_total
-        
+                
         return result
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
