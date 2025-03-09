@@ -2134,7 +2134,7 @@ def search_result_view(request):
     country_code = request.GET.get("country_code")
 
     if not country_code :
-        country_code = request.headers.get("country_code")
+        country_code = request.headers.get("X-Country-Code")
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
