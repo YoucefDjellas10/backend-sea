@@ -140,6 +140,7 @@ class Modele(models.Model):
         blank=True
     )
     photo_link = models.CharField(max_length=255, verbose_name="Photo Link", null=True, blank=True)
+    photo_link_pay = models.CharField(max_length=255, verbose_name="Photo Link Pay", null=True, blank=True)
     STECKERS_CHOICES = [
         ('new', 'New'),
         ('promotion', 'promotion'),

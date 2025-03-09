@@ -18,6 +18,7 @@ from decimal import Decimal
 from rest_framework.decorators import api_view
 from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
+endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 from django.utils import timezone
 
 def vip_reduction_view(request):
@@ -456,6 +457,7 @@ def post_reservation_view(request):
         prix_unitaire = 0
         last_prix_unitaire = 0
         supp_total = 0 
+        to_pay = 0
 
         if not all([date_depart, heure_depart, date_retour, heure_retour]):
             return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
@@ -557,6 +559,7 @@ def post_reservation_view(request):
                 opt_payment_name = paiement_anticipe.name
                 opt_payment_unit = 0
                 opt_payment_total = 0
+                to_pay = prix_jour
                 total_option += opt_payment_total
                 total += opt_payment_total
                 last_total += opt_payment_total
@@ -565,10 +568,12 @@ def post_reservation_view(request):
                 opt_payment_name = paiement_anticipe.name
                 opt_payment_unit = paiement_anticipe.prix
                 opt_payment_total = paiement_anticipe.prix * total_days if paiement_anticipe.type_option =="jour" else paiement_anticipe.prix
+                to_pay = prix_jour
                 total_option += opt_payment_total
                 total += opt_payment_total
                 last_total += opt_payment_total
         else :
+            to_pay = 0
             paiement_anticipe = None
             opt_payment_name = None
             opt_payment_unit = 0
@@ -1050,25 +1055,24 @@ def post_reservation_view(request):
             total_reduit = last_total,
             total_reduit_euro = last_total
         )  
+        montant_a_paye = to_pay if to_pay>0 else last_total
 
-        
         request_factory = RequestFactory()
         fake_request = request_factory.post(
-            path="/create-payment-session/",
+            path="/create-payment-session-reservation/",
             data=json.dumps({
-                "product_name": "Réservation N° : {reservation.name}",
-                "description": "test",
-                "images": [vehicule.photo_link] if vehicule.photo_link else [],
-                "unit_amount": int(total * 100),
+                "product_name": f"Réservation N° : {reservation.name}",
+                "description": f"Réservation du {reservation.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
+                "images": [vehicule.modele.photo_link_pay] if vehicule.modele.photo_link_pay else [],
+                "unit_amount": int(montant_a_paye * 100),
                 "quantity": 1,
                 "currency": "eur",
                 "reservation_id": reservation.id
-
             }),
             content_type="application/json"
         )
 
-        payment_session_response = create_payment_session(fake_request)
+        payment_session_response = create_payment_session_reservation(fake_request)
 
         if payment_session_response.status_code == 200:
             payment_session_data = json.loads(payment_session_response.content)
@@ -1078,11 +1082,80 @@ def post_reservation_view(request):
         else:
             return JsonResponse({"error": "Échec de la création de la session de paiement.", "response": payment_session_response.content.decode('utf-8')}, status=500)
 
-
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def create_payment_session_reservation(request):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+        product_name = data.get("product_name")
+        description = data.get("description")
+        images = data.get("images", [])
+        unit_amount = data.get("unit_amount")
+        quantity = data.get("quantity")
+        currency = data.get("currency", "eur")
+        reservation_id = data.get("reservation_id")
+
+        if not all([product_name, description, unit_amount, quantity]):
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        unit_amount = int(unit_amount)
+        quantity = int(quantity)
+
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": product_name,
+                            "description": description,
+                            "images": images,
+                        },
+                        "unit_amount": unit_amount,
+                    },
+                    "quantity": quantity,
+                },
+            ],
+            mode="payment",
+            success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
+            cancel_url="https://safar-el-amir.vercel.app/cancel",
+        )
+
+        return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@csrf_exempt
+def stripe_webhook_reservation(request):
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET  
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except ValueError:
+        return JsonResponse({"error": "Invalid payload"}, status=400)
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({"error": "Invalid signature"}, status=400)
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+
+        reservation_id = session.get("metadata", {}).get("reservation_id")
+
+        print(f"Paiement réussi pour la réservation ID: {reservation_id}")
+
+    return JsonResponse({"status": "success"}, status=200)
 
 
 @csrf_exempt
@@ -1505,37 +1578,6 @@ def create_payment_session(request):
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
-
-endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-@csrf_exempt
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
-    event = None
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError:
-        return JsonResponse({"error": "Invalid payload"}, status=400)
-    except stripe.error.SignatureVerificationError:
-        return JsonResponse({"error": "Invalid signature"}, status=400)
-
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        handle_payment_success(session)
-    elif event["type"] == "checkout.session.expired":
-        session = event["data"]["object"]
-        handle_payment_expired(session)
-
-    return JsonResponse({"status": "success"}, status=200)
-
-def handle_payment_success(session):
-    print(f"Paiement réussi pour la session {session['id']}")
-
-def handle_payment_expired(session):
-    print(f"Paiement expiré pour la session {session['id']}")
 
 def new_modeles_view(request):
 
