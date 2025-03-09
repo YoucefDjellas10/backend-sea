@@ -990,7 +990,7 @@ def otp_send(email):
         client.otp_created_at = datetime.now()
         client.save()
 
-        sujet = "Votre code OTP"
+        sujet = f"Votre code OTP {otp_code}"
         expediteur = settings.EMAIL_HOST_USER
 
         html_message = render_to_string('email/otp_email.html', {
