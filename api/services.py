@@ -2158,6 +2158,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 total_brut = total + (prix_jour * total_days)
             
                 for supplement in supplements:
+                    print("supplement")
 
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -2165,6 +2166,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     duration = end_hour - start_hour
 
                     if duration > supplement.reatrd:
+                        print("duration > montant")
                         total += (prix_jour * supplement.valeur) / 100
                 if total_brut > 0 and total_days > 0:
                     prix_unitaire = total_brut / total_days
