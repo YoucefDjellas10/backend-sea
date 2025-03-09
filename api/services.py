@@ -1521,7 +1521,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 return client_status 
         prime_red = 0
         if prime_code and not client_id:
-            parent_client = ListeClient.objects.filter(prime_code=prime_code).first() 
+            parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
             if parent_client :
                 parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                 prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
@@ -1778,6 +1778,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "paiement_name": opt_payment_name,
                         "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
+                        "payer_maintenant":prix_jour,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
                         "sb_5_type_tarif": opt_siege_a_type_tarif,
@@ -1852,6 +1853,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "paiement_name": opt_payment_name,
                         "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
+                        "payer_maintenant":prix_jour,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
                         "sb_5_type_tarif": opt_siege_a_type_tarif,
@@ -1925,6 +1927,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "paiement_name": opt_payment_name,
                         "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
+                        "payer_maintenant":prix_jour,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
                         "sb_5_type_tarif": opt_siege_a_type_tarif,
@@ -1987,7 +1990,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             
         prime_red = 0
         if prime_code and not client_id:
-            parent_client = ListeClient.objects.filter(prime_code=prime_code).first() 
+            parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
+            print()
             if parent_client :
                 parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                 prime_red = parent_sold.parrain_solde
@@ -2158,7 +2162,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 total_brut = total + (prix_jour * total_days)
             
                 for supplement in supplements:
-                    print("supplement")
 
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -2166,7 +2169,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     duration = end_hour - start_hour
 
                     if duration > supplement.reatrd:
-                        print("duration > montant")
                         total += (prix_jour * supplement.valeur) / 100
                 if total_brut > 0 and total_days > 0:
                     prix_unitaire = total_brut / total_days
@@ -2248,6 +2250,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "paiement_name": opt_payment_name,
                         "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
+                        "payer_maintenant":prix_jour,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
                         "sb_5_type_tarif": opt_siege_a_type_tarif,
@@ -2322,6 +2325,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "paiement_name": opt_payment_name,
                         "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
+                        "payer_maintenant":prix_jour,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
                         "sb_5_type_tarif": opt_siege_a_type_tarif,
@@ -2395,6 +2399,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "paiement_name": opt_payment_name,
                         "paiement_type_tarif": opt_payment_type_tarif,
                         "paiement_price": opt_payment_unit,
+                        "payer_maintenant":prix_jour,
                         "paiement_total": opt_payment_total,
                         "sb_5_name": opt_siege_a_name,
                         "sb_5_type_tarif": opt_siege_a_type_tarif,
