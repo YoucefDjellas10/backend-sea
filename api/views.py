@@ -1579,6 +1579,36 @@ def create_payment_session(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError:
+        return JsonResponse({"error": "Invalid payload"}, status=400)
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({"error": "Invalid signature"}, status=400)
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        handle_payment_success(session)
+    elif event["type"] == "checkout.session.expired":
+        session = event["data"]["object"]
+        handle_payment_expired(session)
+
+    return JsonResponse({"status": "success"}, status=200)
+
+def handle_payment_success(session):
+    print(f"Paiement réussi pour la session {session['id']}")
+
+def handle_payment_expired(session):
+    print(f"Paiement expiré pour la session {session['id']}")
+
 def new_modeles_view(request):
 
     try:
