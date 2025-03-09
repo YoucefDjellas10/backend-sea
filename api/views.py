@@ -20,6 +20,17 @@ from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 from django.utils import timezone
 
+def vip_reduction_view(request):
+
+    try:
+        country_code = request.headers.get("X-Country-Code")
+        response = vip_reduction(country_code=country_code)
+        return JsonResponse({"result" :response}, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"message": "Données JSON invalides."}, status=400)
+    except Exception as e:
+        return JsonResponse({"message": f"Erreur inattendue : {str(e)}"}, status=500)
 
 @csrf_exempt
 @require_http_methods(["PUT"])

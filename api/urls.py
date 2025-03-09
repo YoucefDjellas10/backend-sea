@@ -54,4 +54,5 @@ urlpatterns += [
     path('categories/', get_all_categories, name='categories-list'),
     path('protection-request/', protection_request_view, name='protection-request-view'),
     path('protection-put/', protection_put_view, name='protection-put-view'),
+    path('vip-reduction/', vip_reduction_view, name='vip_reduction_view'),
 ]

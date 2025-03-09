@@ -10,6 +10,44 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 import random
+from django.db.models import F
+from django.db.models import Min
+
+def vip_reduction(country_code):
+    try :
+        moins_cher = []
+        records = (
+            Tarifs.objects.order_by("prix")
+            .values("modele")
+            .annotate(min_prix=Min("prix"))
+            .order_by("min_prix")[:3]
+        )
+        vip = CategorieClient.objects.filter(name="VIP").first()
+        taux = TauxChange.objects.filter(id=2).first()
+        taux_change = taux.montant
+        pourcentage = vip.reduction
+        for record in records :
+            model_id = record.get("modele")
+            prix = record.get("min_prix") * taux_change if country_code == "DZ" else record.get("min_prix")
+            final_prix = prix - (prix * pourcentage / 100 )
+            modele = Modele.objects.filter(id=model_id).first()
+            moins_cher.append({
+                "model_name":modele.name,
+                "model_prix":final_prix,
+                "marketing_text_fr":modele.marketing_text_fr,
+                "nombre_de_place":modele.nombre_deplace,
+                "nombre_de_bagages":modele.nombre_de_bagage,
+                "boite_vitesse":modele.boite_vitesse,
+                "type_carburant":modele.carburant,
+                "photo_link":modele.photo_link,
+                "sticker":modele.stickers
+            })
+
+        
+        return moins_cher
+    
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
 
 def protections(ref, country_code):
     try:
