@@ -1172,17 +1172,35 @@ def stripe_webhook_reservation(request):
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
-        payment = Payment.objects.create(
-            reservation = reservation,
-            total_reduit_euro = montant_total,
-            total_reduit_dinar = float(montant_total) * float(taux_change),
-            montant = montant_paye,
-            montant_eur_dzd = float(montant_paye) * float(taux_change),
-            ecart_eur = float(montant_total) - float(montant_paye),
-            ecart_da = (float(montant_total) - float(montant_paye)) * float(taux_change),
-            mode_paiement = "carte",
+        sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+        expediteur = settings.EMAIL_HOST_USER
+
+        html_message = render_to_string('email/confirmation_mail.html', {
+            'client': reservation.client.nom,
+            'client_prenom':reservation.client.prenom,
+        })
+
+
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
         )
-        payment.save()
+
+        #payment = Payment.objects.create(
+         #   reservation = reservation,
+          #  total_reduit_euro = montant_total,
+           # total_reduit_dinar = float(montant_total) * float(taux_change),
+            #montant = montant_paye,
+           # montant_eur_dzd = float(montant_paye) * float(taux_change),
+            #ecart_eur = float(montant_total) - float(montant_paye),
+          #  ecart_da = (float(montant_total) - float(montant_paye)) * float(taux_change),
+           # mode_paiement = "carte",
+        #)
+        #payment.save()
 
 
 
