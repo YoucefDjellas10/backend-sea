@@ -1332,3 +1332,37 @@ class ConditionAnnulation(models.Model):
         return self.name
     class Meta:
         db_table = 'condition_annulation'
+
+from django.core.validators import MinValueValidator
+class Payment(models.Model):
+    name = models.CharField(max_length=255, unique=True, editable=False)
+    reservation = models.ForeignKey(Reservation, db_column='reservation', on_delete=models.CASCADE, related_name='reservation')
+    vehicule = models.CharField(max_length=255)
+    modele = models.CharField(max_length=255)
+    zone = models.CharField(max_length=255)
+    total_reduit_euro = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    montant = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    montant_dzd = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    montant_eur_dzd = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    montant_dzd_eur = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    note = models.TextField(blank=True, null=True)
+    total_reduit_dinar = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    ecart_eur = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    ecart_da = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    MODE_PAIEMENT_CHOICES = [
+        ('carte', 'Banque'),
+        ('liquide', 'Liquide'),
+        ('autre', 'Autre'),
+    ]
+    mode_paiement = models.CharField(max_length=10, choices=MODE_PAIEMENT_CHOICES)
+    total_encaisse = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = f'PAY-{self.reservation.id}'
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'revenue_record'

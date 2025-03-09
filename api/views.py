@@ -1067,7 +1067,10 @@ def post_reservation_view(request):
                 "unit_amount": int(montant_a_paye * 100),
                 "quantity": 1,
                 "currency": "eur",
-                "reservation_id": reservation.id
+                "reservation_id": reservation.id,
+                "montant_total":last_total,
+                "montant_paye":montant_a_paye
+
             }),
             content_type="application/json"
         )
@@ -1126,9 +1129,13 @@ def create_payment_session_reservation(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
+            success_url=f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
             cancel_url="https://safar-el-amir.vercel.app/cancel",
-            metadata={"reservation_id": str(reservation_id)}
+            metadata={
+                "reservation_id": str(reservation_id),
+                "montant_total": str(data.get("montant_total", 0)), 
+                "montant_paye": str(data.get("montant_paye", 0))
+            }
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -1153,9 +1160,31 @@ def stripe_webhook_reservation(request):
         session = event["data"]["object"]
 
         reservation_id = session.get("metadata", {}).get("reservation_id")
+        montant_total = session.get("metadata", {}).get("montant_total")
+        montant_paye = session.get("metadata", {}).get("montant_paye")
+
+        montant_total = float(montant_total) if montant_total else 0
+        montant_paye = float(montant_paye) if montant_paye else 0
+
         reservation = Reservation.objects.filter(id=reservation_id).first()
         reservation.status ="confirmee"
         reservation.save()
+        taux = TauxChange.objects.filter(id=2).first()
+        taux_change = taux.montant
+
+        payment = Payment.objects.create(
+            reservation = reservation,
+            total_reduit_euro = montant_total,
+            total_reduit_dinar = montant_total * taux_change,
+            montant = montant_paye,
+            montant_eur_dzd = montant_paye * taux_change,
+            ecart_eur = montant_total - montant_paye,
+            ecart_da = (montant_total - montant_paye) * taux_change,
+            mode_paiement = "carte",
+        )
+        payment.save()
+
+
 
         print(f"Paiement réussi pour la réservation ID: {reservation_id}")
 
@@ -2952,4 +2981,41 @@ class ConditionAnnulationViewset(viewsets.ViewSet):
 
 
 
+class PaymentViewset(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
 
+    def list(self, request):
+        queryset = Payment.objects.all()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=400)
+
+    def retrieve(self, request, pk=None):
+        taux_change = self.queryset.get(pk=pk)
+        serializer = self.serializer_class(taux_change)
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        taux_change = self.queryset.get(pk=pk)
+        serializer = self.serializer_class(taux_change,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=400)
+
+
+
+    def destroy(self, request, pk=None):
+        taux_change = self.queryset.get(pk=pk)
+        taux_change.delete()
+        return Response(status=204)
