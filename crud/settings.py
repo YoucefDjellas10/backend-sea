@@ -41,11 +41,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'api',
 ]
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'api.permissions.CountryCodePermission',
-    ],
-}
+
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -57,13 +54,28 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
    'https://safar-el-amir.vercel.app'
 ]
 
-CORS_ALLOW_HEADERS =["x-country-code"]
+CORS_ALLOW_HEADERS =[
+        "content-type",
+        "authorization",
+        "x-country-code"
+        ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'api.permissions.CountryCodePermission',
+    ],
+}
+
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 
 
 TEMPLATES = [
