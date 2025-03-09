@@ -1154,7 +1154,7 @@ def search_option(code, total_days):
     except Options.DoesNotExist:
         return {'name': None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
  
-def search_option_dzd(code, total_days):
+def search_option_DA(code, total_days):
     try:
         option = Options.objects.filter(option_code=code).first()
         taux = TauxChange.objects.filter(id=2).first()
@@ -1501,16 +1501,16 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         for supplement in supplements:
             total += float(supplement.montant) * taux_change if supplement else 0
 
-        frais_dossier = search_option_dzd("FRAIS_DOSSIER", total_days)
+        frais_dossier = search_option_DA("FRAIS_DOSSIER", total_days)
         total += frais_dossier["total"] 
 
-        paiement_anticipe = search_option_dzd("P_ANTICIPE", total_days)
+        paiement_anticipe = search_option_DA("P_ANTICIPE", total_days)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_type_tarif = paiement_anticipe["type_tarif"]
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
-        klm_illimite = search_option_dzd("KLM_ILLIMITED", total_days)
+        klm_illimite = search_option_DA("KLM_ILLIMITED", total_days)
         opt_klm_name = klm_illimite["name"]
         opt_klm_type_tarif = klm_illimite["type_tarif"]
         opt_klm_unit = klm_illimite["prix"]
@@ -1518,7 +1518,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
         
-        klm_illimite_b = search_option_dzd("KLM_ILLIMITED_B", total_days)
+        klm_illimite_b = search_option_DA("KLM_ILLIMITED_B", total_days)
         opt_klm_b_name = klm_illimite_b["name"]
         opt_klm_b_type_tarif = klm_illimite_b["type_tarif"]
         opt_klm_b_unit = klm_illimite_b["prix"]
@@ -1526,7 +1526,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_b_limit = klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
-        klm_illimite_c = search_option_dzd("KLM_ILLIMITED_C", total_days)
+        klm_illimite_c = search_option_DA("KLM_ILLIMITED_C", total_days)
         opt_klm_c_name = klm_illimite_c["name"]
         opt_klm_c_type_tarif = klm_illimite_c["type_tarif"]
         opt_klm_c_unit = klm_illimite_c["prix"]
@@ -1534,37 +1534,37 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_c_limit = klm_illimite_c["limit"]
         opt_klm_c_penalite = klm_illimite_c["penalite"]
 
-        nd_driver = search_option_dzd("ND_DRIVER", total_days)
+        nd_driver = search_option_DA("ND_DRIVER", total_days)
         opt_nd_driver_name = nd_driver["name"]
         opt_nd_driver_type_tarif = nd_driver["type_tarif"]
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
-        plein_carburant = search_option_dzd("P_CARBURANT", total_days)
+        plein_carburant = search_option_DA("P_CARBURANT", total_days)
         opt_carburant_name = plein_carburant["name"]
         opt_carburant_type_tarif = plein_carburant["type_tarif"]
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
-        siege_a = search_option_dzd("S_BEBE_5", total_days)
+        siege_a = search_option_DA("S_BEBE_5", total_days)
         opt_siege_a_name = siege_a["name"]
         opt_siege_a_type_tarif = siege_a["type_tarif"]
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
-        siege_b = search_option_dzd("S_BEBE_13", total_days)
+        siege_b = search_option_DA("S_BEBE_13", total_days)
         opt_siege_b_name = siege_b["name"]
         opt_siege_b_type_tarif = siege_b["type_tarif"]
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
-        siege_c = search_option_dzd("S_BEBE_18", total_days)
+        siege_c = search_option_DA("S_BEBE_18", total_days)
         opt_siege_c_name = siege_c["name"]
         opt_siege_c_type_tarif = siege_c["type_tarif"]
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
     
-        base_a = search_option_dzd("BASE_P_1", total_days)
+        base_a = search_option_DA("BASE_P_1", total_days)
         base_a_name = base_a["name"]
         base_a_type_tarif = base_a["type_tarif"]
         base_a_unit = base_a["prix"]
@@ -1572,7 +1572,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_a_category = base_a["categorie"]
         base_a_caution = base_a["caution"]
 
-        base_b = search_option_dzd("BASE_P_2", total_days)
+        base_b = search_option_DA("BASE_P_2", total_days)
         base_b_name = base_b["name"]
         base_b_type_tarif = base_b["type_tarif"]
         base_b_unit = base_b["prix"]
@@ -1580,7 +1580,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_b_category = base_b["categorie"]
         base_b_caution = base_b["caution"]
         
-        base_c = search_option_dzd("BASE_P_3", total_days)
+        base_c = search_option_DA("BASE_P_3", total_days)
         base_c_name = base_c["name"]
         base_c_type_tarif = base_c["type_tarif"]
         base_c_unit = base_c["prix"]
@@ -1588,42 +1588,42 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_c_category = base_c["categorie"]
         base_c_caution = base_c["caution"]
         
-        standart_a = search_option_dzd("STANDART_P_1", total_days)
+        standart_a = search_option_DA("STANDART_P_1", total_days)
         standart_a_name = standart_a["name"]
         standart_a_type_tarif = standart_a["type_tarif"]
         standart_a_unit = standart_a["prix"]
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
-        standart_b = search_option_dzd("STANDART_P_2", total_days)
+        standart_b = search_option_DA("STANDART_P_2", total_days)
         standart_b_name = standart_b["name"]
         standart_b_type_tarif = standart_b["type_tarif"]
         standart_b_unit = standart_b["prix"]
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
         
-        standart_c = search_option_dzd("STANDART_P_3", total_days)
+        standart_c = search_option_DA("STANDART_P_3", total_days)
         standart_c_name = standart_c["name"]
         standart_c_type_tarif = standart_c["type_tarif"]
         standart_c_unit = standart_c["prix"]
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
-        max_a = search_option_dzd("MAX_P_1", total_days)
+        max_a = search_option_DA("MAX_P_1", total_days)
         max_a_name = max_a["name"]
         max_a_type_tarif = max_a["type_tarif"]
         max_a_unit = max_a["prix"]
         max_a_total = max_a["total"]
         max_a_caution = max_a["caution"]
 
-        max_b = search_option_dzd("MAX_P_2", total_days)
+        max_b = search_option_DA("MAX_P_2", total_days)
         max_b_name = max_b["name"]
         max_b_type_tarif = max_b["type_tarif"]
         max_b_unit = max_b["prix"]
         max_b_total = max_b["total"]
         max_b_caution = max_b["caution"]
         
-        max_c = search_option_dzd("MAX_P_3", total_days)
+        max_c = search_option_DA("MAX_P_3", total_days)
         max_c_name = max_c["name"]
         max_c_type_tarif = max_c["type_tarif"]
         max_c_unit = max_c["prix"]
@@ -1716,7 +1716,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "DZD",
+                        "currency": "DA",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -1790,7 +1790,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "DZD",
+                        "currency": "DA",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
@@ -1863,7 +1863,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
-                        "currency": "DZD",
+                        "currency": "DA",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
                         "total": total_brut,
