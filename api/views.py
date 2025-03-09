@@ -1000,7 +1000,11 @@ def add_reservation_post_view(request):
             categorie_client = client.categorie_client,
             code_prime = client.code_prime,
             solde = client.solde,
-            
+            nom_nd_condicteur = nd_driver.nom if nd_driver else None,
+            prenom_nd_condicteur = nd_driver.prenom if nd_driver else None,
+            date_de_permis=nd_driver_date_permis if nd_driver else None,
+            date_nd_condicteur=nd_driver_birthday if nd_driver else None, 
+            email_nd_condicteur=nd_driver_email if nd_driver else None, 
             opt_klm = opt_klm ,
             opt_klm_name = opt_klm_name,
             opt_klm_price = opt_klm_unit,
