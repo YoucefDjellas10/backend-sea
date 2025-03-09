@@ -429,7 +429,7 @@ def verify_client_view(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def post_reservation_view(request):
+def add_reservation_post_view(request):
     try:
         data = json.loads(request.body)
         lieu_depart = data.get("lieu_depart")
@@ -1232,7 +1232,7 @@ def stripe_webhook_reservation(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def add_reservation_post_view(request):
+def post_reservation_view(request):
     try:
         data = json.loads(request.body)
         lieu_depart = data.get("lieu_depart")
