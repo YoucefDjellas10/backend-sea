@@ -1153,6 +1153,9 @@ def stripe_webhook_reservation(request):
         session = event["data"]["object"]
 
         reservation_id = session.get("metadata", {}).get("reservation_id")
+        reservation = Reservation.objects.filter(id=reservation_id).first()
+        reservation.status ="confirmee"
+        reservation.save()
 
         print(f"Paiement réussi pour la réservation ID: {reservation_id}")
 
