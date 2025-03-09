@@ -1128,6 +1128,7 @@ def create_payment_session_reservation(request):
             mode="payment",
             success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
             cancel_url="https://safar-el-amir.vercel.app/cancel",
+            metadata={"reservation_id": str(reservation_id)}
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
