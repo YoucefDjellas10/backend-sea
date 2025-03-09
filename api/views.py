@@ -1169,6 +1169,16 @@ def stripe_webhook_reservation(request):
         reservation = Reservation.objects.filter(id=reservation_id).first()
         reservation.status ="confirmee"
         reservation.save()
+
+        date_heure_depart = reservation.date_heure_debut
+        date_heure_retour = reservation.date_heure_fin
+
+        date_debut = date_heure_depart.strftime("%d %B %Y") 
+        heure_debut = date_heure_depart.strftime("%H:%M")  
+
+        date_fin = date_heure_retour.strftime("%d %B %Y")
+        heure_fin = date_heure_retour.strftime("%H:%M")
+
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
@@ -1178,6 +1188,17 @@ def stripe_webhook_reservation(request):
         html_message = render_to_string('email/confirmation_mail.html', {
             'client': reservation.client.nom,
             'client_prenom':reservation.client.prenom,
+            'durrée':reservation.duree_dereservation,
+            'model_name':reservation.model_name,
+            'reste_paye':montant_total - montant_paye,
+            'caution':reservation.opt_protection_caution,
+            'date_depart':date_debut,
+            'heure_depart':heure_debut,
+            'date_retoure':date_fin,
+            'haure_retour':heure_fin,
+            'lieu_depart':reservation.lieu_depart.name,
+            'lieu_retour':reservation.lieu_retour.name
+
         })
 
 
