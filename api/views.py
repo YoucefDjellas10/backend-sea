@@ -911,7 +911,7 @@ def add_reservation_post_view(request):
             sb_c_unit = 0
             sb_c_total = 0
         
-        if opt_nd_driver == "yes":
+        if opt_nd_driver == "alpha":
             if nd_driver_id :
                 
                 nd_driver = ListeClient.objects.filter(id=nd_driver_id).first()
