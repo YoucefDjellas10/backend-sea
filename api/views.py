@@ -198,25 +198,19 @@ def create_contact_message(request):
             nom_complet = request.data.get('nom_complet')
             email = request.data.get('email')
             message_text = request.data.get('message') 
-            client_id = request.data.get('client')
 
-            if not client_id :
-                client_id = 0
 
             name = str(random.randint(1000, 9999))
 
             create_date = datetime.now()
 
-            client = None
-            if client_id:
-                client = ListeClient.objects.filter(id=client_id).first()
 
             ContactMessage.objects.create(
                 name=name,
                 nom_complet=nom_complet,
                 email=email,
                 message=message_text, 
-                client=client,  
+
                 create_date=create_date,
             )
 
