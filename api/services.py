@@ -1744,10 +1744,15 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     prix_unitaire_red = prix_unitaire 
 
                 if int(client_sold) > 0 : 
-                    total_brut = total_brut - client_sold
+                    promotion = "yes"
+                    total_red = float(total_brut) - float(client_sold)
+                    prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
                 if int(prime_red) > 0 :
-                    total_brut = total_brut - prime_red
+                    promotion = "yes"
+                    total_red = float(total_brut) - float(prime_red)
+                    prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
+                    
 
                 if vehicle.categorie.id == base_a_category :
 
@@ -2215,11 +2220,13 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
 
-                if client_pr is not None and int(client_sold) > 0: 
-                    total_brut = total_brut - client_sold
+                if int(client_sold) > 0 : 
+                    total_red = float(total_brut) - float(client_sold)
+                    prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
-                if client_pr is not None and int(prime_red) > 0:
-                    total_brut = total_brut - prime_red
+                if int(prime_red) > 0 :
+                    total_red = float(total_brut) - float(prime_red)
+                    prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
 
                 if vehicle.categorie.id == base_a_category :
 
