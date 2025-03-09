@@ -63,6 +63,8 @@ CORS_ALLOWED_ORIGINS = [
    'https://safar-el-amir.vercel.app'
 ]
 
+CORS_ALLOW_HEADERS =["x-country-code"]
+
 
 TEMPLATES = [
     {
