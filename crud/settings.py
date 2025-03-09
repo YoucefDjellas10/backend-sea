@@ -41,6 +41,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'api',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'api.permissions.CountryCodePermission',
+    ],
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
