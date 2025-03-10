@@ -975,6 +975,7 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
             date_de_naissance=birthday,
             date_de_permis=permis_date,
             categorie_client=category,
+            category_client_name=category.name,
             total_points_char="0 pts",
             total_points=0
         )
