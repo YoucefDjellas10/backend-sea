@@ -1696,7 +1696,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = float(tarif.prix) * taux_change
-
+                supplements = Supplement.objects.filter(valeur__gt=0)
                 for supplement in supplements:
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -2170,7 +2170,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = tarif.prix 
-
+                supplements = Supplement.objects.filter(valeur__gt=0)
                 for supplement in supplements:
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
