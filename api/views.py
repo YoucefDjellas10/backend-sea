@@ -445,6 +445,7 @@ def add_reservation_post_view(request):
         client_id = data.get("client_id")
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
+        ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
 
         prix_jour = 0
         total = 0
@@ -1050,39 +1051,39 @@ def add_reservation_post_view(request):
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
-        request_factory = RequestFactory()
-        fake_request = request_factory.post(
-            path="/create-payment-session-reservation/",
-            data=json.dumps({
-                "product_name": f"Réservation N° : {reservation.name}",
-                "description": f"Réservation du {reservation.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
-                "images": [vehicule.modele.photo_link_pay] if vehicule.modele.photo_link_pay else [],
-                "unit_amount": int(montant_a_paye * 100),
-                "quantity": 1,
-                "currency": "eur",
-                "reservation_id": reservation.id,
-                "montant_total":last_total,
-                "montant_paye":montant_a_paye
+        if ccountry_code == "DZ" :
+            return JsonResponse({"payment":False,"message": "Réservation créée avec succès.", "reservation_id": reservation.id}, status=201)
+        
+        else :
+            request_factory = RequestFactory()
+            fake_request = request_factory.post(
+                path="/create-payment-session-reservation/",
+                data=json.dumps({
+                    "product_name": f"Réservation N° : {reservation.name}",
+                    "description": f"Réservation du {reservation.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
+                    "images": [vehicule.modele.photo_link_pay] if vehicule.modele.photo_link_pay else [],
+                    "unit_amount": int(montant_a_paye * 100),
+                    "quantity": 1,
+                    "currency": "eur",
+                    "reservation_id": reservation.id,
+                    "montant_total":last_total,
+                    "montant_paye":montant_a_paye
 
-            }),
-            content_type="application/json"
-        )
-
-        payment_session_response = create_payment_session_reservation(fake_request)
-
-        if payment_session_response.status_code == 200:
-            payment_session_data = json.loads(payment_session_response.content)
-            session_id = payment_session_data.get("session_id", "")
-            payment_url = payment_session_data.get("url", "")
-            return JsonResponse({"message": "Réservation créée avec succès.", "reservation_id": reservation.id, "session_id": session_id, "payment_url": payment_url}, status=201)
-        else:
-            return JsonResponse({"error": "Échec de la création de la session de paiement.", "response": payment_session_response.content.decode('utf-8')}, status=500)
-
+                }),
+                content_type="application/json"
+            )
+            payment_session_response = create_payment_session_reservation(fake_request)
+            if payment_session_response.status_code == 200:
+                payment_session_data = json.loads(payment_session_response.content)
+                session_id = payment_session_data.get("session_id", "")
+                payment_url = payment_session_data.get("url", "")
+                return JsonResponse({"payment":True,"message": "Réservation créée avec succès.", "reservation_id": reservation.id, "session_id": session_id, "payment_url": payment_url}, status=201)
+            else:
+                return JsonResponse({"payment":False,"error": "Échec de la création de la session de paiement.", "response": payment_session_response.content.decode('utf-8')}, status=500)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
 
 @csrf_exempt
 def create_payment_session_reservation(request):
