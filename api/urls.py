@@ -48,7 +48,6 @@ urlpatterns += [
     path('add-options-put/', add_options_put_view, name='add_options_put'),
     path('new-models/', new_modeles_view, name='new_modeles'),
     path('post-reservation/', add_reservation_post_view, name='add_reservation_post'),
-    path('post-reservation-test/', post_reservation_view, name='add_reservation_post_test'),
     path('client-verification/', verify_client_view, name='verify_client'),
     path('create-account/', create_account_view, name='create_account'),
     path('contact-messages/', create_contact_message, name='contact-message-create'),
