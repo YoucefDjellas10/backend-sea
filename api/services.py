@@ -961,15 +961,21 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
         client = ListeClient.objects.filter(nom=prenom, prenom=nom).first()
         if client:
             return {"created": False, "message": "Le client existe déjà avec prénom et nom inversés."}
+        category = CategorieClient.objects.filter(name="DRIVER").first()
+        
         client_create = ListeClient.objects.create(
             email=email,
             nom=nom,
             prenom=prenom,
             telephone=phone,
             date_de_naissance=birthday,
-            date_de_permis=permis_date
+            date_de_permis=permis_date,
+            categorie_client=category,
+            total_points_char="0 pts",
         )
         client_create.save()
+
+        print("client_create : ",client_create)
 
         otp_response = otp_send(email)
 

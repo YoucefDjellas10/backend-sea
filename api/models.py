@@ -486,8 +486,10 @@ class ListeClient(models.Model):
         self.name = f"{self.civilite or ''} {self.nom} {self.prenom or ''}".strip()
 
     def compute_code_prime(self):
-        """Génère un code prime aléatoire."""
-        self.code_prime = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        """Génère un code prime respectant le format '01AAxxxx'."""
+        year_suffix = str(datetime.now().year)[-2:]  # Récupère les 2 derniers chiffres de l'année
+        random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))  # Génère 4 caractères aléatoires
+        self.code_prime = f"01{year_suffix}{random_part}"
 
     def compute_total_points_char(self):
         """Convertit les `total_points` en une chaîne de caractères."""
