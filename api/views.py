@@ -471,7 +471,10 @@ def add_reservation_post_view(request):
 
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
-            client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction is not None else 0
+            if client :
+                client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
+            else :
+                return JsonResponse({"error": "client invalides."}, status=400)
         else:
             return JsonResponse({"error": "client invalides."}, status=400)
         
@@ -507,7 +510,6 @@ def add_reservation_post_view(request):
             
         frais_livraison = FraisLivraison.objects.filter(depart=depart,retour=retour).first()
         total += frais_livraison.montant
-
         
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
