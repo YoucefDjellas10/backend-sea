@@ -1696,8 +1696,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = float(tarif.prix) * taux_change
-                supplements = Supplement.objects.filter(valeur__gt=0)
-                for supplement in supplements:
+                supplements_valeur = Supplement.objects.filter(valeur__gt=0)
+                for supplement in supplements_valeur:
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
                     duration = end_hour - start_hour
@@ -2170,13 +2170,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = tarif.prix 
-                supplements = Supplement.objects.filter(valeur__gt=0)
-                for supplement in supplements:
+                supplements_valeur = Supplement.objects.filter(valeur__gt=0)
+                for supplement in supplements_valeur:
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
                     duration = end_hour - start_hour
                     if duration > supplement.reatrd:
                         total += (prix_jour * supplement.valeur) / 100 
+                        print("supplement : ", (prix_jour * supplement.valeur) / 100,"prix_jour : ",prix_jour,"model name: ",vehicle.model_name)
 
                 total_brut = total + (prix_jour * total_days)
                 prix_unitaire = total_brut / total_days
