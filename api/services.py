@@ -1745,13 +1745,13 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
                 if int(client_sold) > 0 : 
                     promotion = "yes"
-                    percentage = float(client_sold) * 100 / float(total_brut)
+                    percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
-                    percentage = float(prime_red) * 100 / float(total_brut)
+                    percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                     
