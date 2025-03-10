@@ -20,6 +20,7 @@ from rest_framework import status
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 from django.utils import timezone
+import time
 
 def vip_reduction_view(request):
 

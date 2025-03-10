@@ -12,6 +12,9 @@ from decimal import Decimal
 import random
 from django.db.models import F
 from django.db.models import Min
+from django.utils.html import strip_tags
+from django.template.loader import render_to_string
+import time
 
 def vip_reduction(country_code):
     try :
@@ -958,8 +961,7 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
         client = ListeClient.objects.filter(nom=prenom, prenom=nom).first()
         if client:
             return {"created": False, "message": "Le client existe déjà avec prénom et nom inversés."}
-        
-        client = ListeClient.objects.create(
+        client_create = ListeClient.objects.create(
             email=email,
             nom=nom,
             prenom=prenom,
@@ -967,17 +969,20 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
             date_de_naissance=birthday,
             date_de_permis=permis_date
         )
+        client_create.save()
+
         otp_response = otp_send(email)
-        if not otp_response["sent"]:
-            return {"created": True, "message": "Client créé, mais échec de l'envoi de l'OTP.", "client_id": client.id}
-        
-        return {"created": True, "message": "Client créé avec succès et OTP envoyé.", "client_id": client.id}
+
+        if otp_response.get("sent") == False:
+            return {"created": True, "message": " échec de l'envoi de l'OTP."}
+        else: 
+                   
+            return {"created": True, "message": "Client créé avec succès et OTP envoyé.", "client_id": client_create.id}
             
     except Exception as e:
         return {"message": f"Erreur inattendue : {str(e)}", "client_id": None}
 
-from django.utils.html import strip_tags
-from django.template.loader import render_to_string
+
 
 def otp_send(email):
     try:
@@ -998,8 +1003,8 @@ def otp_send(email):
             'client_prenom':client.prenom,
             'otp_code': otp_code,
         })
-
         try:
+
             send_mail(
                 sujet,
                 strip_tags(html_message),  
@@ -1010,9 +1015,9 @@ def otp_send(email):
             )
             return {"sent": True, "message": "Email envoyé avec succès.", "client_id": client.id}
         except Exception as e:
-            return {"message": f"Erreur lors de l'envoi de l'email : {str(e)}", "client_id": client.id}
+            return {"sent": False,"message": f"Erreur lors de l'envoi de l'email : {str(e)}", "client_id": client.id}
     except Exception as e:
-        return {"message": f"Erreur inattendue : {str(e)}", "client_id": None}
+        return {"sent": False,"message": f"Erreur inattendue : {str(e)}", "client_id": None}
     
 def otp_verify(email, otp, client_id):
     try:
@@ -2223,10 +2228,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     prix_unitaire_red = prix_unitaire
 
                 if int(client_sold) > 0 : 
+                    promotion = "yes"
+                    percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
                 if int(prime_red) > 0 :
+                    promotion = "yes"
+                    percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
 
