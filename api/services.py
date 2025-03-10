@@ -1696,6 +1696,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
             if tarif:
                 prix_jour = float(tarif.prix) * taux_change
+
+                for supplement in supplements:
+                    start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+                    end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+                    duration = end_hour - start_hour
+                    if duration > supplement.reatrd:
+                        total += (prix_jour * supplement.valeur) / 100
+
                 total_brut = total + (prix_jour * total_days)
                 prix_unitaire = total_brut / total_days
                 if int(client_pr) > promotion_value :
@@ -1749,18 +1757,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
-
-                
-
-                for supplement in supplements:
-
-                    start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
-                    end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
-
-                    duration = end_hour - start_hour
-
-                    if duration > supplement.reatrd:
-                        total += (prix_jour * supplement.valeur) / 100
                 
                 modeles_ajoutes.add(vehicle.modele.id)
 
@@ -2173,9 +2169,18 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             ).first()
 
             if tarif:
-                prix_jour = tarif.prix  
+                prix_jour = tarif.prix 
+
+                for supplement in supplements:
+                    start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+                    end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+                    duration = end_hour - start_hour
+                    if duration > supplement.reatrd:
+                        total += (prix_jour * supplement.valeur) / 100 
+
                 total_brut = total + (prix_jour * total_days)
                 prix_unitaire = total_brut / total_days
+
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
                     percentage = client_pr
@@ -2227,18 +2232,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
-
-                
-
-                for supplement in supplements:
-
-                    start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
-                    end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
-
-                    duration = end_hour - start_hour
-
-                    if duration > supplement.reatrd:
-                        total += (prix_jour * supplement.valeur) / 100
                 
                 modeles_ajoutes.add(vehicle.modele.id)
 
