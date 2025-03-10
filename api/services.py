@@ -14,7 +14,7 @@ from django.db.models import F
 from django.db.models import Min
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
-import time
+import re
 
 def vip_reduction(country_code):
     try :
@@ -954,11 +954,14 @@ def ma_reservation_detail(ref, email, country_code):
 
 def create_account(email, nom, prenom, phone , birthday, permis_date):
     try:
-        client = ListeClient.objects.filter(nom=nom, prenom=prenom).first()
+        nom = re.sub(r'\s+', ' ', nom.strip()).upper()
+        prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
+
+        client = ListeClient.objects.filter(nom__iexact=nom, prenom__iexact=prenom).first()
         if client:
             return {"created": False, "message": "Le client existe déjà avec ce nom et prénom."}
         
-        client = ListeClient.objects.filter(nom=prenom, prenom=nom).first()
+        client = ListeClient.objects.filter(nom__iexact=prenom, prenom__iexact=nom).first()
         if client:
             return {"created": False, "message": "Le client existe déjà avec prénom et nom inversés."}
         category = CategorieClient.objects.filter(name="DRIVER").first()
@@ -968,19 +971,17 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
             nom=nom,
             prenom=prenom,
             telephone=phone,
+            mobile = phone,
             date_de_naissance=birthday,
             date_de_permis=permis_date,
             categorie_client=category,
             total_points_char="0 pts",
+            total_points=0
         )
         client_create.save()
-        otp_response = otp_send(email)
-
-        if otp_response.get("sent") == False:
-            return {"created": True, "message": " échec de l'envoi de l'OTP."}
-        else: 
+ 
                    
-            return {"created": True, "message": "Client créé avec succès et OTP envoyé.", "client_id": client_create.id}
+        return {"created": True, "client_id": client_create.id}
             
     except Exception as e:
         return {"message": f"Erreur inattendue : {str(e)}", "client_id": None}
