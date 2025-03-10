@@ -471,14 +471,10 @@ def add_reservation_post_view(request):
 
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
-            client_red_pr = client.categorie_client.reduction 
-            categorie_client = client.categorie_client
-            
+            client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction is not None else 0
         else:
             return JsonResponse({"error": "client invalides."}, status=400)
         
-        
-
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
         total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
 

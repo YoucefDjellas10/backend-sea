@@ -249,17 +249,14 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
                     return {"message":"negatif"}
                 else :
                     return {"message":"positif", "client_id": client_verify.id}
-            else:
-                client = ListeClient.objects.create(
-                    email=email,
-                    nom=nom,
-                    prenom=prenom,
-                    date_de_naissance=birthday,
-                    mobile=phone,
-                    date_de_permis=permis,
-                    risque="faible"
-                )
-                return {"message":"positif", "client_id": client.id}
+            else: 
+                client = create_account(email=email,
+                                        nom=nom, 
+                                        prenom=prenom, 
+                                        birthday=birthday, 
+                                        permis_date=permis, 
+                                        phone=phone)
+                return {"message":"positif", "client_id": client.get("client_id") if client.get("client_id") else None}
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
