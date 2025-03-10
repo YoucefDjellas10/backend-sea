@@ -115,7 +115,7 @@ def get_all_categories(request):
             "id": cat.id,
             "name": cat.name,
             "du_pts": cat.du_pts,
-            "au_pts": cat.au_pts,
+            "au_pts": cat.au_pts if cat.au_pts < 100000 else "& +",
             "reduction": cat.reduction,
         }
 
