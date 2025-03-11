@@ -1172,7 +1172,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
 
     reserved_vehicles = Reservation.objects.filter(
         Q(date_heure_debut__lt=date_heure_fin, date_heure_fin__gt=date_heure_debut),  
-        etat_reservation__in=["reserve", "loue"],  
+        etat_reservation__in=["reserve", "loue"],status="confirmee"  
     ).values_list("vehicule_id", flat=True)
 
     available_vehicles = Vehicule.objects.filter(

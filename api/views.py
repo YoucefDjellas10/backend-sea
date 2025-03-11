@@ -484,6 +484,17 @@ def add_reservation_post_view(request):
 
         if vehicule_id :
             vehicule = Vehicule.objects.filter(id=vehicule_id).first()
+            date_heure_debut_av = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
+            date_heure_fin_av = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
+            reservations_existantes = Reservation.objects.filter(
+                vehicule=vehicule,
+                date_heure_debut__lt=date_heure_fin_av, 
+                date_heure_fin__gt=date_heure_debut_av,
+                status="confirmee" 
+            )
+
+            if reservations_existantes:
+                return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
 
             tarif = Tarifs.objects.filter(
                ( Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
@@ -905,7 +916,7 @@ def add_reservation_post_view(request):
             sb_c_unit = 0
             sb_c_total = 0
         
-        if opt_nd_driver == "alpha":
+        if opt_nd_driver == "yes":
             if nd_driver_id :
                 
                 nd_driver = ListeClient.objects.filter(id=nd_driver_id).first()
