@@ -454,6 +454,11 @@ def add_reservation_post_view(request):
         last_prix_unitaire = 0
         supp_total = 0 
         to_pay = 0
+        ecart_montant = 0
+        total_afficher_red = 0
+        total_option = 0
+        promo_value = 0
+        client_solde = 0
 
         if not all([date_depart, heure_depart, date_retour, heure_retour]):
             return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
@@ -473,15 +478,20 @@ def add_reservation_post_view(request):
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
             if client :
+                client_solde = client.solde if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
             else :
                 return JsonResponse({"error": "client invalides."}, status=400)
         else:
             return JsonResponse({"error": "client invalides."}, status=400)
         
-        frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
-        total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
-
+        if lieu_depart and lieu_retour:
+            depart = Lieux.objects.filter(id=lieu_depart).first()
+            retour = Lieux.objects.filter(id=lieu_retour).first()
+            depart_retour_string = f"{depart.name} → {retour.name}"
+            if depart.zone != retour.zone:
+                return JsonResponse({"error": "zone invalides."}, status=400) 
+        
         if vehicule_id :
             vehicule = Vehicule.objects.filter(id=vehicule_id).first()
             date_heure_debut_av = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
@@ -495,7 +505,29 @@ def add_reservation_post_view(request):
 
             if reservations_existantes:
                 return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
+            promotion = Promotion.objects.filter(
+                date_debut__lte=date_depart,
+                date_fin__gte=date_retour,
+                active_passive=True
+            ).first()
+            if promotion:
+                zone_match = depart.zone in [promotion.zone_one, promotion.zone_two, promotion.zone_three]
+                model_match = vehicule.modele in [
+                    promotion.model_one, promotion.model_two, promotion.model_three, 
+                    promotion.model_four, promotion.model_five
+                ]
 
+                # Vérification des conditions
+                if promotion.tout_zone == "oui" and promotion.tout_modele == "oui":
+                    promo_value = promotion.reduction
+                elif zone_match and promotion.tout_modele == "oui":
+                    promo_value = promotion.reduction
+                elif model_match and promotion.tout_zone == "oui":
+                    promo_value = promotion.reduction
+                elif zone_match and model_match:
+                    promo_value = promotion.reduction
+                else:
+                    promo_value = promotion.reduction
             tarif = Tarifs.objects.filter(
                ( Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
                 Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
@@ -508,20 +540,35 @@ def add_reservation_post_view(request):
             if tarif :
                 prix_jour = tarif.prix
                 total += prix_jour * total_days
+                if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
+                    last_total = (100-client_red_pr) * total / 100
+                elif promo_value > client_red_pr:
+                    last_total = (100-promo_value) * total / 100
+                else : 
+                    last_total = total
+                if client_solde > 0:
+                    last_total = total - client_solde
+                    client.solde = 0
+                    client.solde_consomer += client_solde
+                    client.solde_total += client_solde
+                    client.save()
+
             else:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         
-        if lieu_depart and lieu_retour:
-            depart = Lieux.objects.filter(id=lieu_depart).first()
-            retour = Lieux.objects.filter(id=lieu_retour).first()
-            depart_retour_string = f"{depart.name} → {retour.name}"
-            if depart.zone != retour.zone:
-                return JsonResponse({"error": "zone invalides."}, status=400)
+        
+        
+        frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
+        if frais_dossier:
+            total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
+            last_total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
             
         frais_livraison = FraisLivraison.objects.filter(depart=depart,retour=retour).first()
-        total += frais_livraison.montant
+        if frais_livraison:
+            total += frais_livraison.montant
+            last_total += frais_livraison.montant
         
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
@@ -530,9 +577,8 @@ def add_reservation_post_view(request):
         for supplement in supplements:
             supp_total += supplement.montant
             total += supplement.montant if supplement else 0
+            last_total += supplement.montant if supplement else 0
         
-        ecart_montant = 0
-
         ecart = Supplement.objects.filter(valeur__gt=0).first()
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -540,22 +586,12 @@ def add_reservation_post_view(request):
         if duration > ecart.reatrd:
             ecart_montant = (prix_jour * ecart.valeur) / 100
             total+= ecart_montant
+            last_total+= ecart_montant
         
         prix_unitaire = total / total_days
-        total_afficher_red = 0
         total_afficher = total
-
-        if client_red_pr and client_red_pr > 0:
-            last_total = (100-client_red_pr) * total / 100
-            last_prix_unitaire = (100-client_red_pr) * prix_jour / 100
-            total_afficher_red = last_total
-        else : 
-            total_afficher_red = total
-            last_total = total
-            last_prix_unitaire = prix_unitaire
-        
-        total_option = 0
-
+        total_afficher_red = last_total
+        last_prix_unitaire = last_total / total_days
         free_options = free_options_f(client_id=client_id)
                             
         if opt_paiement == "yes" :
@@ -923,7 +959,7 @@ def add_reservation_post_view(request):
                 nd_driver_name = nd_driver.name
                 nd_driver_date_permis = nd_driver.date_de_permis
                 nd_driver_birthday = nd_driver.date_de_naissance
-                nd_driver_phine = nd_driver.telephone
+                nd_driver_phone = nd_driver.telephone
                 nd_driver_email = nd_driver.email
                 nd_driver_risque = nd_driver.risque
                 nd_driver_prime = nd_driver.code_prime
@@ -953,7 +989,7 @@ def add_reservation_post_view(request):
             nd_driver_name = None
             nd_driver_date_permis = None
             nd_driver_birthday = None
-            nd_driver_phine = None
+            nd_driver_phone = None
             nd_driver_email = None
             nd_driver_risque = None
             nd_driver_prime = None
