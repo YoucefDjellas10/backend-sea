@@ -481,9 +481,9 @@ def add_reservation_post_view(request):
                 client_solde = client.solde if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
             else :
-                return JsonResponse({"error": "client invalides."}, status=400)
+                return JsonResponse({"error": "client non trouver."}, status=400)
         else:
-            return JsonResponse({"error": "client invalides."}, status=400)
+            return JsonResponse({"error": "client non fournis."}, status=400)
         
         if lieu_depart and lieu_retour:
             depart = Lieux.objects.filter(id=lieu_depart).first()
