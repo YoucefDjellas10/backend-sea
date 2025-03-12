@@ -235,11 +235,14 @@ def modify_protection_request(ref, protection):
 
 def verify_client(email, nom, prenom, birthday, permis, phone):
     try:
+        nom = re.sub(r'\s+', ' ', nom.strip()).upper()
+        prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
         client_id=ListeClient.objects.filter(nom=nom, prenom=prenom).first()
         if client_id :
             if client_id.risque == "eleve":
                 return {"message":"negatif"}
             else :
+                
                 return {"message":"positif", "client_id": client_id.id}
 
         else :
