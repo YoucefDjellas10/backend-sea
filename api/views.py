@@ -552,7 +552,6 @@ def add_reservation_post_view(request):
                     client.solde_consomer += client_solde
                     client.solde_total += client_solde
                     client.save()
-
             else:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
         else:
