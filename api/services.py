@@ -16,6 +16,7 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 import re
 from django.utils.timezone import now
+from django.utils import timezone
 
 
 def vip_reduction(country_code):
@@ -1034,7 +1035,10 @@ def otp_verify(email, otp, client_id):
         
         otp_time = client.otp_created_at
 
-        if str(client.otp) == str(otp) and now() - otp_time < timedelta(minutes=1):
+        if timezone.is_naive(otp_time):
+            otp_time = timezone.make_aware(otp_time)
+
+        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=1):
             client.otp = None
             client.otp_created_at = None
             client.save()
