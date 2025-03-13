@@ -473,6 +473,7 @@ class ListeClient(models.Model):
     solde_consomer = models.IntegerField(verbose_name="Solde consommé", blank=True, null=True)
     otp = models.CharField(max_length=6, null=True, blank=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
+    create_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'liste_client'
