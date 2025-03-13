@@ -1257,6 +1257,29 @@ def stripe_webhook_reservation(request):
             fail_silently=False,
         )
 
+
+        montant_total = Decimal(montant_total) if montant_total else Decimal("0.00")
+        montant_paye = Decimal(montant_paye) if montant_paye else Decimal("0.00")
+        taux_change = Decimal(taux.montant) if taux else Decimal("1.00")  # Taux de change par défaut
+
+        payment = Payment.objects.create(
+            reservation=reservation,
+            vehicule=reservation.vehicule,  
+            modele=reservation.mosele,  
+            zone=reservation.lieu_depart.zone,  
+            total_reduit_euro=montant_total,
+            montant=montant_paye,
+            montant_dzd=montant_paye * taux_change,
+            montant_eur_dzd=montant_paye * taux_change,
+            montant_dzd_eur=montant_paye,  
+            note="Paiement effectué via Stripe",  
+            total_reduit_dinar=montant_total * taux_change,
+            ecart_eur=montant_total - montant_paye,
+            ecart_da=(montant_total - montant_paye) * taux_change,
+            mode_paiement="carte", 
+            total_encaisse=montant_paye,  
+        )
+
         payment = Payment.objects.create(
             reservation = reservation,
             total_reduit_euro = montant_total,
