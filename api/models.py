@@ -1340,9 +1340,9 @@ from django.core.validators import MinValueValidator
 class Payment(models.Model):
     name = models.CharField(max_length=255, unique=True, editable=False)
     reservation = models.ForeignKey(Reservation, db_column='reservation', on_delete=models.CASCADE, related_name='reservation')
-    vehicule = models.CharField(max_length=255)
-    modele = models.CharField(max_length=255)
-    zone = models.CharField(max_length=255)
+    vehicule = models.ForeignKey('Vehicule', on_delete=models.CASCADE,db_column='vehicule', null=True, blank=True)
+    modele = models.ForeignKey('Modele', on_delete=models.CASCADE, db_column='modele', verbose_name="Modèle", related_name="tarifs")
+    zone = models.ForeignKey(Zone, on_delete=models.CASCADE,db_column='zone', verbose_name="Zone de livraison")
     total_reduit_euro = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     currency_id = models.IntegerField(blank=True, null=True)
     montant = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
