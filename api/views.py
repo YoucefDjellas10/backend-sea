@@ -1263,7 +1263,9 @@ def stripe_webhook_reservation(request):
         taux_change = Decimal(taux.montant) if taux else Decimal("1.00")  # Taux de change par défaut
 
         payment = Payment.objects.create(
-            reservation=reservation,  
+            reservation=reservation,
+            vehicule=reservation.vehicule,  
+            modele=reservation.modele,  
             zone=reservation.lieu_depart.zone,  
             total_reduit_euro=montant_total,
             montant=montant_paye,
