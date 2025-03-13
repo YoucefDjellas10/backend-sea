@@ -1265,7 +1265,7 @@ def stripe_webhook_reservation(request):
         payment = Payment.objects.create(
             reservation=reservation,
             vehicule=reservation.vehicule,  
-            modele=reservation.mosele,  
+            modele=reservation.modele,  
             zone=reservation.lieu_depart.zone,  
             total_reduit_euro=montant_total,
             montant=montant_paye,
