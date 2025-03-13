@@ -1825,7 +1825,10 @@ def otp_send_client(request):
                 return JsonResponse({"sent": False, "message": "Tous les champs (email, nom, prénom) sont requis."})
 
             result = otp_send(email)
-            return JsonResponse({"sent": True,"success": True, "client_id": result["client_id"]})
+            if result["client_id"] != None:
+                return JsonResponse({"sent":True, "success": True, "client_id": result["client_id"]})
+            else:
+                return JsonResponse({"sent":False, "success": False, "account": result["account"]})
 
         except Exception as e:
             return JsonResponse({"sent": False, "message": f"Erreur: {str(e)}"})
