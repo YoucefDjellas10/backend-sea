@@ -1343,7 +1343,7 @@ class Payment(models.Model):
     vehicule = models.CharField(max_length=255)
     modele = models.CharField(max_length=255)
     zone = models.CharField(max_length=255)
-    total_reduit_euro = models.DecimalField(max_digits=10, db_column='total_reduit_euro', decimal_places=2, validators=[MinValueValidator(0)])
+    total_reduit_euro = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     currency_id = models.IntegerField(blank=True, null=True)
     montant = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     montant_dzd = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
