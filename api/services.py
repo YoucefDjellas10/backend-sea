@@ -15,6 +15,8 @@ from django.db.models import Min
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 import re
+from django.utils.timezone import now
+
 
 def vip_reduction(country_code):
     try :
@@ -1029,12 +1031,15 @@ def otp_verify(email, otp, client_id):
         client = ListeClient.objects.filter(id=client_id).first()
         if not client:
             return {"success": False, "message": "Aucun client trouvé avec cet email."}
+        
+        otp_time = client.otp_created_at
 
-        if str(client.otp) == str(otp):
+        if str(client.otp) == str(otp) and now() - otp_time < timedelta(minutes=1):
             client.otp = None
             client.otp_created_at = None
             client.save()
             return {"success": True, "message": "OTP vérifié avec succès."}
+        
         else:
             return {"success": False, "message": "OTP invalide ou expiré.", "otp": client.otp}
     except Exception as e:
