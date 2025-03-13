@@ -1257,16 +1257,7 @@ def stripe_webhook_reservation(request):
             fail_silently=False,
         )
 
-        payment = Payment.objects.create(
-            reservation = reservation,
-            total_reduit_euro = montant_total,
-            total_reduit_dinar = float(montant_total) * float(taux_change),
-            montant = montant_paye,
-            montant_eur_dzd = float(montant_paye) * float(taux_change),
-            ecart_eur = float(montant_total) - float(montant_paye),
-            ecart_da = (float(montant_total) - float(montant_paye)) * float(taux_change),
-            mode_paiement = "carte",
-        )
+
         payment.save()
         print(f"Paiement réussi pour la réservation ID: {reservation_id}")
 
