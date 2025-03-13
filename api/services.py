@@ -1021,7 +1021,7 @@ def otp_send(email):
                 html_message=html_message,
                 fail_silently=False,
             )
-            return {"sent": True, "message": "Email envoyé avec succès.", "client_id": client.id}
+            return {"sent": True,"client_id": client.id}
         except Exception as e:
             return {"sent": False,"message": f"Erreur lors de l'envoi de l'email : {str(e)}", "client_id": client.id}
     except Exception as e:
@@ -1343,6 +1343,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         date_fin__gte=date_retour,
         active_passive=True
     ).first()
+    promotion_name = promotions.name if promotions.name else None
     promotion_value = 0
     model_one = None
     model_two = None
@@ -1732,51 +1733,64 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
                     percentage = client_pr
+                    montant_code_prime = prix_jour * client_pr / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
                     promotion = "yes"
-                    percentage = promotion_value
+                    percentage = promotion_value 
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_one is not None and model_one.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_two is not None and model_two.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_three is not None and model_three.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_four is not None and model_four.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_five is not None and model_five.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 else :
                     promotion = "no"
                     percentage = 0
+                    montant_promotion = 0  
+                    montant_code_prime = 0
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
+                
+                solde_anterieur = 0
                 if int(client_sold) > 0 : 
                     promotion = "yes"
+                    solde_anterieur = client_sold
                     percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
+                    solde_anterieur = client_sold
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
@@ -1788,6 +1802,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
+                        "promotion_name":promotion_name,
+                        "montant_promotion":montant_promotion,
+                        "montant_code_prime":montant_code_prime,
+                        "solde_anterieur":solde_anterieur,
                         "currency": "DA",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
@@ -1863,6 +1881,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
+                        "promotion_name":promotion_name,
+                        "montant_promotion":montant_promotion,
+                        "montant_code_prime":montant_code_prime,
+                        "solde_anterieur":solde_anterieur,
                         "currency": "DA",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
@@ -1937,6 +1959,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
+                        "promotion_name":promotion_name,
+                        "montant_promotion":montant_promotion,
+                        "montant_code_prime":montant_code_prime,
+                        "solde_anterieur":solde_anterieur,
                         "currency": "DA",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
@@ -2208,51 +2234,63 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
                     percentage = client_pr
+                    montant_code_prime = prix_jour * client_pr / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
                     promotion = "yes"
-                    percentage = promotion_value
+                    percentage = promotion_value 
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_one is not None and model_one.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_two is not None and model_two.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_three is not None and model_three.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_four is not None and model_four.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_five is not None and model_five.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
+                    montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 else :
                     promotion = "no"
                     percentage = 0
+                    montant_promotion = 0  
+                    montant_code_prime = 0
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
+                solde_anterieur = 0
                 if int(client_sold) > 0 : 
                     promotion = "yes"
+                    solde_anterieur = client_sold
                     percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
+                    solde_anterieur = prime_red
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
@@ -2264,6 +2302,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
+                        "promotion_name":promotion_name,
+                        "montant_promotion":montant_promotion,
+                        "montant_code_prime":montant_code_prime,
+                        "solde_anterieur":solde_anterieur,
                         "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
@@ -2339,6 +2381,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
+                        "promotion_name":promotion_name,
+                        "montant_promotion":montant_promotion,
+                        "montant_code_prime":montant_code_prime,
+                        "solde_anterieur":solde_anterieur,
                         "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
@@ -2413,6 +2459,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     result.append({
                         "promotion": promotion,
                         "percentage": percentage,
+                        "promotion_name":promotion_name,
+                        "montant_promotion":montant_promotion,
+                        "montant_code_prime":montant_code_prime,
+                        "solde_anterieur":solde_anterieur,
                         "currency": "EUR",
                         "modele_id": vehicle.modele.id,
                         "categorie":vehicle.categorie.id,
