@@ -1038,7 +1038,7 @@ def otp_verify(email, otp, client_id):
         if timezone.is_naive(otp_time):
             otp_time = timezone.make_aware(otp_time)
         
-        print("time : ",otp_time)
+        otp_time += timedelta(hours=1)
 
         if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=7):
             client.otp = None
