@@ -1711,6 +1711,7 @@ def add_options_request_view(request):
 
 def mes_reservations_view(request):
     client_id = request.GET.get("client_id")
+    country_code = request.headers.get("X-Country-Code") 
 
     if not client_id :
         return JsonResponse({"error": "Le paramètres 'client_id' est requis."}, status=400)
@@ -1718,6 +1719,7 @@ def mes_reservations_view(request):
     try:
         resultats = mes_reservations(
             client_id=client_id,
+            country_code=country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:

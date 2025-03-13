@@ -540,17 +540,20 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def mes_reservations(client_id):
+def mes_reservations(client_id,country_code):
     try:
         reservations = Reservation.objects.filter(client__id=client_id)
         if not reservations.exists():
             return {"message": "Aucune réservation trouvée pour ce client."}
+        taux = TauxChange.objects.filter(id=2).first()
+        taux_change = taux.montant
         result = []
         for reservation in reservations:
             can_be_modified = "yes"
             if reservation.status != "confirmee" :
                 can_be_modified = "no"
             result.append({
+                "currency":"DA" if country_code =="DZ" else "EUR",
                 "id":reservation.id,
                 "reference": reservation.name,
                 "lieu_depart": reservation.lieu_depart.name,
@@ -558,8 +561,8 @@ def mes_reservations(client_id):
                 "date_dapart": reservation.date_heure_debut,
                 "date_retour": reservation.date_heure_fin,
                 "duree": reservation.nbr_jour_reservation,
-                "caution": reservation.opt_protection_caution,
-                "total": reservation.total_reduit_euro,
+                "caution": reservation.opt_protection_caution * taux_change if country_code =="DZ" else reservation.opt_protection_caution,
+                "total": reservation.total_reduit_euro * taux_change if country_code =="DZ" else reservation.total_reduit_euro,
                 "create_date": reservation.create_date,
                 "status": reservation.status,
                 "model_name": reservation.model_name,
