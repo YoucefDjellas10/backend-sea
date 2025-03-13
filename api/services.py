@@ -1042,10 +1042,19 @@ def otp_verify(email, otp, client_id):
             client.otp = None
             client.otp_created_at = None
             client.save()
-            return {"success": True, "message": "OTP vérifié avec succès."}
-        
+            return {"success": True}
+        elif str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=1):
+            client.otp = None
+            client.otp_created_at = None
+            client.save()
+            return {"success": False, "expired":True}
+        elif str(client.otp) != str(otp) and client.otp:
+            client.otp = None
+            client.otp_created_at = None
+            client.save()
+            return {"success": False, "incorrect":True}
         else:
-            return {"success": False, "message": "OTP invalide ou expiré.", "otp": client.otp}
+            return {"success": False}
     except Exception as e:
         return {"success": False, "message": f"Erreur inattendue : {str(e)}"}
 
