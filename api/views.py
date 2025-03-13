@@ -1822,15 +1822,15 @@ def otp_send_client(request):
             email = request.GET.get("email")
 
             if not email :
-                return JsonResponse({"success": False, "message": "Tous les champs (email, nom, prénom) sont requis."})
+                return JsonResponse({"sent": False, "message": "Tous les champs (email, nom, prénom) sont requis."})
 
             result = otp_send(email)
             return JsonResponse({"success": True, "message": result["message"], "client_id": result["client_id"]})
 
         except Exception as e:
-            return JsonResponse({"success": False, "message": f"Erreur: {str(e)}"})
+            return JsonResponse({"sent": False, "message": f"Erreur: {str(e)}"})
 
-    return JsonResponse({"success": False, "message": "Méthode non autorisée. Utilisez GET."})
+    return JsonResponse({"sent": False, "message": "Méthode non autorisée. Utilisez GET."})
 
 @csrf_exempt
 def otp_verify_client(request):
