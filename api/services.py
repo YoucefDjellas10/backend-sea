@@ -1336,6 +1336,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     prix_unitaire_red = 0
     prix_jour = 0
     total_primary = 0
+    montant_promotion = 0
     promotions = Promotion.objects.filter(
         debut_visibilite__lte=today,
         fin_visibilite__gte=today,
@@ -1343,7 +1344,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         date_fin__gte=date_retour,
         active_passive=True
     ).first()
-    promotion_name = promotions.name if promotions.name else None
+    promotion_name = promotions.name if promotions is not None else None
     promotion_value = 0
     model_one = None
     model_two = None
