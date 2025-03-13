@@ -1339,6 +1339,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     prix_jour = 0
     total_primary = 0
     montant_promotion = 0
+    montant_code_prime = 0
     promotions = Promotion.objects.filter(
         debut_visibilite__lte=today,
         fin_visibilite__gte=today,
