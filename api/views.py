@@ -1208,8 +1208,10 @@ def stripe_webhook_reservation(request):
 
         reservation = Reservation.objects.filter(id=reservation_id).first()
         reservation.status ="confirmee"
-        float(reservation.montant_paye) += float(montant_paye)
         reservation.save()
+        reservation.montant_paye = F('montant_paye') + montant_paye
+        reservation.save(update_fields=['montant_paye'])
+        reservation.refresh_from_db()
 
         date_heure_depart = reservation.date_heure_debut
         date_heure_retour = reservation.date_heure_fin
