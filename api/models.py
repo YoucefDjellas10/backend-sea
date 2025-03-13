@@ -1343,23 +1343,23 @@ class Payment(models.Model):
     vehicule = models.CharField(max_length=255)
     modele = models.CharField(max_length=255)
     zone = models.CharField(max_length=255)
-    total_reduit_euro = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    total_reduit_euro = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     currency_id = models.IntegerField(blank=True, null=True)
-    montant = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    montant_dzd = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    montant_eur_dzd = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    montant_dzd_eur = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    montant = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    montant_dzd = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    montant_eur_dzd = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    montant_dzd_eur = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     note = models.TextField(blank=True, null=True)
-    total_reduit_dinar = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    ecart_eur = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    ecart_da = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    total_reduit_dinar = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    ecart_eur = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    ecart_da = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     MODE_PAIEMENT_CHOICES = [
         ('carte', 'Banque'),
         ('liquide', 'Liquide'),
         ('autre', 'Autre'),
     ]
     mode_paiement = models.CharField(max_length=10, choices=MODE_PAIEMENT_CHOICES)
-    total_encaisse = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    total_encaisse = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.name:
