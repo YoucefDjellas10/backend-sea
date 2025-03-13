@@ -1029,6 +1029,7 @@ def add_reservation_post_view(request):
             boite_vitesse = vehicule.boite_vitesse,
             age_min = vehicule.age_min,
             client = client,
+            client_create_date = client.create_date if client.create_date is not None else None,
             nom = client.nom,
             prenom = client.prenom,
             email = client.email,

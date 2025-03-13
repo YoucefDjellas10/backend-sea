@@ -1054,6 +1054,7 @@ class Reservation(models.Model):
     opt_siege_c_name = models.CharField(max_length=255, null=True, blank=True)
     opt_siege_c_total = models.IntegerField(null=True, blank=True)
     num_vol = models.CharField()
+    client_create_date = models.DateTimeField()
 
     class Meta:
         db_table = 'reservation'
