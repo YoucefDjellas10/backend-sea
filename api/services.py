@@ -981,7 +981,7 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
             category_client_name=category.name,
             total_points_char="0 pts",
             total_points=0,
-            create_date=timezone.now()
+            create_date=datetime.now()
         )
         client_create.save()
  
