@@ -633,6 +633,7 @@ def add_reservation_post_view(request):
                 opt_klm_a_total = 0
                 opt_klm_a_categorie = klm_a_illimite.categorie.id
             else :
+                klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED").first()
                 opt_klm_a_name = klm_a_illimite.name
                 opt_klm_a_unit = klm_a_illimite.prix
                 opt_klm_a_total = klm_a_illimite.prix * total_days if klm_a_illimite.type_tarif == "jour" else klm_a_illimite.prix
@@ -658,6 +659,7 @@ def add_reservation_post_view(request):
                 opt_klm_c_total = 0
                 opt_klm_c_categorie = klm_illimite_c.categorie.id
             else :
+                klm_illimite_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()
                 opt_klm_c_name = klm_illimite_c.name
                 opt_klm_c_unit = klm_illimite_c.prix
                 opt_klm_c_total = klm_illimite_c.prix * total_days if klm_illimite_c.type_tarif == "jour" else klm_illimite_c.prix
