@@ -619,6 +619,11 @@ def add_reservation_post_view(request):
             opt_payment_unit = 0
             opt_payment_total = 0
         
+
+        klm_illimite_b = None
+        klm_a_illimite = None
+        klm_illimite_c = None
+        
         if opt_klm == "yes" :
             klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED").first()
             if free_options and free_options[0].get("option_seven") == True:
