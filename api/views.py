@@ -1317,6 +1317,32 @@ def stripe_webhook_reservation(request):
         ) 
         livraison.save()
 
+        restitution = Livraison.objects.create(
+            reservation = reservation,
+            name = reservation.name,
+            status = reservation.status,
+            date_heure_debut = reservation.date_heure_debut,
+            date_heure_fin = reservation.date_heure_fin,
+            date_de_reservation = reservation.create_date,
+            nbr_jour_reservation = reservation.nbr_jour_reservation,
+            duree_dereservation = reservation.duree_dereservation,
+            lieu_depart = reservation.lieu_depart,
+            zone = reservation.zone,
+            lieu_retour = reservation.lieu_retour,
+            vehicule = reservation.vehicule,
+            modele = reservation.modele,
+            carburant = reservation.carburant,
+            client = reservation.client,
+            nom = reservation.nom,
+            prenom = reservation.prenom,
+            email = reservation.email,
+            mobile = reservation.mobile,
+            total_reduit_euro = reservation.total_reduit_euro,
+            stage = 'reserve',
+            lv_type = "restitution"
+        ) 
+        restitution.save()
+
         
         print(f"Paiement réussi pour la réservation ID: {reservation_id}")
 
