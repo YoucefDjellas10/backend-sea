@@ -1310,7 +1310,9 @@ def stripe_webhook_reservation(request):
             prenom = reservation.prenom,
             email = reservation.email,
             mobile = reservation.mobile,
-            total_reduit_euro = reservation.total_reduit_euro
+            total_reduit_euro = reservation.total_reduit_euro,
+            stage = 'reserve',
+            lv_type = "livraison"
         ) 
         livraison.save()
 
