@@ -1289,8 +1289,32 @@ def stripe_webhook_reservation(request):
             mode_paiement="carte", 
             total_encaisse=montant_paye,  
         )
-
         payment.save()
+
+        livraison = Livraison.objects.create(
+            reservation = reservation,
+            status = reservation.status,
+            date_heure_debut = reservation.date_heure_debut,
+            date_heure_fin = reservation.date_heure_fin,
+            date_de_reservation = reservation.create_date,
+            nbr_jour_reservation = reservation.nbr_jour_reservation,
+            duree_dereservation = reservation.duree_dereservation,
+            lieu_depart = reservation.lieu_depart,
+            zone = reservation.zone,
+            lieu_retour = reservation.lieu_retour,
+            vehicule = reservation.vehicule,
+            modele = reservation.modele,
+            carburant = reservation.carburant,
+            client = reservation.client,
+            nom = reservation.nom,
+            prenom = reservation.prenom,
+            email = reservation.email,
+            mobile = reservation.mobile,
+            total_reduit_euro = reservation.total_reduit_euro
+        ) 
+        livraison.save()
+
+        
         print(f"Paiement réussi pour la réservation ID: {reservation_id}")
 
     return JsonResponse({"status": "success"}, status=200)
