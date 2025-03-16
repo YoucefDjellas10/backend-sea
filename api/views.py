@@ -1293,6 +1293,7 @@ def stripe_webhook_reservation(request):
 
         livraison = Livraison.objects.create(
             reservation = reservation,
+            name = reservation.name,
             status = reservation.status,
             date_heure_debut = reservation.date_heure_debut,
             date_heure_fin = reservation.date_heure_fin,
