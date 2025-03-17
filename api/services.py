@@ -835,7 +835,7 @@ def ma_reservation_detail(ref, email, country_code):
             taux_change = taux.montant
             if ma_reservation :
                 result.append({
-                    "currency":"DZ",
+                    "currency":"DA",
                     'can_cancel': can_cancel,
                     "can_midify":can_midify,
                     "can_modify_return":can_modify_return,
@@ -844,6 +844,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'client_nom': ma_reservation.nom,
                     'client_perenom': ma_reservation.prenom,
                     'lieu_depart': ma_reservation.lieu_depart.id,
+                    "address_fr":ma_reservation.lieu_depart.address,
+                    "address_en":ma_reservation.lieu_depart.address_en,
+                    "address_ar":ma_reservation.lieu_depart.address_ar,
                     'lieu_retour': ma_reservation.lieu_retour.id,
                     'address_lieu': address,
                     'lieu_rdv': lieu_rdv,
@@ -880,6 +883,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'opt_siege_c_total': ma_reservation.opt_siege_c_total * taux_change if ma_reservation.opt_siege_c_total else 0,
                     'vehicule_id': ma_reservation.vehicule.id,
                     'modele_name': ma_reservation.model_name,
+                    "car_description_fr":ma_reservation.modele.description_fr,
+                    "car_description_en":ma_reservation.modele.description_en,
+                    "car_description_ar":ma_reservation.modele.description_ar,
                     'marketing_text_fr': ma_reservation.marketing_text_fr,
                     'photo_link': ma_reservation.photo_link,
                     'photo_link_nd': ma_reservation.photo_link_nd,
@@ -891,6 +897,8 @@ def ma_reservation_detail(ref, email, country_code):
                     'age_min': ma_reservation.age_min,
                     'nbr_jour_reservation': ma_reservation.nbr_jour_reservation,
                     'total_reduit_euro': ma_reservation.total_reduit_euro * taux_change if ma_reservation.total_reduit_euro else 0,
+                    "montant_paye":ma_reservation.montant_paye,
+                    "email":ma_reservation.email,
                 })
         else :  
             if ma_reservation :
@@ -904,6 +912,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'client_nom': ma_reservation.nom,
                     'client_perenom': ma_reservation.prenom,
                     'lieu_depart': ma_reservation.lieu_depart.id,
+                    "address_fr":ma_reservation.lieu_depart.address,
+                    "address_en":ma_reservation.lieu_depart.address_en,
+                    "address_ar":ma_reservation.lieu_depart.address_ar,
                     'lieu_retour': ma_reservation.lieu_retour.id,
                     'address_lieu': address,
                     'lieu_rdv': lieu_rdv,
@@ -939,6 +950,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'opt_siege_c_price': ma_reservation.opt_siege_c_prix,
                     'opt_siege_c_total': ma_reservation.opt_siege_c_total,
                     'vehicule_id': ma_reservation.vehicule.id,
+                    "car_description_fr":ma_reservation.modele.description_fr,
+                    "car_description_en":ma_reservation.modele.description_en,
+                    "car_description_ar":ma_reservation.modele.description_ar,
                     'modele_name': ma_reservation.model_name,
                     'marketing_text_fr': ma_reservation.marketing_text_fr,
                     'photo_link': ma_reservation.photo_link,
@@ -951,6 +965,9 @@ def ma_reservation_detail(ref, email, country_code):
                     'age_min': ma_reservation.age_min,
                     'nbr_jour_reservation': ma_reservation.nbr_jour_reservation,
                     'total_reduit_euro': ma_reservation.total_reduit_euro,
+                    "montant_paye":ma_reservation.montant_paye,
+                    "email":ma_reservation.email,
+
                 })  
 
         return result
