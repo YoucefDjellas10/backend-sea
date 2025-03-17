@@ -1313,7 +1313,9 @@ def stripe_webhook_reservation(request):
             mobile = reservation.mobile,
             total_reduit_euro = reservation.total_reduit_euro,
             stage = 'reserve',
-            lv_type = "livraison"
+            lv_type = "livraison",
+            action_lieu=reservation.lieu_depart.name,
+            action_date=reservation.date_heure_debut,
         ) 
         livraison.save()
 
@@ -1339,7 +1341,9 @@ def stripe_webhook_reservation(request):
             mobile = reservation.mobile,
             total_reduit_euro = reservation.total_reduit_euro,
             stage = 'reserve',
-            lv_type = "restitution"
+            lv_type = "restitution",
+            action_lieu=reservation.lieu_retour.name,
+            action_date=reservation.date_heure_fin,
         ) 
         restitution.save()
 
