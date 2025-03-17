@@ -1294,6 +1294,9 @@ def stripe_webhook_reservation(request):
         livraison = Livraison.objects.create(
             reservation = reservation,
             name = reservation.name,
+            caution_classic = reservation.opt_protection_caution,
+            caution_red = reservation.opt_protection_caution,
+            caution_classic_eur = reservation.opt_protection_caution,
             status = reservation.status,
             date_heure_debut = reservation.date_heure_debut,
             date_heure_fin = reservation.date_heure_fin,
@@ -1316,12 +1319,16 @@ def stripe_webhook_reservation(request):
             lv_type = "livraison",
             action_lieu=reservation.lieu_depart.name,
             action_date=reservation.date_heure_debut,
+
         ) 
         livraison.save()
 
         restitution = Livraison.objects.create(
             reservation = reservation,
             name = reservation.name,
+            caution_classic = reservation.opt_protection_caution,
+            caution_red = reservation.opt_protection_caution,
+            caution_classic_eur = reservation.opt_protection_caution,
             status = reservation.status,
             date_heure_debut = reservation.date_heure_debut,
             date_heure_fin = reservation.date_heure_fin,
