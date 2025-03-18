@@ -192,18 +192,22 @@ def ajouter_liste_attente(request):
     else:
         return JsonResponse({'status': 'error', 'message': 'Méthode non autorisée'}, status=405)
 
-@api_view(['POST'])
+@csrf_exempt
 def create_contact_message(request):
     if request.method == 'POST':
         try:
-            nom_complet = request.data.get('nom_complet')
-            email = request.data.get('email')
-            message_text = request.data.get('message') 
+            print("inside")
+            data = json.loads(request.body.decode('utf-8'))
+            nom_complet = data.get('nom_complet')
+            email = data.get('email')
+            message_text = data.get('message') 
+            client_id = data.get('client_id')
 
 
             name = str(random.randint(1000, 9999))
 
             create_date = datetime.now()
+            client = ListeClient.objects.filter(id=client_id).first()
 
 
             ContactMessage.objects.create(
@@ -211,7 +215,7 @@ def create_contact_message(request):
                 nom_complet=nom_complet,
                 email=email,
                 message=message_text, 
-
+                client=client,
                 create_date=create_date,
             )
 
@@ -219,6 +223,7 @@ def create_contact_message(request):
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse({"created": False, "message": "Seules les requêtes POST sont autorisées."}, status=405)
         
 @csrf_exempt
 def create_account_view(request):
