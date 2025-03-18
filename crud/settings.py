@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -68,6 +69,7 @@ CORS_ALLOW_HEADERS =[
         "x-country-code"
         ]
 
+JSON_CHARSET = 'utf-8'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

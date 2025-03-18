@@ -21,6 +21,59 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 from django.utils import timezone
 import time
+import locale
+
+def promotion_hompage(request):
+    try:
+        now = datetime.now()
+        promotion_periode = Promotion.objects.filter(fin_visibilite__gte=now, date_fin__gte=now).first()
+        
+        if not promotion_periode:
+            return JsonResponse({"message": "Aucune promotion en cours."}, status=404)
+
+        date_debut = promotion_periode.date_debut
+        date_fin = promotion_periode.date_fin
+
+        # Configurer les locales
+        locale.setlocale(locale.LC_TIME, "fr_FR.utf8")
+        mois_fr_debut = date_debut.strftime("%B")
+        mois_fr_fin = date_fin.strftime("%B")
+
+        locale.setlocale(locale.LC_TIME, "en_US.utf8")
+        mois_en_debut = date_debut.strftime("%B")
+        mois_en_fin = date_fin.strftime("%B")
+
+        # Mapping manuel pour les mois en arabe
+        mois_ar_map = {
+            "January": "يناير", "February": "فبراير", "March": "مارس", "April": "أبريل",
+            "May": "مايو", "June": "يونيو", "July": "يوليو", "August": "أغسطس",
+            "September": "سبتمبر", "October": "أكتوبر", "November": "نوفمبر", "December": "ديسمبر"
+        }
+
+        # Traduire les mois en arabe
+        mois_ar_debut = mois_ar_map.get(mois_en_debut, mois_fr_debut)
+        mois_ar_fin = mois_ar_map.get(mois_en_fin, mois_fr_fin)
+
+        # Construction des textes
+        if date_debut.month == date_fin.month and date_debut.year == date_fin.year:
+            du_au = f"Du {date_debut.day} au {date_fin.day} {mois_fr_fin} {date_fin.year}"
+            du_au_en = f"From {date_debut.day} to {date_fin.day} {mois_en_fin} {date_fin.year}"
+            du_au_ar = f"من {date_debut.day} إلى {date_fin.day} {mois_ar_fin} {date_fin.year}"
+        else:
+            du_au = f"Du {date_debut.day} {mois_fr_debut} au {date_fin.day} {mois_fr_fin} {date_fin.year}"
+            du_au_en = f"From {date_debut.day} {mois_en_debut} to {date_fin.day} {mois_en_fin} {date_fin.year}"
+            du_au_ar = f"من {date_debut.day} {mois_ar_debut} إلى {date_fin.day} {mois_ar_fin} {date_fin.year}"
+
+        return JsonResponse({
+            "text_one": f"⚡ {promotion_periode.name} : jusqu'à -{promotion_periode.reduction}%",
+            "text_two": f"{du_au}, profitez d'une remise exceptionnelle de *-{promotion_periode.reduction}%* sur toute notre flotte ! 🚗✨",
+            "text_one_en": f"⚡ {promotion_periode.name} : up to -{promotion_periode.reduction}%",
+            "text_two_en": f"{du_au_en}, take advantage of an exceptional *-{promotion_periode.reduction}%* discount! 🚗✨",
+            "text_one_ar": f"⚡ حتى %{promotion_periode.reduction} : {promotion_periode.name}",
+            "text_two_ar": f"{du_au_ar}، استفد من خصم استثنائي بقيمة ٪{promotion_periode.reduction} 🚗✨"
+        }, status=200, json_dumps_params={'ensure_ascii': False})  # Assure l'affichage correct en arabe
+    except Exception as e:
+        return JsonResponse({"message": f"Erreur inattendue : {str(e)}"}, status=500)
 
 def vip_reduction_view(request):
 
@@ -202,6 +255,9 @@ def create_contact_message(request):
             email = data.get('email')
             message_text = data.get('message') 
             client_id = data.get('client_id')
+
+            if not nom_complet or not email or not message_text : 
+                return JsonResponse({"created": False, "message": "les champs nom_complet et email et message_text sont requis."}, status=405)
 
 
             name = str(random.randint(1000, 9999))
