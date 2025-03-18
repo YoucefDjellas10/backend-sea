@@ -685,6 +685,18 @@ class Options(models.Model):
         null=True,
         blank=True
     )
+    name_en = models.CharField(
+        max_length=255,
+        verbose_name="Nom de l'option",
+        null=False,
+        blank=False
+    ) 
+    name_ar = models.CharField(
+        max_length=255,
+        verbose_name="Nom de l'option",
+        null=False,
+        blank=False
+    )
 
     class Meta:
         db_table = 'options'
