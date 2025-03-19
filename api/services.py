@@ -1567,7 +1567,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     client = None
 
     if country_code == "DZ":
-        if client_id:
+        if client_id :
             client_status = check_client(client_id)  
             client = ListeClient.objects.filter(id=client_id).first()          
             if not client:
@@ -1622,7 +1622,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_type_tarif = klm_illimite["type_tarif"]
         opt_klm_unit = klm_illimite["prix"]
         opt_klm_total = klm_illimite["total"]
-        opt_klm_limit = vip_limit_value if client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite["limit"]
+        opt_klm_limit = vip_limit_value if client.categorie_client.name == "VIP" and client.categorie_client is not None and client is not None else klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
         
         klm_illimite_b = search_option_DA("KLM_ILLIMITED_B", total_days)
@@ -1632,7 +1632,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_b_type_tarif = klm_illimite_b["type_tarif"]
         opt_klm_b_unit = klm_illimite_b["prix"]
         opt_klm_b_total = klm_illimite_b["total"]
-        opt_klm_b_limit = vip_limit_value if client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite_b["limit"]
+        opt_klm_b_limit = vip_limit_value if client.categorie_client.name == "VIP" and client.categorie_client is not None and client is not None else klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
         klm_illimite_c = search_option_DA("KLM_ILLIMITED_C", total_days)
@@ -1642,7 +1642,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_c_type_tarif = klm_illimite_c["type_tarif"]
         opt_klm_c_unit = klm_illimite_c["prix"]
         opt_klm_c_total = klm_illimite_c["total"]
-        opt_klm_c_limit =  vip_limit_value if client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite_c["limit"] 
+        opt_klm_c_limit =  vip_limit_value if client.categorie_client.name == "VIP" and client.categorie_client is not None and client is not None else klm_illimite_c["limit"] 
         opt_klm_c_penalite = klm_illimite_c["penalite"]
 
         nd_driver = search_option_DA("ND_DRIVER", total_days)
