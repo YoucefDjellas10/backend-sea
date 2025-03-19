@@ -1563,6 +1563,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     else:
         jr_avant = None
         date_annulation = None
+    
+    client = None
 
     if country_code == "DZ":
         if client_id:
