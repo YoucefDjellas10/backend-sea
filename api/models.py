@@ -1390,3 +1390,15 @@ class Payment(models.Model):
         return self.name
     class Meta:
         db_table = 'revenue_record'
+
+
+class HistoriqueSolde(models.Model):
+    name = models.CharField(max_length=255)
+    client = models.ForeignKey(ListeClient, on_delete=models.CASCADE, related_name='historique_soldes')
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='historique_soldes')
+    montant = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.name} - {self.client} - {self.montant}"
+    class Meta:
+        db_table = 'historique_solde'

@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from .models import *
 
+
+class HistoriqueSoldeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoriqueSolde
+        fields = "__all__"
+
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
