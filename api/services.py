@@ -1016,7 +1016,6 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
 def otp_send(email):
     try:
         client = ListeClient.objects.filter(email=email).first()
-        print("client : ",client)
         if client is None:
             return {"account":False,"message": "Aucun client trouvé avec cet email.", "client_id": None}
 
