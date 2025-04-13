@@ -1042,7 +1042,7 @@ def otp_send(email):
                 html_message=html_message,
                 fail_silently=False,
             )
-            return {"sent": True,"client_id": client.id}
+            return {"sent": True,"client_id": client.id, "account": True}
         except Exception as e:
             return {"sent": False,"message": f"Erreur lors de l'envoi de l'email : {str(e)}", "client_id": client.id}
     except Exception as e:

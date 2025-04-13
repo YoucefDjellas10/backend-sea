@@ -1963,7 +1963,8 @@ def otp_send_client(request):
             result = otp_send(email)
             if result["client_id"] != None and result["account"] != None:
                 return JsonResponse({"sent":True, "success": True, "client_id": result["client_id"]})
-
+            else:
+                return JsonResponse({"sent":False, "success": False, "account": result["account"]})
 
         except Exception as e:
             return JsonResponse({"sent": False, "message": f"Erreur: {str(e)}"})
