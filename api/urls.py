@@ -57,4 +57,5 @@ urlpatterns += [
     path('protection-put/', protection_put_view, name='protection-put-view'),
     path('vip-reduction/', vip_reduction_view, name='vip_reduction_view'),
     path('homepage-promotion/', promotion_hompage, name='promotion_hompage'),
+    path('news-letter/', create_news_letter, name='create_news_letter'),
 ]

@@ -1403,3 +1403,18 @@ class HistoriqueSolde(models.Model):
         return f"{self.name} - {self.client} - {self.montant}"
     class Meta:
         db_table = 'historique_solde'
+
+
+class NewsLetter(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Name')
+    email = models.EmailField(verbose_name='Email')
+    SUBSCRIBE_CHOICES = [
+        ('oui', 'Oui'),
+        ('non', 'Non'),
+    ]
+    subscribe = models.CharField(max_length=3, choices=SUBSCRIBE_CHOICES, default='oui', verbose_name='Civilité')
+
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'news_letter'
