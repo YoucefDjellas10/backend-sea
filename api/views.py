@@ -23,11 +23,11 @@ from django.utils import timezone
 import time
 import locale
 
-def protection_request_view(request):
+def create_news_letter(request):
     try:
 
         email = request.GET.get("email")
-        
+
         NewsLetter.objects.create(
                     email=email,
                 )
