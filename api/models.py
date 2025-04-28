@@ -957,6 +957,7 @@ class Reservation(models.Model):
     prenom = models.CharField(max_length=255, editable=False)
     email = models.EmailField(editable=False)
     date_de_naissance = models.DateField(editable=False, null=True, blank=True)
+    permis_date = models.DateField(editable=False, null=True, blank=True)
     mobile = models.CharField(max_length=50, editable=False, null=True, blank=True)
     telephone = models.CharField(max_length=50, editable=False, null=True, blank=True)
     risque = models.CharField(max_length=50, editable=False, null=True, blank=True)
