@@ -228,7 +228,10 @@ def ajouter_liste_attente(request):
             heure_fin = data.get('heure_fin')
 
             try:
-                car_model = Modele.objects.get(id=car_model_id)
+                if car_model_id is not None:
+                    car_model = Modele.objects.get(id=car_model_id)
+                else:
+                    car_model = None
                 lieu_depart = Lieux.objects.get(id=lieu_depart_id)
                 lieu_retour = Lieux.objects.get(id=lieu_retour_id)
             except ObjectDoesNotExist:
