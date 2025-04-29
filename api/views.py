@@ -172,11 +172,12 @@ def protection_request_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-def get_all_categories(request):
-    categories = CategorieClient.objects.all() 
 
-    categories_list = []
+def get_all_categories(request):
+    categories = CategorieClient.objects.all()
     
+    categories_list = []
+
     for cat in categories:
         category_data = {
             "id": cat.id,
@@ -186,22 +187,23 @@ def get_all_categories(request):
             "reduction": cat.reduction,
         }
 
-        options = {
-            "option_one": cat.option_one.name if cat.option_one else None,
-            "option_two": cat.option_two.name if cat.option_two else None,
-            "option_three": cat.option_three.name if cat.option_three else None,
-            "option_four": cat.option_four.name if cat.option_four else None,
-            "option_five": cat.option_five.name if cat.option_five else None,
-            "option_six": cat.option_six.name if cat.option_six else None,
-            "option_seven": cat.option_seven.name if cat.option_seven else None,
-            "option_eight": cat.option_eight.name if cat.option_eight else None,
-            "option_nine": cat.option_nine.name if cat.option_nine else None,
-            "option_ten": cat.option_ten.name if cat.option_ten else None,
-        }
+        options = [
+            cat.option_one.name if cat.option_one else None,
+            cat.option_two.name if cat.option_two else None,
+            cat.option_three.name if cat.option_three else None,
+            cat.option_four.name if cat.option_four else None,
+            cat.option_five.name if cat.option_five else None,
+            cat.option_six.name if cat.option_six else None,
+            cat.option_seven.name if cat.option_seven else None,
+            cat.option_eight.name if cat.option_eight else None,
+            cat.option_nine.name if cat.option_nine else None,
+            cat.option_ten.name if cat.option_ten else None,
+        ]
 
-        options = {key: value for key, value in options.items() if value is not None}
+        options = [opt for opt in options if opt is not None]
 
-        category_data.update(options)
+        if options:
+            category_data["option"] = options
 
         categories_list.append(category_data)
 
