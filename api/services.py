@@ -587,6 +587,7 @@ def cencel_request(ref):
             
 
         for record in ma_reservation:
+            total = record.total_reduit_euro
             date_reservation = record.date_heure_debut.date()
             periode_existe = Periode.objects.filter(
                     date_debut__lte=date_reservation,
@@ -601,9 +602,15 @@ def cencel_request(ref):
                     un_jour = 15
             else : 
                 un_jour = record.prix_jour
-            if record.opt_payment_name :
+            if record.opt_payment_name and un_jour == 15:
                 rembourssement = True
-            else: rembourssement = False
+                montant_rembourse = total - 15 
+            elif not record.opt_payment_name and un_jour == 15:
+                rembourssement = True
+                montant_rembourse = record.prix_jour - 15
+            else: 
+                rembourssement = False
+                montant_rembourse = 0
             reference = record.name
             raisons_annulation = AnnulerRaison.objects.filter()
             reasons = [raison.name for raison in raisons_annulation]
@@ -611,6 +618,7 @@ def cencel_request(ref):
         result = {
             "reference":reference,
             "frais_annulation":un_jour,
+            "refund_amount":montant_rembourse,
             "refund":rembourssement,
             "reasons":reasons,
                   }

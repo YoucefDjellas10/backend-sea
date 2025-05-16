@@ -1915,21 +1915,31 @@ def cancel_do_view(request):
                 un_jour = 15
         else : 
             un_jour = reservation.prix_jour
-
-        refund = RefundTable(
-            reservation=reservation,
-            amount=reservation.total_reduit_euro - un_jour,  
-            status='en_attent',
-            date=timezone.now()
-        )
-        refund.save()
+        
+        if reservation.opt_payment_name and un_jour == 15:
+            rembourssement = True
+            montant_rembourse = reservation.total_reduit_euro - 15 
+        elif not reservation.opt_payment_name and un_jour == 15:
+            rembourssement = True
+            montant_rembourse = reservation.prix_jour - 15
+        else: 
+            rembourssement = False
+            montant_rembourse = 0
+        if rembourssement and montant_rembourse > 0:
+            refund = RefundTable(
+                reservation=reservation,
+                amount=montant_rembourse,  
+                status='en_attent',
+                date=timezone.now()
+            )
+            refund.save()
 
         reservation.status = "annule"
         reservation.etat_reservation = "annule"
         reservation.annuler_raison = annuler_raison
         reservation.save()
 
-        return JsonResponse({"message": "Modification effectuée avec succès."}, status=200)
+        return JsonResponse({"rembourssement":rembourssement,"frais_annulation":un_jour,"refund_amount":montant_rembourse,"message": "Modification effectuée avec succès."}, status=200)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
