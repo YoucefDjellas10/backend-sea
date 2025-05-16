@@ -1886,6 +1886,8 @@ def cancel_do_view(request):
         data = json.loads(request.body)
         ref = data.get("ref")
         reason = data.get("reason")
+        country_code = request.headers.get("X-Country-Code")
+
         if not ref:
             return JsonResponse({"error": "Le champ 'ref' est requis."}, status=400)
 
@@ -1956,8 +1958,13 @@ def cancel_do_view(request):
             html_message=html_message,
             fail_silently=False,
         )
+        taux = TauxChange.objects.filter(id=2).first()
+        taux_change = taux.montant
 
-        return JsonResponse({"rembourssement":rembourssement,"frais_annulation":un_jour,"refund_amount":montant_rembourse,"message": "Modification effectuée avec succès."}, status=200)
+        return JsonResponse({"rembourssement":rembourssement ,
+                             "frais_annulation":un_jour * taux_change if country_code == "DZ" else un_jour,
+                             "refund_amount":montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
+                             "message": "Modification effectuée avec succès."}, status=200)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
@@ -1965,6 +1972,7 @@ def cancel_do_view(request):
 
 def cancel_request_view(request):
     ref = request.GET.get("ref")
+    country_code = request.headers.get("X-Country-Code")
 
     if not ref :
         return JsonResponse({"error": "Le paramètres 'ref' est requis."}, status=400)
@@ -1972,6 +1980,7 @@ def cancel_request_view(request):
     try:
         resultats = cencel_request(
             ref=ref,
+            country_code=country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:

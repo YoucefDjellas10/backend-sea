@@ -577,7 +577,7 @@ def mes_reservations(client_id,country_code):
         return {"message": f"Erreur: {str(e)}"}
 
 
-def cencel_request(ref):
+def cencel_request(ref,country_code):
     try:
         today = date.today()
         ma_reservation = Reservation.objects.filter(name=ref)
@@ -614,11 +614,14 @@ def cencel_request(ref):
             reference = record.name
             raisons_annulation = AnnulerRaison.objects.filter()
             reasons = [raison.name for raison in raisons_annulation]
+        
+        taux = TauxChange.objects.filter(id=2).first()
+        taux_change = taux.montant
 
         result = {
             "reference":reference,
-            "frais_annulation":un_jour,
-            "refund_amount":montant_rembourse,
+            "frais_annulation":un_jour * taux_change if country_code == "DZ" else un_jour,
+            "refund_amount":montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
             "refund":rembourssement,
             "reasons":reasons,
                   }
@@ -826,25 +829,12 @@ def ma_reservation_detail(ref, email, country_code):
         if not ma_reservation :
             return {"error": "reservation non trouvé"}
         result =[]
-        annulation = ConditionAnnulation.objects.filter(id=1).first()
-        periodes = Periode.objects.all()
         date = ma_reservation.date_heure_debut.date()
-        saison_id = None
-        for periode in periodes:
-            if periode.date_debut <= date <= periode.date_fin:
-                saison_id = periode.saison
-                break
-        jour_annulation = 0
-        if saison_id == annulation.haute_saison :
-            jour_annulation += annulation.haute_montant
-        else :
-            jour_annulation += annulation.basse_montant
-        
         today = datetime.today().date()
-        can_cancel = "yes" if (date - today).days >= jour_annulation else "no"
-        can_midify = "yes" if (date - today).days >= 2 else "no"
+        can_cancel = "yes" 
+        can_midify = "yes" if (date - today).days >= 1 else "no"
         retour = ma_reservation.date_heure_fin.date()
-        can_modify_return = "yes" if (retour - today).days >= 2 else "no"
+        can_modify_return = "yes" if (retour - today).days >= 1 else "no"
         address = ma_reservation.lieu_depart.address
         frais_livraison = ma_reservation.frais_de_dossier
         lieu_rdv = ma_reservation.lieu_depart.rendez_vous
