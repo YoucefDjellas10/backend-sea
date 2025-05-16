@@ -1423,7 +1423,7 @@ class NewsLetter(models.Model):
 
 class RefundTable(models.Model):
     name = models.CharField(max_length=100, verbose_name='ref', editable=False)
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, verbose_name='Reservation')
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE,db_column='reservation', verbose_name='Reservation')
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Montant')
     STATUS_CHOICES = [
         ('en_attent', 'En attent'),
