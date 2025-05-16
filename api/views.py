@@ -1942,7 +1942,7 @@ def cancel_do_view(request):
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
         expediteur = settings.EMAIL_HOST_USER
 
-        html_message = render_to_string('email\annulation_email.html', {
+        html_message = render_to_string('email/annulation_email.html', {
             "referance":reservation.name,
             "annuler_raison":reservation.annuler_raison.name,
             "client":reservation.client.name,
