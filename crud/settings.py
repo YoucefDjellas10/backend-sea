@@ -60,7 +60,9 @@ MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
-   'https://safar-el-amir.vercel.app'
+   'https://safar-el-amir.vercel.app',
+   'localhost:8080',
+   '168.231.87.226'
 ]
 
 CORS_ALLOW_HEADERS =[
