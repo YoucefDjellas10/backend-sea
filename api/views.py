@@ -1939,6 +1939,8 @@ def cancel_do_view(request):
         reservation.annuler_raison = annuler_raison
         reservation.save()
 
+        
+
         return JsonResponse({"rembourssement":rembourssement,"frais_annulation":un_jour,"refund_amount":montant_rembourse,"message": "Modification effectuée avec succès."}, status=200)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)

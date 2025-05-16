@@ -64,7 +64,8 @@ CORS_ALLOWED_ORIGINS = [
    'http://localhost:8080',
    'https://localhost:8080',
    'http://168.231.87.226',
-   'https://168.231.87.226'
+   'https://168.231.87.226',
+   'https://safar.ranwip.com'
 ]
 
 CORS_ALLOW_HEADERS =[
