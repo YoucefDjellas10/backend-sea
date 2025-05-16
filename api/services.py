@@ -629,7 +629,7 @@ def cencel_request(ref,country_code):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour):
+def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, country_code):
     try:
         result = []
         date_depart_heure = datetime.strptime(f"{date_depart} {heure_depart}", '%Y-%m-%d %H:%M')

@@ -1985,7 +1985,8 @@ def cancel_request_view(request):
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
-
+    
+@csrf_exempt
 def verify_and_calculate_view(request):
     ref = request.GET.get("ref")
     lieu_depart = request.GET.get("lieu_depart")
@@ -1994,6 +1995,7 @@ def verify_and_calculate_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+    country_code = request.headers.get("X-Country-Code")
 
     if not date_retour or not date_depart:
         return JsonResponse({"error": "Les paramètres 'date_retour' et 'date_depart' sont requis."}, status=400)
@@ -2007,6 +2009,7 @@ def verify_and_calculate_view(request):
             heure_depart = heure_depart,
             date_retour = date_retour,
             heure_retour = heure_retour,
+            country_code = country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
