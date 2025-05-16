@@ -1939,7 +1939,23 @@ def cancel_do_view(request):
         reservation.annuler_raison = annuler_raison
         reservation.save()
 
-        
+        sujet = f"Annulation de votre reservation N°= {reservation.name}"
+        expediteur = settings.EMAIL_HOST_USER
+
+        html_message = render_to_string('email\annulation_email.html', {
+            "referance":reservation.name,
+            "annuler_raison":reservation.annuler_raison.name,
+            "client":reservation.client.name,
+        })
+
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
 
         return JsonResponse({"rembourssement":rembourssement,"frais_annulation":un_jour,"refund_amount":montant_rembourse,"message": "Modification effectuée avec succès."}, status=200)
     except json.JSONDecodeError:
