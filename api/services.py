@@ -591,7 +591,7 @@ def cencel_request(ref):
             periode_existe = Periode.objects.filter(
                     date_debut__lte=date_reservation,
                     date_fin__gte=date_reservation
-                ).exists()
+                ).first()
             if periode_existe :
                 annulation = ConditionAnnulation.objects.filter(id=1).first()
                 jours_restants = (date_reservation - today).days
