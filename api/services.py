@@ -579,26 +579,37 @@ def mes_reservations(client_id,country_code):
 
 def cencel_request(ref):
     try:
+        today = date.today()
         ma_reservation = Reservation.objects.filter(name=ref)
         if not ma_reservation.exists():
             return {"message": "Réservation non trouvée."}
+        
+            
+
         for record in ma_reservation:
-            frais_dossier = record.frais_de_dossier
-            un_jour = record.prix_jour
+            date_reservation = record.date_heure_debut.date()
+            periode_existe = Periode.objects.filter(
+                    date_debut__lte=date_reservation,
+                    date_fin__gte=date_reservation
+                ).exists()
+            if periode_existe :
+                annulation = ConditionAnnulation.objects.filter(id=1).first()
+                jours_restants = (date_reservation - today).days
+                if (periode_existe.saison == annulation.haute_saison and jours_restants < annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants < annulation.basse_montant):
+                    un_jour = record.prix_jour
+                elif (periode_existe.saison == annulation.haute_saison and jours_restants >= annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants >= annulation.basse_montant):
+                    un_jour = 15
+            else : 
+                un_jour = record.prix_jour
             if record.opt_payment_name :
                 rembourssement = True
             else: rembourssement = False
             reference = record.name
-            lieu_depart = record.lieu_depart.name
-            date_depart = record.date_heure_debut
             raisons_annulation = AnnulerRaison.objects.filter()
             reasons = [raison.name for raison in raisons_annulation]
 
         result = {
             "reference":reference,
-            "lieu_depart":lieu_depart,
-            "date_depart":date_depart,
-            "frais_dossier":frais_dossier,
             "frais_annulation":un_jour,
             "refund":rembourssement,
             "reasons":reasons,

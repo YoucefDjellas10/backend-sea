@@ -1418,3 +1418,30 @@ class NewsLetter(models.Model):
         return self.name
     class Meta:
         db_table = 'news_letter'
+
+
+
+class RefundTable(models.Model):
+    name = models.CharField(max_length=100, verbose_name='ref', editable=False)
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, verbose_name='Reservation')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Montant')
+    STATUS_CHOICES = [
+        ('en_attent', 'En attent'),
+        ('effectuer', 'Effectué'),
+        ('refuser', 'Refusé'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='en_attent', verbose_name='Statut')
+    date = models.DateTimeField(verbose_name='Date')
+
+    class Meta:
+        db_table = 'refund_table'
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super(RefundTable, self).save(*args, **kwargs)
+        if is_new:
+            self.name = f'refund-{self.pk}'
+            super(RefundTable, self).save(update_fields=['name'])
+
+    def __str__(self):
+        return self.name

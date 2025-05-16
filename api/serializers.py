@@ -2,9 +2,9 @@ from rest_framework import serializers
 from .models import *
 
 
-class NewsLetterSerializer(serializers.ModelSerializer):
+class RefundTableSerializer(serializers.ModelSerializer):
     class Meta:
-        model = NewsLetter
+        model = RefundTable
         fields = "__all__"
 
 class HistoriqueSoldeSerializer(serializers.ModelSerializer):

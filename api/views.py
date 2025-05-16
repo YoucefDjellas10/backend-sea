@@ -1894,8 +1894,36 @@ def cancel_do_view(request):
 
         annuler_raison = AnnulerRaison.objects.filter(name=reason).first()
         reservation = Reservation.objects.filter(name=ref).first()
-        if not reservation:
+        if not reservation or not annuler_raison:
             return JsonResponse({"error": "Réservation non trouvée avec la référence spécifiée."}, status=404)
+        livraisons = Livraison.objects.filter(reservation=reservation)
+        if livraisons.exists():
+            livraisons.delete()
+        today = date.today()
+        date_reservation = reservation.date_heure_debut.date()
+        periode_existe = Periode.objects.filter(
+                date_debut__lte=date_reservation,
+                date_fin__gte=date_reservation
+            ).exists()
+        un_jour = 0
+        if periode_existe :
+            annulation = ConditionAnnulation.objects.filter(id=1).first()
+            jours_restants = (date_reservation - today).days
+            if (periode_existe.saison == annulation.haute_saison and jours_restants < annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants < annulation.basse_montant):
+                un_jour = reservation.prix_jour
+            elif (periode_existe.saison == annulation.haute_saison and jours_restants >= annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants >= annulation.basse_montant):
+                un_jour = 15
+        else : 
+            un_jour = reservation.prix_jour
+
+        refund = RefundTable(
+            reservation=reservation,
+            amount=reservation.total_reduit_euro - un_jour,  
+            status='en_attent',
+            date=timezone.now()
+        )
+        refund.save()
+
         reservation.status = "annule"
         reservation.etat_reservation = "annule"
         reservation.annuler_raison = annuler_raison
