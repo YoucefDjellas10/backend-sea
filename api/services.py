@@ -754,8 +754,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 
                 result.append({
                     'is_available':"yes",
-                    'old_total':get_total * taux_change if country_code == "DZ" else get_total,
-                    'new_total':total_ * taux_change if country_code == "DZ" else total_,
+                    'old_total': float(get_total) * float(taux_change) if country_code == "DZ" else get_total,
+                    'new_total':float(total_) * float(taux_change) if country_code == "DZ" else total_,
                 })
 
             else :
