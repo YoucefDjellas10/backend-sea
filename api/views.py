@@ -1904,7 +1904,7 @@ def cancel_do_view(request):
         periode_existe = Periode.objects.filter(
                 date_debut__lte=date_reservation,
                 date_fin__gte=date_reservation
-            ).exists()
+            ).first()
         un_jour = 0
         if periode_existe :
             annulation = ConditionAnnulation.objects.filter(id=1).first()
