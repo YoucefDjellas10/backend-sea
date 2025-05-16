@@ -749,10 +749,13 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     prix_par_jour = total / total_days if total_days > 0 else 0
                     total_ = get_options_total + total
                 
+                taux = TauxChange.objects.filter(id=2).first()
+                taux_change = taux.montant
+                
                 result.append({
                     'is_available':"yes",
-                    'old_total':get_total,
-                    'new_total':total_,
+                    'old_total':get_total * taux_change if country_code == "DZ" else get_total,
+                    'new_total':total_ * taux_change if country_code == "DZ" else total_,
                 })
 
             else :
