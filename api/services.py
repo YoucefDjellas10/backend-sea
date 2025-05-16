@@ -601,7 +601,7 @@ def cencel_request(ref):
             "frais_dossier":frais_dossier,
             "frais_annulation":un_jour,
             "refund":rembourssement,
-            "seasons":reasons,
+            "reasons":reasons,
                   }
         return result
     except Exception as e:
