@@ -571,6 +571,7 @@ def mes_reservations(client_id,country_code):
                 "can_be_modified": can_be_modified,
             })
 
+        result.sort(key=lambda x: x["date_dapart"], reverse=True)
         return {"reservations": result}
 
     except Exception as e:

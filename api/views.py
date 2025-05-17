@@ -326,7 +326,7 @@ def create_account_view(request):
     return JsonResponse({"created": False, "message": "Seules les requêtes POST sont autorisées."}, status=405)
 
 
-def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour):
+def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, country_code):
     try:
         ma_reservation = Reservation.objects.filter(name=ref).first()
         if not ma_reservation:
@@ -346,7 +346,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             old_total = verify_value[0].get('old_total')
             new_total = verify_value[0].get('new_total')
             to_pay = Decimal(new_total) - Decimal(old_total)
-            if to_pay < 0 :
+            if to_pay <= 0 :
                 
                 lieu_depart_obj = get_object_or_404(Lieux, id=lieu_depart)
                 lieu_retour_obj = get_object_or_404(Lieux, id=lieu_retour)
@@ -358,21 +358,8 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
                 ma_reservation.save()
 
                 return {"modified":"yes","message": "Réservation mise à jour avec succès.", "refund_message": True}
-
-            if to_pay == 0 :
-                
-                lieu_depart_obj = get_object_or_404(Lieux, id=lieu_depart)
-                lieu_retour_obj = get_object_or_404(Lieux, id=lieu_retour)
-                
-                ma_reservation.lieu_depart = lieu_depart_obj
-                ma_reservation.lieu_retour = lieu_retour_obj
-                ma_reservation.date_heure_debut = date_depart_heure
-                ma_reservation.date_heure_fin = date_retour_heure
-                ma_reservation.save()
-
-                return {"modified":"yes","message": "Réservation mise à jour avec succès."}
             
-            if to_pay > 0 and not ma_reservation.opt_payment_name:
+            elif to_pay > 0 and not ma_reservation.opt_payment_name:
                 
                 lieu_depart_obj = get_object_or_404(Lieux, id=lieu_depart)
                 lieu_retour_obj = get_object_or_404(Lieux, id=lieu_retour)
@@ -381,7 +368,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
                 return {"modified":"yes","message": "Réservation mise à jour avec succès."}
 
 
-            if to_pay > 0 and ma_reservation.opt_payment_name: 
+            elif to_pay > 0 and ma_reservation.opt_payment_name: 
                 request_factory = RequestFactory()
                 fake_request = request_factory.post(
                     path="/create-payment-session/",
@@ -435,6 +422,7 @@ def verify_and_do_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+    country_code = request.headers.get("X-Country-Code")
 
     if not date_retour or not date_depart:
         return JsonResponse({"error": "Les paramètres 'date_retour' et 'date_depart' sont requis."}, status=400)
@@ -448,6 +436,7 @@ def verify_and_do_view(request):
             heure_depart = heure_depart,
             date_retour = date_retour,
             heure_retour = heure_retour,
+            country_code = country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
@@ -1985,7 +1974,7 @@ def cancel_request_view(request):
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
-    
+        
 @csrf_exempt
 def verify_and_calculate_view(request):
     ref = request.GET.get("ref")
