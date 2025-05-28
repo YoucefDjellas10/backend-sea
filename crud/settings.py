@@ -110,10 +110,10 @@ WSGI_APPLICATION = 'crud.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'SafarElAmir',
+        'NAME': 'safarelamir',
         'USER': 'SafarElAmir',
         'PASSWORD': 'Sea@10.',
-        'HOST': '107.189.24.110',
+        'HOST': '37.187.225.177',
         'PORT': '5432',
         'CONN_MAX_AGE': 600,
     }

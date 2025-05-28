@@ -640,8 +640,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_depart_heure = datetime.strptime(f"{date_depart} {heure_depart}", '%Y-%m-%d %H:%M')
         date_retour_heure = datetime.strptime(f"{date_retour} {heure_retour}", '%Y-%m-%d %H:%M')
 
-        date_depart_heure -= timedelta(hours=1)
-        date_retour_heure -= timedelta(hours=1)
+        date_depart_heure += timedelta(hours=1)
+        date_retour_heure += timedelta(hours=1)
 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:

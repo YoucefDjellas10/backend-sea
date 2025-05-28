@@ -333,6 +333,9 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             return {"message": "Réservation non trouvée."}
         date_depart_heure = datetime.strptime(f"{date_depart} {heure_depart}", '%Y-%m-%d %H:%M')
         date_retour_heure = datetime.strptime(f"{date_retour} {heure_retour}", '%Y-%m-%d %H:%M')
+        date_depart_heure += timedelta(hours=1)
+        date_retour_heure += timedelta(hours=1)
+
         verify_value = verify_and_calculate(
             ref,
             lieu_depart,
@@ -342,70 +345,111 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             date_retour,
             heure_retour
         )
+        ma_reservation = Reservation.objects.filter(name=ref).first()
+        get_vehicule_id = ma_reservation.vehicule.numero
+        vehicule = Vehicule.objects.get(numero=get_vehicule_id)
+        vehicle_reservations = Reservation.objects.filter(vehicule=vehicule)
+        is_available = True
+        diff = 0
+
+        for reservation in vehicle_reservations:
+            if (date_depart_heure < reservation.date_heure_fin and date_retour_heure > reservation.date_heure_debut and ref != ma_reservation.name):
+                is_available = False
+                break
+        if is_available == True :
+            get_total = ma_reservation.total_reduit_euro
+            get_options_total = ma_reservation.options_total
+            get_status = ma_reservation.status
+            get_reservation_satus = ma_reservation.etat_reservation
+            if get_status != "confirmee" or get_reservation_satus != 'reserve' :
+                return {"modified":"no","message": "Réservation mise à jour avec succès."}
         if verify_value and verify_value[0].get('is_available') == "yes":
-            old_total = verify_value[0].get('old_total')
-            new_total = verify_value[0].get('new_total')
-            to_pay = Decimal(new_total) - Decimal(old_total)
-            if to_pay <= 0 :
-                
-                lieu_depart_obj = get_object_or_404(Lieux, id=lieu_depart)
-                lieu_retour_obj = get_object_or_404(Lieux, id=lieu_retour)
-                
-                ma_reservation.lieu_depart = lieu_depart_obj
-                ma_reservation.lieu_retour = lieu_retour_obj
-                ma_reservation.date_heure_debut = date_depart_heure
-                ma_reservation.date_heure_fin = date_retour_heure
-                ma_reservation.save()
-
-                return {"modified":"yes","message": "Réservation mise à jour avec succès.", "refund_message": True}
-            
-            elif to_pay > 0 and not ma_reservation.opt_payment_name:
-                
-                lieu_depart_obj = get_object_or_404(Lieux, id=lieu_depart)
-                lieu_retour_obj = get_object_or_404(Lieux, id=lieu_retour)
-
-
-                return {"modified":"yes","message": "Réservation mise à jour avec succès."}
-
-
-            elif to_pay > 0 and ma_reservation.opt_payment_name: 
-                request_factory = RequestFactory()
-                fake_request = request_factory.post(
-                    path="/create-payment-session/",
-                    data=json.dumps({
-                        "product_name": ma_reservation.name,
-                        "description": "test",
-                        "images": [ma_reservation.photo_link] if ma_reservation.photo_link else [],
-                        "unit_amount": int(to_pay * 100),
-                        "quantity": 1,
-                        "currency": "eur",
-                        "reservation_id": ma_reservation.id
-
-                    }),
-                    content_type="application/json"
+            date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
+            date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
+            total_days = (date_retour - date_depart).days
+            tarifs = Tarifs.objects.filter(
+                Q(modele = ma_reservation.modele)&
+                Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
+                    Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
+                    Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
+                    Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
+                    Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
                 )
+            )
+            for tarif in tarifs:
+                total = 0
+                prix_unitaire = 0
+                frais_dossier_prix = 0
+                nbr_jour = 0
+                frais_livraison_prix = 0
+                supplement_prix = 0
+                retard_prix = 0
 
-                payment_session_response = create_payment_session(fake_request)
-
-                if payment_session_response.status_code != 200:
-                    return {"message": "Erreur lors de la création de la session de paiement."}
-
-                if payment_session_response.status_code == 200:
-                    payment_session_data = json.loads(payment_session_response.content)
-                    session_id = payment_session_data.get("session_id", "")
-                    payment_url = payment_session_data.get("url", "")
 
 
-                lieu_depart_obj = get_object_or_404(Lieux, id=lieu_depart)
-                lieu_retour_obj = get_object_or_404(Lieux, id=lieu_retour)
+                if total > 0:
+                    if tarif.date_depart_one and tarif.date_fin_one:
+                        if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
+                            overlap_start = max(date_depart, tarif.date_depart_one)
+                            overlap_end = min(date_retour, tarif.date_fin_one)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+                    if tarif.date_depart_two and tarif.date_fin_two:
+                        if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
+                            overlap_start = max(date_depart, tarif.date_depart_two)
+                            overlap_end = min(date_retour, tarif.date_fin_two)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+                    if tarif.date_depart_three and tarif.date_fin_three:
+                        if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
+                            overlap_start = max(date_depart, tarif.date_depart_three)
+                            overlap_end = min(date_retour, tarif.date_fin_three)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+                    if tarif.date_depart_four and tarif.date_fin_four:
+                        if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
+                            overlap_start = max(date_depart, tarif.date_depart_four)
+                            overlap_end = min(date_retour, tarif.date_fin_four)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+                    
+                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
+                    if frais_dossier:
+                        total += frais_dossier.prix
+                        frais_dossier_prix = frais_dossier.prix
+                    frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
+                    for frais in frais_livraison:
+                        total += frais.montant if frais else 0
+                        frais_livraison_prix = frais.montant if frais else 0
+                    supplements = Supplement.objects.filter(
+                        Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
+                        Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
+                    )
+                    for supplement in supplements:
+                        total += supplement.montant if supplement else 0
+                        supplement_prix += supplement.montant if supplement else 0
+                    supplements = Supplement.objects.filter(
+                        Q(valeur__gt=0)
+                    )
+                    for supplement in supplements:
+                        start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+                        end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+                        duration = end_hour - start_hour
+                        if duration > supplement.reatrd:
+                            total += (prix_unitaire * supplement.valeur) / 100
+                            retard_prix = (prix_unitaire * supplement.valeur) / 100
                 
-                ma_reservation.lieu_depart = lieu_depart_obj
-                ma_reservation.lieu_retour = lieu_retour_obj
-                ma_reservation.date_heure_debut = date_depart_heure
-                ma_reservation.date_heure_fin = date_retour_heure
-                ma_reservation.save()
-
-                return {"modified":"yes","message": "Réservation mise à jour avec succès.", "session_id": session_id, "payment_url": payment_url}
+                    prix_par_jour = total / total_days if total_days > 0 else 0
+                    total_ = get_options_total + total
+            return {"modified":"yes","message": "Réservation mise à jour avec succès.", "session_id": "", "payment_url": "payment_url"}
         else:
             return {"modified":"no","message": "Les modifications ne peuvent pas être effectuées : véhicule non disponible."}
     except Exception as e:
