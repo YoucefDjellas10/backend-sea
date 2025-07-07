@@ -188,6 +188,7 @@ def get_all_categories(request):
         }
 
         options = [
+            cat.reduction,
             cat.option_one.name if cat.option_one else None,
             cat.option_two.name if cat.option_two else None,
             cat.option_three.name if cat.option_three else None,
