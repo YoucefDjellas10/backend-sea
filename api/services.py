@@ -1797,7 +1797,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             tarif = Tarifs.objects.filter(
                 modele=vehicle.modele,  
                 nbr_de__lte=total_days, 
-                nbr_au__gte=total_days
+                nbr_au__gte=total_days,
+                zone=lieu_depart.zone
             ).filter(
                 Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
                 Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |

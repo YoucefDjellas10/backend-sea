@@ -571,6 +571,9 @@ class Tarifs(models.Model):
     saison = models.ForeignKey(
         'Saison', on_delete=models.CASCADE, db_column='saison',verbose_name="Saison", related_name="tarifs"
     )
+    zone = models.ForeignKey(
+        'Zone', on_delete=models.CASCADE, db_column='zone',verbose_name="zone", related_name="tarifs"
+    )
     modele = models.ForeignKey(
         'Modele', on_delete=models.CASCADE, db_column='modele', verbose_name="Modèle", related_name="tarifs"
     )
