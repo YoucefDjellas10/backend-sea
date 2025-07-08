@@ -647,6 +647,15 @@ class Options(models.Model):
         blank=True,
         related_name="options"
     )
+    zone = models.ForeignKey(
+        'Zone',
+        on_delete=models.CASCADE,
+        verbose_name="Zone",
+        db_column='zone',
+        null=True,
+        blank=True,
+        related_name="options"
+    )
     categorie = models.ForeignKey(
         'Categorie',
         on_delete=models.CASCADE,
@@ -658,6 +667,11 @@ class Options(models.Model):
     )
     prix = models.IntegerField(
         verbose_name="Prix",
+        null=True,
+        blank=True
+    )
+    min_prix = models.FloatField(
+        verbose_name="Prix Min",
         null=True,
         blank=True
     )
