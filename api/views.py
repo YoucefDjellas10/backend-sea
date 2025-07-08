@@ -368,8 +368,10 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
             date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
             total_days = (date_retour - date_depart).days
+            lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
             tarifs = Tarifs.objects.filter(
                 Q(modele = ma_reservation.modele)&
+                Q(zone = lieu_depart_obj.zone)&
                 Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
                     Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
                     Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
@@ -648,7 +650,8 @@ def add_reservation_post_view(request):
                 Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
                 Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)),
                 Q(nbr_de__lte=total_days, nbr_au__gte=total_days),
-                modele=vehicule.modele
+                modele=vehicule.modele,
+                zone=depart.zone 
             ).first()
 
             if tarif :
