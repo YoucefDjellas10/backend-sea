@@ -1250,9 +1250,9 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
 
     return available_vehicles
 
-def search_option(code, total_days):
+def search_option(code, total_days, lieu_depart):
     try:
-        option = Options.objects.filter(option_code=code).first()
+        option = Options.objects.filter(option_code=code,zone=lieu_depart.zone).first()
         return {
             'name': option.name,
             'name_en': option.name_en,
@@ -1268,9 +1268,9 @@ def search_option(code, total_days):
     except Options.DoesNotExist:
         return {'name': None,'name_en':None,'name_ar':None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
  
-def search_option_DA(code, total_days):
+def search_option_DA(code, total_days, lieu_depart):
     try:
-        option = Options.objects.filter(option_code=code).first()
+        option = Options.objects.filter(option_code=code,zone=lieu_depart.zone).first()
         taux = TauxChange.objects.filter(id=2).first()
         
         if not option or not taux:
@@ -1623,10 +1623,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         for supplement in supplements:
             total += float(supplement.montant) * taux_change if supplement else 0
 
-        frais_dossier = search_option_DA("FRAIS_DOSSIER", total_days)
+        frais_dossier = search_option_DA("FRAIS_DOSSIER", total_days, lieu_depart)
         total += frais_dossier["total"] 
 
-        paiement_anticipe = search_option_DA("P_ANTICIPE", total_days)
+        paiement_anticipe = search_option_DA("P_ANTICIPE", total_days, lieu_depart)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_name_en = paiement_anticipe["name_en"]
         opt_payment_name_ar = paiement_anticipe["name_ar"]
@@ -1634,10 +1634,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
-        vip_limit = search_option_DA("KLM_ILLIMITED", total_days)
+        vip_limit = search_option_DA("KLM_ILLIMITED", total_days, lieu_depart)
         vip_limit_value = vip_limit["limit"]
 
-        klm_illimite = search_option_DA("KLM_ILLIMITED", total_days)
+        klm_illimite = search_option_DA("KLM_ILLIMITED", total_days, lieu_depart)
         opt_klm_name = klm_illimite["name"]
         opt_klm_name_en = klm_illimite["name_en"]
         opt_klm_name_ar = klm_illimite["name_ar"]
@@ -1647,7 +1647,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_limit = vip_limit_value if client is not None and client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
         
-        klm_illimite_b = search_option_DA("KLM_ILLIMITED_B", total_days)
+        klm_illimite_b = search_option_DA("KLM_ILLIMITED_B", total_days, lieu_depart)
         opt_klm_b_name = klm_illimite_b["name"]
         opt_klm_b_name_en = klm_illimite_b["name_en"]
         opt_klm_b_name_ar = klm_illimite_b["name_ar"]
@@ -1657,7 +1657,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_b_limit = vip_limit_value if client is not None and client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
-        klm_illimite_c = search_option_DA("KLM_ILLIMITED_C", total_days)
+        klm_illimite_c = search_option_DA("KLM_ILLIMITED_C", total_days, lieu_depart)
         opt_klm_c_name = klm_illimite_c["name"]
         opt_klm_c_name_en = klm_illimite_c["name_en"]
         opt_klm_c_name_ar = klm_illimite_c["name_ar"]
@@ -1667,7 +1667,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_c_limit =  vip_limit_value if client is not None and client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite_c["limit"] 
         opt_klm_c_penalite = klm_illimite_c["penalite"]
 
-        nd_driver = search_option_DA("ND_DRIVER", total_days)
+        nd_driver = search_option_DA("ND_DRIVER", total_days, lieu_depart)
         opt_nd_driver_name = nd_driver["name"]
         opt_nd_driver_name_en = nd_driver["name_en"]
         opt_nd_driver_name_ar = nd_driver["name_ar"]
@@ -1675,7 +1675,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
-        plein_carburant = search_option_DA("P_CARBURANT", total_days)
+        plein_carburant = search_option_DA("P_CARBURANT", total_days, lieu_depart)
         opt_carburant_name = plein_carburant["name"]
         opt_carburant_name_en = plein_carburant["name_en"]
         opt_carburant_name_ar = plein_carburant["name_ar"]
@@ -1683,7 +1683,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
-        siege_a = search_option_DA("S_BEBE_5", total_days)
+        siege_a = search_option_DA("S_BEBE_5", total_days, lieu_depart)
         opt_siege_a_name = siege_a["name"]
         opt_siege_a_name_en = siege_a["name_en"]
         opt_siege_a_name_ar = siege_a["name_ar"]
@@ -1691,7 +1691,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
-        siege_b = search_option_DA("S_BEBE_13", total_days)
+        siege_b = search_option_DA("S_BEBE_13", total_days, lieu_depart)
         opt_siege_b_name = siege_b["name"]
         opt_siege_b_name_en = siege_b["name_en"]
         opt_siege_b_name_ar = siege_b["name_ar"]
@@ -1699,7 +1699,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
-        siege_c = search_option_DA("S_BEBE_18", total_days)
+        siege_c = search_option_DA("S_BEBE_18", total_days, lieu_depart)
         opt_siege_c_name = siege_c["name"]
         opt_siege_c_name_en = siege_c["name_en"]
         opt_siege_c_name_ar = siege_c["name_ar"]
@@ -1707,7 +1707,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
     
-        base_a = search_option_DA("BASE_P_1", total_days)
+        base_a = search_option_DA("BASE_P_1", total_days, lieu_depart)
         base_a_name = base_a["name"]
         base_a_name_en = base_a["name_en"]
         base_a_name_ar = base_a["name_ar"]
@@ -1717,7 +1717,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_a_category = base_a["categorie"]
         base_a_caution = base_a["caution"]
 
-        base_b = search_option_DA("BASE_P_2", total_days)
+        base_b = search_option_DA("BASE_P_2", total_days, lieu_depart)
         base_b_name = base_b["name"]
         base_b_name_en = base_b["name_en"]
         base_b_name_ar = base_b["name_ar"]
@@ -1727,7 +1727,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_b_category = base_b["categorie"]
         base_b_caution = base_b["caution"]
 
-        base_c = search_option_DA("BASE_P_3", total_days)
+        base_c = search_option_DA("BASE_P_3", total_days, lieu_depart)
         base_c_name = base_c["name"]
         base_c_name_en = base_c["name_en"]
         base_c_name_ar = base_c["name_ar"]
@@ -1737,7 +1737,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_c_category = base_c["categorie"]
         base_c_caution = base_c["caution"]
 
-        standart_a = search_option_DA("STANDART_P_1", total_days)
+        standart_a = search_option_DA("STANDART_P_1", total_days, lieu_depart)
         standart_a_name = standart_a["name"]
         standart_a_name_en = standart_a["name_en"]
         standart_a_name_ar = standart_a["name_ar"]
@@ -1746,7 +1746,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
-        standart_b = search_option_DA("STANDART_P_2", total_days)
+        standart_b = search_option_DA("STANDART_P_2", total_days, lieu_depart)
         standart_b_name = standart_b["name"]
         standart_b_name_en = standart_b["name_en"]
         standart_b_name_ar = standart_b["name_ar"]
@@ -1755,7 +1755,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
 
-        standart_c = search_option_DA("STANDART_P_3", total_days)
+        standart_c = search_option_DA("STANDART_P_3", total_days, lieu_depart)
         standart_c_name = standart_c["name"]
         standart_c_name_en = standart_c["name_en"]
         standart_c_name_ar = standart_c["name_ar"]
@@ -1764,7 +1764,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
-        max_a = search_option_DA("MAX_P_1", total_days)
+        max_a = search_option_DA("MAX_P_1", total_days, lieu_depart)
         max_a_name = max_a["name"]
         max_a_name_en = max_a["name_en"]
         max_a_name_ar = max_a["name_ar"]
@@ -1773,7 +1773,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_a_total = max_a["total"]
         max_a_caution = max_a["caution"]
 
-        max_b = search_option_DA("MAX_P_2", total_days)
+        max_b = search_option_DA("MAX_P_2", total_days, lieu_depart)
         max_b_name = max_b["name"]
         max_b_name_en = max_b["name_en"]
         max_b_name_ar = max_b["name_ar"]
@@ -1782,7 +1782,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_b_total = max_b["total"]
         max_b_caution = max_b["caution"]
 
-        max_c = search_option_DA("MAX_P_3", total_days)
+        max_c = search_option_DA("MAX_P_3", total_days, lieu_depart)
         max_c_name = max_c["name"]
         max_c_name_en = max_c["name_en"]
         max_c_name_ar = max_c["name_ar"]
@@ -2224,10 +2224,10 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             total += supplement.montant if supplement else 0
             
 
-        frais_dossier = search_option("FRAIS_DOSSIER", total_days)
+        frais_dossier = search_option("FRAIS_DOSSIER", total_days, lieu_depart)
         total += frais_dossier["total"]
         
-        paiement_anticipe = search_option("P_ANTICIPE", total_days)
+        paiement_anticipe = search_option("P_ANTICIPE", total_days, lieu_depart)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_name_en = paiement_anticipe["name_en"]
         opt_payment_name_ar = paiement_anticipe["name_ar"]
@@ -2235,7 +2235,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
-        klm_illimite = search_option("KLM_ILLIMITED", total_days)
+        klm_illimite = search_option("KLM_ILLIMITED", total_days, lieu_depart)
         opt_klm_name = klm_illimite["name"]
         opt_klm_name_en = klm_illimite["name_en"]
         opt_klm_name_ar = klm_illimite["name_ar"]
@@ -2245,7 +2245,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
 
-        klm_illimite_b = search_option("KLM_ILLIMITED_B", total_days)
+        klm_illimite_b = search_option("KLM_ILLIMITED_B", total_days, lieu_depart)
         opt_klm_b_name = klm_illimite_b["name"]
         opt_klm_b_name_en = klm_illimite_b["name_en"]
         opt_klm_b_name_ar = klm_illimite_b["name_ar"]
@@ -2255,7 +2255,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_b_limit = klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
-        klm_illimite_c = search_option("KLM_ILLIMITED_C", total_days)
+        klm_illimite_c = search_option("KLM_ILLIMITED_C", total_days, lieu_depart)
         opt_klm_c_name = klm_illimite_c["name"]
         opt_klm_c_name_en = klm_illimite_c["name_en"]
         opt_klm_c_name_ar = klm_illimite_c["name_ar"]
@@ -2265,7 +2265,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_klm_c_limit = klm_illimite_c["limit"]
         opt_klm_c_penalite = klm_illimite_c["penalite"]
 
-        nd_driver = search_option("ND_DRIVER", total_days)
+        nd_driver = search_option("ND_DRIVER", total_days, lieu_depart)
         opt_nd_driver_name = nd_driver["name"]
         opt_nd_driver_name_en = nd_driver["name_en"]
         opt_nd_driver_name_ar = nd_driver["name_ar"]
@@ -2273,7 +2273,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
-        plein_carburant = search_option("P_CARBURANT", total_days)
+        plein_carburant = search_option("P_CARBURANT", total_days, lieu_depart)
         opt_carburant_name = plein_carburant["name"]
         opt_carburant_name_en = plein_carburant["name_en"]
         opt_carburant_name_ar = plein_carburant["name_ar"]
@@ -2281,7 +2281,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
-        siege_a = search_option("S_BEBE_5", total_days)
+        siege_a = search_option("S_BEBE_5", total_days, lieu_depart)
         opt_siege_a_name = siege_a["name"]
         opt_siege_a_name_en = siege_a["name_en"]
         opt_siege_a_name_ar = siege_a["name_ar"]
@@ -2289,7 +2289,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
-        siege_b = search_option("S_BEBE_13", total_days)
+        siege_b = search_option("S_BEBE_13", total_days, lieu_depart)
         opt_siege_b_name = siege_b["name"]
         opt_siege_b_name_en = siege_b["name_en"]
         opt_siege_b_name_ar = siege_b["name_ar"]
@@ -2297,7 +2297,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
-        siege_c = search_option("S_BEBE_18", total_days)
+        siege_c = search_option("S_BEBE_18", total_days, lieu_depart)
         opt_siege_c_name = siege_c["name"]
         opt_siege_c_name_en = siege_c["name_en"]
         opt_siege_c_name_ar = siege_c["name_ar"]
@@ -2305,7 +2305,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
 
-        base_a = search_option("BASE_P_1", total_days)
+        base_a = search_option("BASE_P_1", total_days, lieu_depart)
         base_a_name = base_a["name"]
         base_a_name_en = base_a["name_en"]
         base_a_name_ar = base_a["name_ar"]
@@ -2315,7 +2315,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_a_category = base_a["categorie"]
         base_a_caution = base_a["caution"]
 
-        base_b = search_option("BASE_P_2", total_days)
+        base_b = search_option("BASE_P_2", total_days, lieu_depart)
         base_b_name = base_b["name"]
         base_b_name_en = base_b["name_en"]
         base_b_name_ar = base_b["name_ar"]
@@ -2325,7 +2325,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_b_category = base_b["categorie"]
         base_b_caution = base_b["caution"]
 
-        base_c = search_option("BASE_P_3", total_days)
+        base_c = search_option("BASE_P_3", total_days, lieu_depart)
         base_c_name = base_c["name"]
         base_c_name_en = base_c["name_en"]
         base_c_name_ar = base_c["name_ar"]
@@ -2335,7 +2335,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         base_c_category = base_c["categorie"]
         base_c_caution = base_c["caution"]
 
-        standart_a = search_option("STANDART_P_1", total_days)
+        standart_a = search_option("STANDART_P_1", total_days, lieu_depart)
         standart_a_name = standart_a["name"]
         standart_a_name_en = standart_a["name_en"]
         standart_a_name_ar = standart_a["name_ar"]
@@ -2344,7 +2344,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
-        standart_b = search_option("STANDART_P_2", total_days)
+        standart_b = search_option("STANDART_P_2", total_days, lieu_depart)
         standart_b_name = standart_b["name"]
         standart_b_name_en = standart_b["name_en"]
         standart_b_name_ar = standart_b["name_ar"]
@@ -2353,7 +2353,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
 
-        standart_c = search_option("STANDART_P_3", total_days)
+        standart_c = search_option("STANDART_P_3", total_days, lieu_depart)
         standart_c_name = standart_c["name"]
         standart_c_name_en = standart_c["name_en"]
         standart_c_name_ar = standart_c["name_ar"]
@@ -2362,7 +2362,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
-        max_a = search_option("MAX_P_1", total_days)
+        max_a = search_option("MAX_P_1", total_days, lieu_depart)
         max_a_name = max_a["name"]
         max_a_name_en = max_a["name_en"]
         max_a_name_ar = max_a["name_ar"]
@@ -2371,7 +2371,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_a_total = max_a["total"]
         max_a_caution = max_a["caution"]
 
-        max_b = search_option("MAX_P_2", total_days)
+        max_b = search_option("MAX_P_2", total_days, lieu_depart)
         max_b_name = max_b["name"]
         max_b_name_en = max_b["name_en"]
         max_b_name_ar = max_b["name_ar"]
@@ -2380,7 +2380,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_b_total = max_b["total"]
         max_b_caution = max_b["caution"]
 
-        max_c = search_option("MAX_P_3", total_days)
+        max_c = search_option("MAX_P_3", total_days, lieu_depart)
         max_c_name = max_c["name"]
         max_c_name_en = max_c["name_en"]
         max_c_name_ar = max_c["name_ar"]
