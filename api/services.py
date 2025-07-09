@@ -1263,10 +1263,11 @@ def search_option(code, total_days, lieu_depart):
             'categorie': option.categorie.id if option.categorie else None,
             'limit': (option.limit_Klm or 0) * total_days,
             'penalite': option.penalite_Klm or 0,
-            'caution': option.caution or 0
+            'caution': option.caution or 0,
+            'min_prix' : float(option.min_prix) if option.min_prix is not None else 0
         }
     except Options.DoesNotExist:
-        return {'name': None,'name_en':None,'name_ar':None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
+        return {'name': None,'name_en':None,'name_ar':None,'type_tarif': None, 'min_prix' :0, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
  
 def search_option_DA(code, total_days, lieu_depart):
     try:
@@ -1281,6 +1282,7 @@ def search_option_DA(code, total_days, lieu_depart):
         limit_Klm = float(option.limit_Klm) if option.limit_Klm is not None else 0
         penalite_Klm = float(option.penalite_Klm) if option.penalite_Klm is not None else 0
         caution = float(option.caution) if option.caution is not None else 0
+        min_prix = float(option.min_prix) if option.min_prix is not None else 0
 
         return {
             'name': option.name,
@@ -1292,11 +1294,12 @@ def search_option_DA(code, total_days, lieu_depart):
             'categorie': option.categorie.id if option.categorie else None,
             'limit': limit_Klm * total_days,
             'penalite': penalite_Klm * montant_taux,
-            'caution': caution * montant_taux
+            'caution': caution * montant_taux,
+            'min_prix': min_prix * montant_taux
         }
     
     except Options.DoesNotExist:
-        return {'name': None,'name_en':None,'name_ar':None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0} 
+        return {'name': None,'name_en':None,'name_ar':None,'type_tarif': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0,'min_prix':0} 
     
 def free_options_f(client_id):
     free_options = []
@@ -1769,17 +1772,17 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_a_name_en = max_a["name_en"]
         max_a_name_ar = max_a["name_ar"]
         max_a_type_tarif = max_a["type_tarif"]
-        max_a_unit = max_a["prix"]
-        max_a_total = max_a["total"]
-        max_a_caution = max_a["caution"]
+        max_a_unit = max_a["prix"] if max_a["total"] > max_a["min_prix"] else max_a["min_prix"] / total_days
+        max_a_total = max_a["total"] if max_a["total"] > max_a["min_prix"] else max_a["min_prix"]
+        max_a_caution = max_a["caution"] 
 
         max_b = search_option_DA("MAX_P_2", total_days, lieu_depart)
         max_b_name = max_b["name"]
         max_b_name_en = max_b["name_en"]
         max_b_name_ar = max_b["name_ar"]
         max_b_type_tarif = max_b["type_tarif"]
-        max_b_unit = max_b["prix"]
-        max_b_total = max_b["total"]
+        max_b_unit = max_b["prix"] if max_b["total"] > max_b["min_prix"] else max_b["min_prix"] / total_days
+        max_b_total = max_b["total"] if max_b["total"] > max_b["min_prix"] else max_b["min_prix"]
         max_b_caution = max_b["caution"]
 
         max_c = search_option_DA("MAX_P_3", total_days, lieu_depart)
@@ -1787,8 +1790,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_c_name_en = max_c["name_en"]
         max_c_name_ar = max_c["name_ar"]
         max_c_type_tarif = max_c["type_tarif"]
-        max_c_unit = max_c["prix"]
-        max_c_total = max_c["total"]
+        max_c_unit = max_c["prix"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"] / total_days
+        max_c_total = max_c["total"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"]
         max_c_caution = max_c["caution"]
 
         modeles_ajoutes = set()
@@ -2367,17 +2370,17 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_a_name_en = max_a["name_en"]
         max_a_name_ar = max_a["name_ar"]
         max_a_type_tarif = max_a["type_tarif"]
-        max_a_unit = max_a["prix"]
-        max_a_total = max_a["total"]
-        max_a_caution = max_a["caution"]
+        max_a_unit = max_a["prix"] if max_a["total"] > max_a["min_prix"] else max_a["min_prix"] / total_days
+        max_a_total = max_a["total"] if max_a["total"] > max_a["min_prix"] else max_a["min_prix"]
+        max_a_caution = max_a["caution"] 
 
         max_b = search_option("MAX_P_2", total_days, lieu_depart)
         max_b_name = max_b["name"]
         max_b_name_en = max_b["name_en"]
         max_b_name_ar = max_b["name_ar"]
         max_b_type_tarif = max_b["type_tarif"]
-        max_b_unit = max_b["prix"]
-        max_b_total = max_b["total"]
+        max_b_unit = max_b["prix"] if max_b["total"] > max_b["min_prix"] else max_b["min_prix"] / total_days
+        max_b_total = max_b["total"] if max_b["total"] > max_b["min_prix"] else max_b["min_prix"]
         max_b_caution = max_b["caution"]
 
         max_c = search_option("MAX_P_3", total_days, lieu_depart)
@@ -2385,8 +2388,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         max_c_name_en = max_c["name_en"]
         max_c_name_ar = max_c["name_ar"]
         max_c_type_tarif = max_c["type_tarif"]
-        max_c_unit = max_c["prix"]
-        max_c_total = max_c["total"]
+        max_c_unit = max_c["prix"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"] / total_days
+        max_c_total = max_c["total"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"]
         max_c_caution = max_c["caution"]
 
         modeles_ajoutes = set()
