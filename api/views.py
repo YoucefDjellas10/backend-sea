@@ -346,6 +346,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             date_retour,
             heure_retour
         )
+        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         ma_reservation = Reservation.objects.filter(name=ref).first()
         get_vehicule_id = ma_reservation.vehicule.numero
         vehicule = Vehicule.objects.get(numero=get_vehicule_id)
@@ -368,7 +369,6 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
             date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
             total_days = (date_retour - date_depart).days
-            lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
             tarifs = Tarifs.objects.filter(
                 Q(modele = ma_reservation.modele)&
                 Q(zone = lieu_depart_obj.zone)&
@@ -424,7 +424,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
                     
-                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
+                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
                     if frais_dossier:
                         total += frais_dossier.prix
                         frais_dossier_prix = frais_dossier.prix
@@ -576,6 +576,8 @@ def add_reservation_post_view(request):
         promo_value = 0
         client_solde = 0
 
+        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
+
         if not all([date_depart, heure_depart, date_retour, heure_retour]):
             return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
         
@@ -676,7 +678,7 @@ def add_reservation_post_view(request):
         
         
         
-        frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
+        frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
             total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
             last_total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
@@ -712,7 +714,7 @@ def add_reservation_post_view(request):
                             
         if opt_paiement == "yes" :
             if free_options and free_options[0].get("option_six") == True:
-                paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE").first()
+                paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE", zone= lieu_depart_obj.zone).first()
                 opt_payment_name = paiement_anticipe.name
                 opt_payment_unit = 0
                 opt_payment_total = 0
@@ -721,7 +723,7 @@ def add_reservation_post_view(request):
                 total += opt_payment_total
                 last_total += opt_payment_total
             else:
-                paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE").first()
+                paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE", zone= lieu_depart_obj.zone).first()
                 opt_payment_name = paiement_anticipe.name
                 opt_payment_unit = paiement_anticipe.prix
                 opt_payment_total = paiement_anticipe.prix * total_days if paiement_anticipe.type_option =="jour" else paiement_anticipe.prix
@@ -744,39 +746,39 @@ def add_reservation_post_view(request):
         if opt_klm == "yes" :
             
             if free_options and free_options[0].get("option_seven") == True:
-                klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED").first()
+                klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED", zone= lieu_depart_obj.zone).first()
                 opt_klm_a_name = klm_a_illimite.name
                 opt_klm_a_unit = 0
                 opt_klm_a_total = 0
                 opt_klm_a_categorie = klm_a_illimite.categorie.id
             else :
-                klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED").first()
+                klm_a_illimite = Options.objects.filter(option_code="KLM_ILLIMITED", zone= lieu_depart_obj.zone).first()
                 opt_klm_a_name = klm_a_illimite.name
                 opt_klm_a_unit = klm_a_illimite.prix
                 opt_klm_a_total = klm_a_illimite.prix * total_days if klm_a_illimite.type_tarif == "jour" else klm_a_illimite.prix
                 opt_klm_a_categorie = klm_a_illimite.categorie.id
 
             if free_options and free_options[0].get("option_seven") == True:
-                klm_illimite_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
+                klm_illimite_b = Options.objects.filter(option_code="KLM_ILLIMITED_B", zone= lieu_depart_obj.zone).first()
                 opt_klm_b_name = klm_illimite_b.name
                 opt_klm_b_unit = 0
                 opt_klm_b_total = 0
                 opt_klm_b_categorie = klm_illimite_b.categorie.id
             else :
-                klm_illimite_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
+                klm_illimite_b = Options.objects.filter(option_code="KLM_ILLIMITED_B", zone= lieu_depart_obj.zone).first()
                 opt_klm_b_name = klm_illimite_b.name
                 opt_klm_b_unit = klm_illimite_b.prix
                 opt_klm_b_total = klm_illimite_b.prix * total_days if klm_illimite_b.type_tarif == "jour" else klm_illimite_b.prix
                 opt_klm_b_categorie = klm_illimite_b.categorie.id
             
             if free_options and free_options[0].get("option_seven") == True:
-                klm_illimite_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()
+                klm_illimite_c = Options.objects.filter(option_code="KLM_ILLIMITED_C", zone= lieu_depart_obj.zone).first()
                 opt_klm_c_name = klm_illimite_c.name
                 opt_klm_c_unit = 0
                 opt_klm_c_total = 0
                 opt_klm_c_categorie = klm_illimite_c.categorie.id
             else :
-                klm_illimite_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()
+                klm_illimite_c = Options.objects.filter(option_code="KLM_ILLIMITED_C", zone= lieu_depart_obj.zone).first()
                 opt_klm_c_name = klm_illimite_c.name
                 opt_klm_c_unit = klm_illimite_c.prix
                 opt_klm_c_total = klm_illimite_c.prix * total_days if klm_illimite_c.type_tarif == "jour" else klm_illimite_c.prix
@@ -814,19 +816,19 @@ def add_reservation_post_view(request):
             opt_klm_total = 0
         
         if opt_protection == "BASE" :
-            base_a = Options.objects.filter(option_code="BASE_P_1").first()
+            base_a = Options.objects.filter(option_code="BASE_P_1", zone= lieu_depart_obj.zone).first()
             base_a_name = base_a.name
             base_a_unit = base_a.prix
             base_a_total = base_a.prix * total_days if base_a.type_tarif == "jour" else base_a.prix
             base_a_category = base_a.categorie.id
             base_a_caution = base_a.caution
-            base_b = Options.objects.filter(option_code="BASE_P_2").first()
+            base_b = Options.objects.filter(option_code="BASE_P_2", zone= lieu_depart_obj.zone).first()
             base_b_name = base_b.name
             base_b_unit = base_b.prix
             base_b_total = base_b.prix * total_days if base_b.type_tarif == "jour" else base_b.prix
             base_b_category = base_b.categorie.id
             base_b_caution = base_b.caution
-            base_c = Options.objects.filter(option_code="BASE_P_3").first()
+            base_c = Options.objects.filter(option_code="BASE_P_3", zone= lieu_depart_obj.zone).first()
             base_c_name = base_c.name
             base_c_unit = base_c.prix
             base_c_total = base_c.prix * total_days if base_c.type_tarif == "jour" else base_c.prix
@@ -863,19 +865,19 @@ def add_reservation_post_view(request):
             total_option += protection_total
         
         elif opt_protection == "STANDART" :
-            standart_a = Options.objects.filter(option_code="STANDART_P_1").first()
+            standart_a = Options.objects.filter(option_code="STANDART_P_1", zone= lieu_depart_obj.zone).first()
             standart_a_name = standart_a.name
             standart_a_unit = standart_a.prix
             standart_a_total = standart_a.prix * total_days if standart_a.type_tarif == "jour" else standart_a.prix
             standart_a_caution = standart_a.caution
 
-            standart_b = Options.objects.filter(option_code="STANDART_P_2").first()
+            standart_b = Options.objects.filter(option_code="STANDART_P_2", zone= lieu_depart_obj.zone).first()
             standart_b_name = standart_b.name
             standart_b_unit = standart_b.prix
             standart_b_total = standart_b.prix * total_days if standart_b.type_tarif == "jour" else standart_b.prix
             standart_b_caution = standart_b.caution
             
-            standart_c = Options.objects.filter(option_code="STANDART_P_3").first()
+            standart_c = Options.objects.filter(option_code="STANDART_P_3", zone= lieu_depart_obj.zone).first()
             standart_c_name = standart_c.name
             standart_c_unit = standart_c.prix
             standart_c_total = standart_c.prix * total_days if standart_c.type_tarif == "jour" else standart_c.prix
@@ -910,39 +912,43 @@ def add_reservation_post_view(request):
 
         elif opt_protection == "MAX" :
             if free_options and free_options[0].get("option_eight") == True:
-                max_a = Options.objects.filter(option_code="MAX_P_1").first()
+                max_a = Options.objects.filter(option_code="MAX_P_1", zone= lieu_depart_obj.zone).first()
                 max_a_name = max_a.name
-                max_a_unit = max_a.prix
-                max_a_total = max_a.prix * total_days if max_a.type_tarif == "jour" else max_a.prix
+                max_a_unit = 0
+                max_a_total = 0
                 max_a_caution = max_a.caution
             else : 
-                max_a = Options.objects.filter(option_code="MAX_P_1").first()
+                max_a = Options.objects.filter(option_code="MAX_P_1", zone= lieu_depart_obj.zone).first()
                 max_a_name = max_a.name
-                max_a_unit = max_a.prix
-                max_a_total = max_a.prix * total_days if max_a.type_tarif == "jour" else max_a.prix
+                if max_a.type_tarif == "jour" :
+                    max_a_total = max_a.prix * total_days if max_a.min_prix < max_a.prix * total_days else max_a.min_prix
+                else :
+                    max_a_total = max_a.prix  if max_a.min_prix < max_a.prix * total_days else max_a.min_prix
+                max_a_unit = max_a_total / total_days
                 max_a_caution = max_a.caution
             
             if free_options and free_options[0].get("option_eight") == True:
-                max_b = Options.objects.filter(option_code="MAX_P_2").first()
+                max_b = Options.objects.filter(option_code="MAX_P_2", zone= lieu_depart_obj.zone).first()
                 max_b_name = max_b.name
                 max_b_unit = 0
                 max_b_total = 0
                 max_b_caution = max_b.caution
             else :
-                max_b = Options.objects.filter(option_code="MAX_P_2").first()
+                max_b = Options.objects.filter(option_code="MAX_P_2", zone= lieu_depart_obj.zone).first()
                 max_b_name = max_b.name
+                
                 max_b_unit = max_b.prix
                 max_b_total = max_b.prix * total_days if max_b.type_tarif == "jour" else max_b.prix
                 max_b_caution = max_b.caution
 
             if free_options and free_options[0].get("option_eight") == True:
-                max_c = Options.objects.filter(option_code="MAX_P_3").first()
+                max_c = Options.objects.filter(option_code="MAX_P_3", zone= lieu_depart_obj.zone).first()
                 max_c_name = max_c.name
                 max_c_unit = 0
                 max_c_total = 0
                 max_c_caution = max_c.caution
             else :
-                max_c = Options.objects.filter(option_code="MAX_P_3").first()
+                max_c = Options.objects.filter(option_code="MAX_P_3", zone= lieu_depart_obj.zone).first()
                 max_c_name = max_c.name
                 max_c_unit = max_c.prix
                 max_c_total = max_c.prix * total_days if max_c.type_tarif == "jour" else max_c.prix
@@ -985,7 +991,7 @@ def add_reservation_post_view(request):
         
         if opt_carburant == "yes":
             if free_options and free_options[0].get("option_two") == True:
-                carburant = Options.objects.filter(option_code="P_CARBURANT").first()
+                carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
                 carburant_name = carburant.name
                 carburant_unit = 0
                 carburant_total = 0
@@ -993,7 +999,7 @@ def add_reservation_post_view(request):
                 last_total += carburant_total
                 total_option += carburant_total
             else:
-                carburant = Options.objects.filter(option_code="P_CARBURANT").first()
+                carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
                 carburant_name = carburant.name
                 carburant_unit = carburant.prix
                 carburant_total = carburant.prix * total_days if carburant.type_tarif == "jour" else carburant.prix
@@ -1008,7 +1014,7 @@ def add_reservation_post_view(request):
         
         if opt_sb_a == "yes":
             if free_options and free_options[0].get("option_three") == True:
-                sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
+                sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
                 sb_a_name = sb_a.name
                 sb_a_unit = 0
                 sb_a_total = 0
@@ -1016,7 +1022,7 @@ def add_reservation_post_view(request):
                 last_total += sb_a_total
                 total_option += sb_a_total
             else :
-                sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
+                sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
                 sb_a_name = sb_a.name
                 sb_a_unit = sb_a.prix
                 sb_a_total = sb_a.prix * total_days if sb_a.type_tarif == "jour" else sb_a.prix
@@ -1031,7 +1037,7 @@ def add_reservation_post_view(request):
         
         if opt_sb_b == "yes":
             if free_options and free_options[0].get("option_four") == True:
-                sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
+                sb_b = Options.objects.filter(option_code="S_BEBE_13", zone= lieu_depart_obj.zone).first()
                 sb_b_name = sb_b.name
                 sb_b_unit = 0
                 sb_b_total = 0
@@ -1039,7 +1045,7 @@ def add_reservation_post_view(request):
                 last_total += sb_b_total
                 total_option += sb_b_total
             else:
-                sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
+                sb_b = Options.objects.filter(option_code="S_BEBE_13", zone= lieu_depart_obj.zone).first()
                 sb_b_name = sb_b.name
                 sb_b_unit = sb_b.prix
                 sb_b_total = sb_b.prix * total_days if sb_b.type_tarif == "jour" else sb_b.prix
@@ -1055,7 +1061,7 @@ def add_reservation_post_view(request):
         
         if opt_sb_c == "yes":
             if free_options and free_options[0].get("option_five") == True:
-                sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
+                sb_c = Options.objects.filter(option_code="S_BEBE_18", zone= lieu_depart_obj.zone).first()
                 sb_c_name = sb_c.name
                 sb_c_unit = 0
                 sb_c_total = 0
@@ -1063,7 +1069,7 @@ def add_reservation_post_view(request):
                 last_total += sb_c_total
                 total_option += sb_c_total
             else:
-                sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
+                sb_c = Options.objects.filter(option_code="S_BEBE_18", zone= lieu_depart_obj.zone).first()
                 sb_c_name = sb_c.name
                 sb_c_unit = sb_c.prix
                 sb_c_total = sb_c.prix * total_days if sb_c.type_tarif == "jour" else sb_c.prix
@@ -1091,7 +1097,7 @@ def add_reservation_post_view(request):
                 nd_driver_solde = nd_driver.solde
 
                 if free_options and free_options[0].get("option_one") == True:
-                    nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER").first()
+                    nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
                     nd_driver_opt_name = nd_driver_opt.name
                     nd_driver_opt_unit = 0
                     nd_driver_opt_total = 0
@@ -1099,7 +1105,7 @@ def add_reservation_post_view(request):
                     last_total += nd_driver_opt_total
                     total_option += nd_driver_opt_total
                 else:
-                    nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER").first()
+                    nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
                     nd_driver_opt_name = nd_driver_opt.name
                     nd_driver_opt_unit = nd_driver_opt.prix
                     nd_driver_opt_total = nd_driver_opt.prix * total_days if nd_driver_opt.type_tarif == "jour" else nd_driver_opt.prix
@@ -1628,6 +1634,7 @@ def add_options_put_view(request):
             return JsonResponse({"message": "vous ne pouvez pas effectuer le paiement"}, status=400)
         else : 
             reservation = Reservation.objects.filter(name=ref).first()
+            lieu_depart_obj = reservation.lieu_depart
 
             request_result = add_options_request(
                                                 ref=ref,
@@ -1701,7 +1708,7 @@ def add_options_put_view(request):
                     klm_discount = klm_put.get("klM_last_price",None)
                     category = reservation.categorie
                     klm_name = klm_put.get("klm_name",None)
-                    klm_option = Options.objects.filter(name=klm_name,categorie=category).first()
+                    klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
                     if klm_discount is None:
                         reservation.opt_klm = klm_option
                         reservation.opt_klm_name = klm_option.name
@@ -1719,7 +1726,7 @@ def add_options_put_view(request):
                 if nd_driver_put is not None :
                     nd_driver_discount = nd_driver_put.get("nd_driver_last_price",None)
                     nd_driver_name = nd_driver_put.get("nd_driver_name",None)
-                    nd_driver_option = Options.objects.filter(name=nd_driver_name).first()
+                    nd_driver_option = Options.objects.filter(name=nd_driver_name, zone= lieu_depart_obj.zone).first()
                     if nd_driver_discount is None:
                         reservation.opt_nd_driver = nd_driver_option
                         reservation.opt_nd_driver_name = nd_driver_option.name
@@ -1746,7 +1753,7 @@ def add_options_put_view(request):
                 if carburant_put is not None :
                     carburant_discount = carburant_put.get("carburant_last_price",None)
                     carburant_name = carburant_put.get("carburant_name",None)
-                    carburant_option = Options.objects.filter(name=carburant_name).first()
+                    carburant_option = Options.objects.filter(name=carburant_name, zone= lieu_depart_obj.zone).first()
                     if carburant_discount is None:
                         reservation.opt_plein_carburant = carburant_option
                         reservation.opt_plein_carburant_name = carburant_option.name
@@ -1764,7 +1771,7 @@ def add_options_put_view(request):
                 if sb_a_put is not None :
                     sb_a_discount = sb_a_put.get("sb_a_last_price",None)
                     sb_a_name = sb_a_put.get("sb_a_name",None)
-                    sb_a_option = Options.objects.filter(name=sb_a_name).first()
+                    sb_a_option = Options.objects.filter(name=sb_a_name, zone= lieu_depart_obj.zone).first()
                     if sb_a_discount is None:
                         reservation.opt_siege_a = sb_a_option
                         reservation.opt_siege_a_name = sb_a_option.name
@@ -1782,7 +1789,7 @@ def add_options_put_view(request):
                 if sb_b_put is not None :
                     sb_b_discount = sb_b_put.get("sb_b_last_price",None)
                     sb_b_name = sb_b_put.get("sb_b_name",None)
-                    sb_b_option = Options.objects.filter(name=sb_b_name).first()
+                    sb_b_option = Options.objects.filter(name=sb_b_name, zone= lieu_depart_obj.zone).first()
                     if sb_b_discount is None:
                         reservation.opt_siege_b = sb_b_option
                         reservation.opt_siege_b_name = sb_b_option.name
@@ -1800,7 +1807,7 @@ def add_options_put_view(request):
                 if sb_c_put is not None :
                     sb_c_discount = sb_c_put.get("sb_c_last_price",None)
                     sb_c_name = sb_c_put.get("sb_c_name",None)
-                    sb_c_option = Options.objects.filter(name=sb_c_name).first()
+                    sb_c_option = Options.objects.filter(name=sb_c_name, zone= lieu_depart_obj.zone).first()
                     if sb_c_discount is None:
                         reservation.opt_siege_c = sb_c_option
                         reservation.opt_siege_c_name = sb_c_option.name

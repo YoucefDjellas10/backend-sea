@@ -127,12 +127,13 @@ def protections(ref, country_code):
 def modify_protection_request(ref, protection):
     try:   
         reservation = Reservation.objects.filter(name=ref).first()
+        lieu_depart_obj = reservation.lieu_depart
         nb_jour = reservation.nbr_jour_reservation
         category = reservation.categorie.id
         
         if reservation :
             if protection == "BASE":
-                opt_protection = Options.objects.filter(option_code__icontains="BASE", categorie_id=category).first()
+                opt_protection = Options.objects.filter(option_code__icontains="BASE", categorie_id=category, zone= lieu_depart_obj.zone).first()
                 prix = opt_protection.prix
                 total = prix * nb_jour
 
@@ -164,7 +165,7 @@ def modify_protection_request(ref, protection):
                             }
                     
             elif protection == "STANDART":
-                opt_protection = Options.objects.filter(option_code__icontains="STANDART", categorie_id=category).first()
+                opt_protection = Options.objects.filter(option_code__icontains="STANDART", categorie_id=category, zone= lieu_depart_obj.zone).first()
                 prix = opt_protection.prix
                 total = prix * nb_jour
 
@@ -196,7 +197,7 @@ def modify_protection_request(ref, protection):
                             }
                     
             elif protection == "MAX":
-                opt_protection = Options.objects.filter(option_code__icontains="MAX", categorie_id=category).first()
+                opt_protection = Options.objects.filter(option_code__icontains="MAX", categorie_id=category, zone= lieu_depart_obj.zone).first()
                 prix = opt_protection.prix
                 total = prix * nb_jour
 
@@ -302,14 +303,15 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
             free_options = free_options_f(reservations.client.id)
 
         to_pay_total = 0
+        lieu_depart_obj = reservations.lieu_depart
 
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
         if klm == "yes" and not reservations.opt_klm_name:
-            klM_a = Options.objects.filter(option_code="KLM_ILLIMITED").first()
-            klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B").first()
-            klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C").first()   
+            klM_a = Options.objects.filter(option_code="KLM_ILLIMITED", zone= lieu_depart_obj.zone).first()
+            klM_b = Options.objects.filter(option_code="KLM_ILLIMITED_B", zone= lieu_depart_obj.zone).first()
+            klM_c = Options.objects.filter(option_code="KLM_ILLIMITED_C", zone= lieu_depart_obj.zone).first()   
             if klM_a.categorie == reservations.categorie :
                 if free_options and free_options[0].get("option_seven") == True: 
                     klM_a_price = klM_a.prix * taux_change if country_code =="DZ" else klM_a.prix
@@ -394,7 +396,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 pass
 
         if nd_driver == "yes" and not reservations.opt_nd_driver_name:
-            tarif_nd = Options.objects.filter(option_code="ND_DRIVER").first()
+            tarif_nd = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
             if free_options and free_options[0].get("option_one") == True:
                 nd_driver_price = tarif_nd.prix * taux_change if country_code=="DZ" else tarif_nd.prix
                 nd_driver_last_price = 0
@@ -422,7 +424,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 result["nd_driver"] = nd_driver_result
 
         if carburant == "yes" and not reservations.opt_plein_carburant_name:
-            tarif_carburant = Options.objects.filter(option_code="P_CARBURANT").first()
+            tarif_carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
             if free_options and free_options[0].get("option_two") == True:
                 carburant = tarif_carburant.name
                 carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
@@ -450,7 +452,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 result["carburant"] = carburant_result
 
         if sb_a == "yes" and not reservations.opt_siege_a_name:
-            tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5").first()
+            tarif_sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
             if free_options and free_options[0].get("option_three") == True:
                 sb_a_name = tarif_sb_a.name
                 sb_a_price = tarif_sb_a.prix * taux_change if country_code=="DZ" else tarif_sb_a.prix
@@ -478,7 +480,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 result["sb_a"] = sb_a_result
 
         if sb_b == "yes" and not reservations.opt_siege_b_name:
-            tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13").first()
+            tarif_sb_b = Options.objects.filter(option_code="S_BEBE_13", zone= lieu_depart_obj.zone).first()
             if free_options and free_options[0].get("option_four") == True:
                 sb_b_name = tarif_sb_b.name
                 sb_b_price = tarif_sb_b.prix * taux_change if country_code=="DZ" else tarif_sb_b.prix
@@ -506,7 +508,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 result["sb_b"] = sb_b_result
 
         if sb_c == "yes" and not reservations.opt_siege_c_name:
-            tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18").first()
+            tarif_sb_c = Options.objects.filter(option_code="S_BEBE_18", zone= lieu_depart_obj.zone).first()
             if free_options and free_options[0].get("option_five") == True:
                 sb_c_name = tarif_sb_c.name
                 sb_c_price = tarif_sb_c.prix * taux_change if country_code=="DZ" else tarif_sb_c.prix
@@ -642,6 +644,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
         date_depart_heure += timedelta(hours=1)
         date_retour_heure += timedelta(hours=1)
+        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -675,7 +678,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 total_days = (date_retour - date_depart).days
 
-                lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
+                
 
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
@@ -726,7 +729,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
-                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER").first()
+                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
                         total += frais_dossier.prix
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
