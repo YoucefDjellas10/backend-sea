@@ -733,8 +733,14 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     if frais_dossier:
                         total += frais_dossier.prix
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
-                    for frais in frais_livraison:
-                        total += frais.montant if frais else 0
+                    if frais_livraison :
+                        for frais in frais_livraison:
+                            total += frais.montant if frais else 0
+                    else :
+                        transit_lieu = lieu_depart_obj.zone.transmission_point
+                        frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
+                        frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
+                        total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
 
                     supplements = Supplement.objects.filter(
                         Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
@@ -1618,9 +1624,15 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
 
-        frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
-        for frais in frais_livraison:
-            total += float(frais.montant) * taux_change if frais.montant is not None else 0        
+        frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id) 
+        if frais_livraison :
+            for frais in frais_livraison:
+                total += float(frais.montant) * taux_change if frais else 0
+        else :
+            transit_lieu = lieu_depart_obj.zone.transmission_point
+            frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=transit_lieu).first()
+            frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour_id).first()
+            total += float(frais_livraison_one.montant + frais_livraison_two.montant) * taux_change if frais_livraison_one and frais_livraison_two else 0
 
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
@@ -2193,6 +2205,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         "date_annulation":date_annulation,
                     })
     else :
+        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
         if client_id:
             client_status = check_client(client_id)  
             client = ListeClient.objects.filter(id=client_id).first()
@@ -2219,8 +2232,14 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
-        for frais in frais_livraison:
-            total += frais.montant if frais else 0
+        if frais_livraison :
+            for frais in frais_livraison:
+                total += frais.montant if frais else 0
+        else :
+            transit_lieu = lieu_depart_obj.zone.transmission_point
+            frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=transit_lieu).first()
+            frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour_id).first()
+            total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
             
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |

@@ -121,10 +121,10 @@ def protection_put_view(request):
             if to_pay_value is not None:
                 request_factory = RequestFactory()
                 fake_request = request_factory.post(
-                    path="/create-payment-session/",
+                    path="/create-payment-session-protection/",
                     data=json.dumps({
-                        "product_name": reservation.name,
-                        "description": "test",
+                        "product_name": f"{reservation.name} | Protection {protection}" ,
+                        "description": "montant qui sera prélevé pour ajouter cette protection à vôtre location.",
                         "images": [reservation.photo_link] if reservation.photo_link else [],
                         "unit_amount": int(to_pay_value * 100),
                         "quantity": 1,
@@ -134,7 +134,7 @@ def protection_put_view(request):
                     content_type="application/json"
                 )
 
-                payment_session_response = create_payment_session(fake_request)
+                payment_session_response = create_payment_session_protection(fake_request)
 
                 if payment_session_response.status_code != 200:
                     return JsonResponse({"message": "Erreur lors de la création de la session de paiement."}, status=500)
@@ -154,6 +154,53 @@ def protection_put_view(request):
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def create_payment_session_protection(request):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+        product_name = data.get("product_name")
+        description = data.get("description")
+        images = data.get("images", [])
+        unit_amount = data.get("unit_amount")
+        quantity = data.get("quantity")
+        currency = data.get("currency", "eur")
+        reservation_id = data.get("reservation_id")
+
+        if not all([product_name, description, unit_amount, quantity]):
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        unit_amount = int(unit_amount)
+        quantity = int(quantity)
+
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": product_name,
+                            "description": description,
+                            "images": images,
+                        },
+                        "unit_amount": unit_amount,
+                    },
+                    "quantity": quantity,
+                },
+            ],
+            mode="payment",
+            success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
+            cancel_url="https://safar-el-amir.vercel.app/cancel",
+        )
+
+        return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
     
 def protection_request_view(request):
 
@@ -429,9 +476,16 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
                         total += frais_dossier.prix
                         frais_dossier_prix = frais_dossier.prix
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
-                    for frais in frais_livraison:
-                        total += frais.montant if frais else 0
-                        frais_livraison_prix = frais.montant if frais else 0
+                    if frais_livraison :
+                        for frais in frais_livraison:
+                            total += frais.montant if frais else 0
+                            frais_livraison_prix = frais.montant if frais else 0
+                    else :
+                        transit_lieu = lieu_depart_obj.zone.transmission_point
+                        frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
+                        frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
+                        total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
+                        frais_livraison_prix = frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
                     supplements = Supplement.objects.filter(
                         Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
                         Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
@@ -687,6 +741,13 @@ def add_reservation_post_view(request):
         if frais_livraison:
             total += frais_livraison.montant
             last_total += frais_livraison.montant
+        else :
+            transit_lieu = lieu_depart_obj.zone.transmission_point
+            frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
+            frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
+            total += frais_livraison_one.montant + frais_livraison_two.montant
+            last_total += frais_livraison_one.montant + frais_livraison_two.montant
+
         
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |

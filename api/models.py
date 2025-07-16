@@ -38,6 +38,7 @@ class TauxChange(models.Model):
 class Zone(models.Model):
     id = models.AutoField(db_column='id', primary_key=True)
     name = models.CharField(max_length=255, verbose_name="Nom de la zone")
+    transmission_point = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='transmission_point', verbose_name="point de transmission") 
 
     class Meta:
         db_table = 'zone'
