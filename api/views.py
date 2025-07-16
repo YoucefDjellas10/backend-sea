@@ -193,8 +193,8 @@ def create_payment_session_protection(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
-            cancel_url="https://safar-el-amir.vercel.app/cancel",
+            success_url= f"https://safar.ranwip.com/confirmation?id={reservation_id}",
+            cancel_url="https://safar.ranwip.com/cancel",
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -1362,8 +1362,8 @@ def create_payment_session_reservation(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
-            cancel_url="https://safar-el-amir.vercel.app/cancel",
+            success_url=f"https://safar.ranwip.com/confirmation?id={reservation_id}",
+            cancel_url="https://safar.ranwip.com/cancel",
             metadata={
                 "reservation_id": str(reservation_id),
                 "montant_total": str(data.get("montant_total", 0)), 
@@ -1623,8 +1623,8 @@ def create_payment_session(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
-            cancel_url="https://safar-el-amir.vercel.app/cancel",
+            success_url= f"https://safar.ranwip.com/confirmation?id={reservation_id}",
+            cancel_url="https://safar.ranwip.com/cancel",
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -1928,8 +1928,8 @@ def create_payment_session_option(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safar-el-amir.vercel.app/confirmation?id={reservation_id}",
-            cancel_url="https://safar-el-amir.vercel.app/cancel",
+            success_url= f"https://safar.ranwip.com/confirmation?id={reservation_id}",
+            cancel_url="https://safar.ranwip.com/cancel",
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
