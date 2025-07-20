@@ -59,4 +59,7 @@ urlpatterns += [
     path('vip-reduction/', vip_reduction_view, name='vip_reduction_view'),
     path('homepage-promotion/', promotion_hompage, name='promotion_hompage'),
     path('news-letter/', create_news_letter, name='create_news_letter'),
+    path('create-payment-authorization/',create_payment_authorization_session, name='create_payment_authorization'),
+    path('capture-payment/',capture_authorized_payment, name='capture_payment'),
+    path('cancel-authorization/',cancel_authorized_payment, name='cancel_authorization'),
 ]

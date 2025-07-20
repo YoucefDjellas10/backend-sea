@@ -3150,3 +3150,147 @@ class HistoriqueSoldeViewset(viewsets.ViewSet):
         taux_change = self.queryset.get(pk=pk)
         taux_change.delete()
         return Response(status=204)
+
+@csrf_exempt
+def create_payment_authorization_session(request):
+    """
+    Crée une session de paiement pour autorisation (non capturée) - Dépôt de garantie
+    """
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+        
+        # Paramètres par défaut pour le dépôt de garantie
+        deposit_amount = data.get("deposit_amount", 10000)  # 100€ en centimes par défaut
+        currency = data.get("currency", "eur")
+        reservation_id = data.get("reservation_id")
+        
+        # Validation des données
+        if not reservation_id:
+            return JsonResponse({"error": "reservation_id is required"}, status=400)
+        
+        # Conversion en entier pour être sûr
+        deposit_amount = int(deposit_amount)
+        
+        # Création de la session Checkout avec capture manuelle
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": "Dépôt de garantie - Réservation",
+                            "description": f"Autorisation de {deposit_amount/100}€ pour la réservation #{reservation_id}",
+                            "images": [],  # Tu peux ajouter une image de ton logo
+                        },
+                        "unit_amount": deposit_amount,
+                    },
+                    "quantity": 1,
+                },
+            ],
+            mode="payment",
+            # IMPORTANT: Configuration pour l'autorisation seulement
+            payment_intent_data={
+                "capture_method": "manual",  # Ceci est la clé pour l'autorisation non capturée
+                "description": f"Dépôt de garantie pour réservation #{reservation_id}",
+                "metadata": {
+                    "type": "deposit_authorization",
+                    "reservation_id": str(reservation_id),
+                }
+            },
+            success_url=f"https://safar.ranwip.com/deposit-success?reservation_id={reservation_id}&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"https://safar.ranwip.com/deposit-cancel?reservation_id={reservation_id}",
+            metadata={
+                "type": "deposit_authorization",
+                "reservation_id": str(reservation_id),
+                "deposit_amount": str(deposit_amount),
+            }
+        )
+
+        return JsonResponse({
+            "session_id": checkout_session.id, 
+            "url": checkout_session.url,
+            "amount": deposit_amount,
+            "currency": currency,
+            "type": "authorization"
+        }, status=200)
+        
+    except stripe.error.StripeError as e:
+        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
+    except ValueError as e:
+        return JsonResponse({"error": f"Invalid data: {str(e)}"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def capture_authorized_payment(request):
+    """
+    Capture un paiement précédemment autorisé
+    """
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+        payment_intent_id = data.get("payment_intent_id")
+        amount_to_capture = data.get("amount_to_capture")  # Optionnel, capture le montant total si non spécifié
+        
+        if not payment_intent_id:
+            return JsonResponse({"error": "payment_intent_id is required"}, status=400)
+        
+        # Paramètres de capture
+        capture_params = {}
+        if amount_to_capture:
+            capture_params["amount_to_capture"] = int(amount_to_capture)
+        
+        # Capture du paiement
+        payment_intent = stripe.PaymentIntent.capture(
+            payment_intent_id,
+            **capture_params
+        )
+        
+        return JsonResponse({
+            "payment_intent_id": payment_intent.id,
+            "status": payment_intent.status,
+            "amount_captured": payment_intent.amount_received,
+            "currency": payment_intent.currency
+        }, status=200)
+        
+    except stripe.error.StripeError as e:
+        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def cancel_authorized_payment(request):
+    """
+    Annule un paiement autorisé (libère les fonds)
+    """
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+        payment_intent_id = data.get("payment_intent_id")
+        
+        if not payment_intent_id:
+            return JsonResponse({"error": "payment_intent_id is required"}, status=400)
+        
+        # Annulation du paiement autorisé
+        payment_intent = stripe.PaymentIntent.cancel(payment_intent_id)
+        
+        return JsonResponse({
+            "payment_intent_id": payment_intent.id,
+            "status": payment_intent.status,
+            "canceled_at": payment_intent.canceled_at
+        }, status=200)
+        
+    except stripe.error.StripeError as e:
+        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
