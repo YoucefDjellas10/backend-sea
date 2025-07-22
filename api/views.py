@@ -3256,8 +3256,8 @@ def create_payment_authorization_session(request):
                         "reservation_id": str(reservation_id),
                     }
                 },
-                success_url=f"https://safar.ranwip.com/deposit-success?reservation_id={reservation_id}&session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url =f"https://safar.ranwip.com/deposit-cancel?reservation_id={reservation_id}",
+                success_url= f"https://safar.ranwip.com/confirmation?id={reservation_id}",
+                cancel_url =f"https://safar.ranwip.com/",
                 metadata={
                     "type": "deposit_authorization",
                     "reservation_id": str(reservation_id),
