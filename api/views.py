@@ -3224,19 +3224,16 @@ def create_payment_authorization_session(request):
 
     try:
         data = json.loads(request.body)
-        reservation_id   = data.get("reservation_id")
+        reservation_id = data.get("reservation_id")
         if not reservation_id:
             return JsonResponse({"error": "reservation_id is required"}, status=400)
 
-        # Montant et devise
-        deposit_amount = int(data.get("deposit_amount", 10000))  # 100€ en centimes
+        deposit_amount = int(data.get("deposit_amount", 10000))
         currency       = data.get("currency", "eur")
-
-        # Mode : immediate auth (True) ou simplement sauvegarde de carte (False)
-        authorize_now = data.get("authorize_now", True)
+        authorize_now  = data.get("authorize_now", True)
 
         if authorize_now:
-            # → Autorisation immédiate (hold)
+            # Autorisation immédiate
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 line_items=[{
@@ -3268,12 +3265,11 @@ def create_payment_authorization_session(request):
                 }
             )
         else:
-            # → Simplement enregistrer la carte pour une future auth
+            # Simplement enregistrer la carte (setup) pour autoriser plus tard
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 mode="setup",
                 setup_intent_data={
-                    "usage": "off_session",
                     "metadata": {
                         "type": "deposit_payment_method",
                         "reservation_id": str(reservation_id),
