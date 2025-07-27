@@ -2094,6 +2094,8 @@ def cancel_request_view(request):
             country_code=country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
+    except ValueError as ve:
+        return JsonResponse({"error": str(ve)}, status=400, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
         
