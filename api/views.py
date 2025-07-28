@@ -1988,8 +1988,6 @@ def mes_reservations_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-
-
 @csrf_exempt
 @require_http_methods(["PUT"])
 def cancel_do_view(request):
@@ -2128,8 +2126,6 @@ def verify_and_calculate_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-
-
 def ma_reservation_view(request):
     ref = request.GET.get("ref")
     email = request.GET.get("email")
@@ -2149,8 +2145,6 @@ def ma_reservation_view(request):
         return JsonResponse({"protections":protection,"options": options ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
-
-
 
 def otp_send_client(request):
     if request.method == "GET":
@@ -2226,8 +2220,6 @@ def search_result_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-
-
 def search_price_view(request):
     lieu_depart_id = request.GET.get("lieu_depart_id")
     lieu_retour_id = request.GET.get("lieu_retour_id")
@@ -2235,7 +2227,6 @@ def search_price_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
-
 
     if not date_depart or not date_retour:
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
