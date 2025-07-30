@@ -629,6 +629,7 @@ def cencel_request(ref,country_code):
 
         result = {
             "reference":reference,
+            "currency": "DA" if country_code == "DZ" else "EUR",
             "frais_annulation":un_jour * taux_change if country_code == "DZ" else un_jour,
             "refund_amount":montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
             "refund":rembourssement,
