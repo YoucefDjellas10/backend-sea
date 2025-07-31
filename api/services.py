@@ -56,62 +56,71 @@ def vip_reduction(country_code):
         return {"message": f"Erreur: {str(e)}"}
 
 def protections(ref, country_code):
+    """
+    Retourne un dict de protections indexé par clefs:
+      - selected (nom de la protection choisie)
+      - basic, standard, maximum (détails prix/total/caution)
+    Application du taux DZ si nécessaire.
+    """
     try:
-        nb_jour = 0
-        protections_return = {
-            "selected": None,
-            "basic": None,
-            "standard": None,
-            "maximum": None
-        }
-
-        # Récupération de la réservation
         reservation = Reservation.objects.filter(name=ref).first()
         if not reservation:
-            return {"message": "Réservation non trouvée"}
+            return {}
 
-        nb_jour = reservation.nbr_jour_reservation
-        selected_protection = reservation.opt_protection_name
-        category = reservation.categorie
-        protections_return["selected"] = selected_protection
+        nb_jour     = reservation.nbr_jour_reservation or 0
+        category_id = getattr(reservation.categorie, "id", None)
+        zone_id     = getattr(reservation.zone, "id", None)
+        selected    = reservation.opt_protection_name or ""
 
-        # Taux de change si DZ
+        # Taux de change
+        country_upper = (country_code or "").upper()
         taux_change = 1
-        if country_code == "DZ":
+        if country_upper == "DZ":
             taux = TauxChange.objects.filter(id=2).first()
-            if taux:
-                taux_change = taux.montant
+            taux_change = getattr(taux, "montant", 1)
 
-        # Récupération des protections disponibles
-        protections = Options.objects.filter(
-            (Q(option_code__icontains="BASE") |
-             Q(option_code__icontains="MAX") |
-             Q(option_code__icontains="STANDART")) &
-            Q(categorie=category if country_code == "DZ" else category.id) &
-            Q(zone__id=reservation.zone.id)
+        # Recherche des protections
+        protections_qs = Options.objects.filter(
+            (Q(option_code__icontains="BASE")   |
+             Q(option_code__icontains="STANDAR")|
+             Q(option_code__icontains="MAX"))
+            &
+            (Q(categorie__id=category_id) | Q(categorie=None))
+            &
+            Q(zone__id=zone_id)
         )
 
-        for protection in protections:
-            name_lower = protection.name.lower()
+        # Prépare le résultat
+        result = {
+            "selected": selected,
+            "basic":    None,
+            "standard": None,
+            "maximum":  None,
+        }
+
+        for prot in protections_qs:
+            name_l = (prot.name or "").lower()
+            prix   = (prot.prix or 0) * taux_change
+
             item = {
-                "protection_name": protection.name,
-                "protection_prix": protection.prix * taux_change,
-                "protection_total": protection.prix * nb_jour * taux_change,
-                "protection_caution": protection.caution * taux_change
+                "protection_name":  prot.name,
+                "protection_prix":  prix,
+                "protection_total": prix * nb_jour,
+                "protection_caution": (prot.caution or 0) * taux_change,
             }
 
-            if "bas" in name_lower:
-                protections_return["basic"] = item
-            elif "standard" in name_lower or "standart" in name_lower:
-                protections_return["standard"] = item
-            elif "max" in name_lower:
-                protections_return["maximum"] = item
+            if "bas" in name_l:
+                result["basic"]    = item
+            elif "standar" in name_l:  # couvre "standard" et éventuelle typo "standart"
+                result["standard"] = item
+            elif "max" in name_l:
+                result["maximum"]  = item
 
-        return {"protections": protections_return}
+        return result
 
-    except Exception as e:
-        return {"message": f"Erreur: {str(e)}"}
-
+    except Exception:
+        # Remonte l'exception pour qu'elle soit gérée dans la vue
+        raise
 
 def modify_protection_request(ref, protection):
     try:   
