@@ -107,7 +107,7 @@ def protections(ref, country_code):
             elif "max" in name_lower:
                 protections_return["maximum"] = item
 
-        return {"protections": protections_return}
+        return {protections_return}
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
@@ -861,7 +861,7 @@ def option_ma_reservation(ref, country_code):
 
             result[slug] = entry
 
-        return {"options": result}
+        return {result}
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
