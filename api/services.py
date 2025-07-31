@@ -778,6 +778,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
+    
 def option_ma_reservation(ref, country_code):
     """
     Retourne un dict d'options indexées par slug, avec
