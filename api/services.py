@@ -778,68 +778,94 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
-
 def option_ma_reservation(ref, country_code):
+    """
+    Retourne un dict d'options indexées par slug, avec
+    prix et totaux (convertis si DZ), et champs spécifiques pour KLM.
+    """
     try:
-        result = []
         reservation = Reservation.objects.filter(name=ref).first()
-        category = reservation.categorie.id
-        nb_jour = reservation.nbr_jour_reservation
-        options = Options.objects.filter(    
-            (Q(option_code__icontains="KLM_ILLIMITED") | 
-            Q(option_code__icontains="P_ANTICIPE") | 
-            Q(option_code__icontains="P_CARBURANT") | 
-            Q(option_code__icontains="S_BEBE_5") | 
-            Q(option_code__icontains="S_BEBE_13") | 
-            Q(option_code__icontains="S_BEBE_18") | 
-            Q(option_code__icontains="ND_DRIVER"))
-            & (Q(categorie__id=category)|
-            Q(categorie=None))
-            & (Q(zone__id=reservation.zone.id))
-            )
-        print(options)
-        if country_code == "DZ":
-            taux= TauxChange.objects.filter(id=2).first()
-            taux_change = taux.montant
-            for option in options :
-                option_total = option.prix * nb_jour * taux_change if option.type_tarif == "jour" else option.prix * taux_change
-                if "KLM_ILLIMITED" in option.option_code :
-                    result.append({
-                        "option_name": option.name,
-                        "option_prix":option.prix * taux_change,
-                        "option_total": option_total,
-                        "klm_limit":option.limit_Klm * nb_jour,
-                        "penalite_klm": option.penalite_Klm * int(taux_change)
-                    })
-                else :
-                    result.append({
-                        "option_name": option.name,
-                        "option_prix":option.prix * taux_change,
-                        "option_total": option_total,
-                    })
-        else :
-            for option in options :
-                option_total = option.prix * nb_jour if option.type_tarif == "jour" else option.prix
-                if "KLM_ILLIMITED" in option.option_code :
-                    result.append({
-                        "option_name": option.name,
-                        "option_prix":option.prix,
-                        "option_total": option_total,
-                        "klm_limit":option.limit_Klm * nb_jour,
-                        "penalite_klm": option.penalite_Klm
-                    })
-                else :
-                    result.append({
-                        "option_name": option.name,
-                        "option_prix":option.prix,
-                        "option_total": option_total,
-                    })
+        if not reservation:
+            return {"options": {}}
 
-        return result
+        nb_jour = reservation.nbr_jour_reservation
+        category_id = reservation.categorie.id if reservation.categorie else None
+        zone_id = reservation.zone.id if reservation.zone else None
+
+        # Récupère les options correspondant aux codes voulus
+        options_qs = Options.objects.filter(
+            (Q(option_code__icontains="KLM_ILLIMITED") |
+             Q(option_code__icontains="P_ANTICIPE")    |
+             Q(option_code__icontains="P_CARBURANT")  |
+             Q(option_code__icontains="S_BEBE_5")     |
+             Q(option_code__icontains="S_BEBE_13")    |
+             Q(option_code__icontains="S_BEBE_18")    |
+             Q(option_code__icontains="ND_DRIVER"))
+            &
+            (Q(categorie__id=category_id) | Q(categorie=None))
+            &
+            Q(zone__id=zone_id)
+        )
+
+        # Taux de change pour DZ
+        taux_change = 1
+        if country_code.upper() == "DZ":
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant if taux else 1
+
+        result = {}
+
+        # mapping des slugs selon l'option
+        slug_map = {
+            "PAIEMENT":           "paiement_prise",
+            "P_CARBURANT":        "opt_plein_carburant",
+            "ND_DRIVER":          "second_driver",
+            "S_BEBE_5":           "opt_siege_a",
+            "S_BEBE_13":          "opt_siege_b",
+            "S_BEBE_18":          "opt_siege_c",
+            "KLM_ILLIMITED":      "opt_klm",
+        }
+
+        for opt in options_qs:
+            code = opt.option_code.upper()
+            # détermine le slug (prend la première correspondance)
+            slug = None
+            for key, val in slug_map.items():
+                if key in code:
+                    slug = val
+                    break
+            if not slug:
+                continue  # ignore les codes non répertoriés
+
+            # calcul du prix unitaire (appliqué taux si DZ)
+            prix_unitaire = opt.prix * taux_change
+
+            # calcul du total selon type_tarif
+            if opt.type_tarif == "jour":
+                total = prix_unitaire * nb_jour
+            else:
+                total = prix_unitaire
+
+            entry = {
+                "option_name":  opt.name,
+                "option_prix":  prix_unitaire,
+                "option_total": total,
+            }
+
+            # champs spécifiques pour kilométrage illimité
+            if "KLM_ILLIMITED" in code:
+                entry.update({
+                    "klm_limit":     opt.limit_Klm * (nb_jour if opt.type_tarif == "jour" else 1),
+                    "penalite_klm":  opt.penalite_Klm * (taux_change if country_code.upper()=="DZ" else 1),
+                })
+
+            result[slug] = entry
+
+        return {"options": result}
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
-
+    
 def ma_reservation_detail(ref, email, country_code):
     try:
         ma_reservation =Reservation.objects.filter(name=ref, email=email).first()
