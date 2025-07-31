@@ -785,16 +785,14 @@ def option_ma_reservation(ref, country_code):
     prix et totaux (convertis si DZ), et champs spécifiques pour KLM.
     """
     try:
-        # Récupération de la réservation
         reservation = Reservation.objects.filter(name=ref).first()
         if not reservation:
-            return {"options": {}}
+            return {}
 
         nb_jour     = reservation.nbr_jour_reservation or 0
         category_id = getattr(reservation.categorie, "id", None)
         zone_id     = getattr(reservation.zone, "id", None)
 
-        # Filtre des options
         options_qs = Options.objects.filter(
             (Q(option_code__icontains="KLM_ILLIMITED") |
              Q(option_code__icontains="P_ANTICIPE")    |
@@ -809,51 +807,46 @@ def option_ma_reservation(ref, country_code):
             Q(zone__id=zone_id)
         )
 
-        # Prépare le taux de change
+        # Normalise le country code
         country_upper = (country_code or "").upper()
         taux_change = 1
         if country_upper == "DZ":
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = getattr(taux, "montant", 1)
 
-        # Mapping slug → fragment de code
         slug_map = {
-            "PAIEMENT":      "paiement_prise",
-            "P_CARBURANT":   "opt_plein_carburant",
-            "ND_DRIVER":     "second_driver",
-            "S_BEBE_5":      "opt_siege_a",
-            "S_BEBE_13":     "opt_siege_b",
-            "S_BEBE_18":     "opt_siege_c",
-            "KLM_ILLIMITED":"opt_klm",
+            "PAIEMENT":       "paiement_prise",
+            "P_CARBURANT":    "opt_plein_carburant",
+            "ND_DRIVER":      "second_driver",
+            "S_BEBE_5":       "opt_siege_a",
+            "S_BEBE_13":      "opt_siege_b",
+            "S_BEBE_18":      "opt_siege_c",
+            "KLM_ILLIMITED":  "opt_klm",
         }
 
         result = {}
-
         for opt in options_qs:
-            # Sécurise les attributs qui peuvent être None
             code      = (opt.option_code or "").upper()
             tarif     = (opt.type_tarif   or "").lower()
             prix_base = opt.prix or 0
 
-            # Détermine le slug correspondant
+            # Trouve le slug correspondant
             slug = next((s for key, s in slug_map.items() if key in code), None)
             if not slug:
                 continue
 
-            # Calcul du prix unitaire et total
             prix_unitaire = prix_base * taux_change
-            option_total  = prix_unitaire * nb_jour if tarif == "jour" else prix_unitaire
+            total = prix_unitaire * nb_jour if tarif == "jour" else prix_unitaire
 
             entry = {
                 "option_name":  opt.name or "",
                 "option_prix":  prix_unitaire,
-                "option_total": option_total,
+                "option_total": total,
             }
 
-            # Champs spécifiques pour kilométrage illimité
             if "KLM_ILLIMITED" in code:
-                limit_base     = getattr(opt, "limit_Klm", 0)
-                penalite_base  = getattr(opt, "penalite_Klm", 0)
+                limit_base    = getattr(opt, "limit_Klm", 0)
+                penalite_base = getattr(opt, "penalite_Klm", 0)
                 entry.update({
                     "klm_limit":    limit_base * (nb_jour if tarif == "jour" else 1),
                     "penalite_klm": penalite_base * (taux_change if country_upper == "DZ" else 1),
@@ -861,10 +854,11 @@ def option_ma_reservation(ref, country_code):
 
             result[slug] = entry
 
-        return {"options": result}
+        return result
 
     except Exception as e:
-        return {"message": f"Erreur: {str(e)}"}
+        # On remonte l'erreur pour être gérée dans la vue
+        raise
     
 def ma_reservation_detail(ref, email, country_code):
     try:
