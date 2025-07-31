@@ -99,7 +99,7 @@ def protections(ref, country_code):
                 "protection_caution": protection.caution * taux_change
             }
 
-            if "base" in name_lower:
+            if "bas" in name_lower:
                 protections_return["basic"] = item
             elif "standard" in name_lower or "standart" in name_lower:
                 protections_return["standard"] = item
