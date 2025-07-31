@@ -794,6 +794,7 @@ def option_ma_reservation(ref, country_code):
             Q(option_code__icontains="ND_DRIVER"))
             & (Q(categorie__id=category)
             ))
+        print(options)
         if country_code == "DZ":
             taux= TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
