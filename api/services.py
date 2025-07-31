@@ -87,7 +87,8 @@ def protections(ref, country_code):
             (Q(option_code__icontains="BASE") |
              Q(option_code__icontains="MAX") |
              Q(option_code__icontains="STANDART")) &
-            Q(categorie=category if country_code == "DZ" else category.id)
+            Q(categorie=category if country_code == "DZ" else category.id) &
+            Q(zone__id=reservation.zone.id)
         )
 
         for protection in protections:
