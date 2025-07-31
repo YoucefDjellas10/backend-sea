@@ -58,67 +58,55 @@ def vip_reduction(country_code):
 def protections(ref, country_code):
     try:
         nb_jour = 0
+        protections_return = {
+            "selected": None,
+            "basic": None,
+            "standard": None,
+            "maximum": None
+        }
+
+        # Récupération de la réservation
+        reservation = Reservation.objects.filter(name=ref).first()
+        if not reservation:
+            return {"message": "Réservation non trouvée"}
+
+        nb_jour = reservation.nbr_jour_reservation
+        selected_protection = reservation.opt_protection_name
+        category = reservation.categorie
+        protections_return["selected"] = selected_protection
+
+        # Taux de change si DZ
+        taux_change = 1
         if country_code == "DZ":
-            protections_return = []
             taux = TauxChange.objects.filter(id=2).first()
-            taux_change = taux.montant
-            reservation = Reservation.objects.filter(name=ref).first()
-            if reservation : 
-                nb_jour = reservation.nbr_jour_reservation
-            
-            if not reservation:
-                return {"message": "Réservation non trouvée"}
+            if taux:
+                taux_change = taux.montant
 
-            selected_protection = reservation.opt_protection_name
-            category = reservation.categorie
+        # Récupération des protections disponibles
+        protections = Options.objects.filter(
+            (Q(option_code__icontains="BASE") |
+             Q(option_code__icontains="MAX") |
+             Q(option_code__icontains="STANDART")) &
+            Q(categorie=category if country_code == "DZ" else category.id)
+        )
 
-            protections = Options.objects.filter(    
-                (Q(option_code__icontains="BASE") | 
-                Q(option_code__icontains="MAX") | 
-                Q(option_code__icontains="STANDART"))
-                & Q(categorie=category)
-            )
-            protections_return.append({
-                "selected_protection":selected_protection,
-            })
-            for protection in protections:
-                protections_return.append({
-                    "protection_name":protection.name,
-                    "protection_prix":protection.prix *taux_change,
-                    "protection_total":protection.prix * nb_jour * taux_change,
-                    "protection_caution":protection.caution * taux_change,
-                })
-        else :
-            protections_return = []
-            reservation = Reservation.objects.filter(name=ref).first()
-            if reservation : 
-                nb_jour = reservation.nbr_jour_reservation
-            
-            if not reservation:
-                return {"message": "Réservation non trouvée"}
+        for protection in protections:
+            name_lower = protection.name.lower()
+            item = {
+                "protection_name": protection.name,
+                "protection_prix": protection.prix * taux_change,
+                "protection_total": protection.prix * nb_jour * taux_change,
+                "protection_caution": protection.caution * taux_change
+            }
 
-            selected_protection = reservation.opt_protection_name
-            category = reservation.categorie.id
+            if "base" in name_lower:
+                protections_return["basic"] = item
+            elif "standard" in name_lower or "standart" in name_lower:
+                protections_return["standard"] = item
+            elif "max" in name_lower:
+                protections_return["maximum"] = item
 
-            protections = Options.objects.filter(    
-                (Q(option_code__icontains="BASE") | 
-                Q(option_code__icontains="MAX") | 
-                Q(option_code__icontains="STANDART"))
-                & Q(categorie_id=category)
-            )
-            protections_return.append({
-                "selected_protection":selected_protection,
-            })
-            for protection in protections:
-                protections_return.append({
-                    "protection_name":protection.name,
-                    "protection_prix":protection.prix,
-                    "protection_total":protection.prix * nb_jour,
-                    "protection_caution":protection.caution,
-                })
-            
-
-        return protections_return  
+        return {"protections": protections_return}
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
