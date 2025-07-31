@@ -391,7 +391,8 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             date_depart,
             heure_depart,
             date_retour,
-            heure_retour
+            heure_retour,
+            country_code
         )
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         ma_reservation = Reservation.objects.filter(name=ref).first()
