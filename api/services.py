@@ -792,7 +792,7 @@ def option_ma_reservation(ref, country_code):
             Q(option_code__icontains="S_BEBE_13") | 
             Q(option_code__icontains="S_BEBE_18") | 
             Q(option_code__icontains="ND_DRIVER"))
-            & (Q(categorie=category if country_code == "DZ" else category.id)
+            & (Q(categorie_id=category)
             ))
         if country_code == "DZ":
             taux= TauxChange.objects.filter(id=2).first()
