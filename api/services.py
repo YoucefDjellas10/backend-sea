@@ -785,15 +785,16 @@ def option_ma_reservation(ref, country_code):
     prix et totaux (convertis si DZ), et champs spécifiques pour KLM.
     """
     try:
+        # Récupération de la réservation
         reservation = Reservation.objects.filter(name=ref).first()
         if not reservation:
             return {"options": {}}
 
-        nb_jour = reservation.nbr_jour_reservation
-        category_id = reservation.categorie.id if reservation.categorie else None
-        zone_id = reservation.zone.id if reservation.zone else None
+        nb_jour     = reservation.nbr_jour_reservation or 0
+        category_id = getattr(reservation.categorie, "id", None)
+        zone_id     = getattr(reservation.zone, "id", None)
 
-        # Récupère les options correspondant aux codes voulus
+        # Filtre des options
         options_qs = Options.objects.filter(
             (Q(option_code__icontains="KLM_ILLIMITED") |
              Q(option_code__icontains="P_ANTICIPE")    |
@@ -808,56 +809,54 @@ def option_ma_reservation(ref, country_code):
             Q(zone__id=zone_id)
         )
 
-        # Taux de change pour DZ
+        # Prépare le taux de change
+        country_upper = (country_code or "").upper()
         taux_change = 1
-        if country_code.upper() == "DZ":
+        if country_upper == "DZ":
             taux = TauxChange.objects.filter(id=2).first()
-            taux_change = taux.montant if taux else 1
+            taux_change = getattr(taux, "montant", 1)
+
+        # Mapping slug → fragment de code
+        slug_map = {
+            "PAIEMENT":      "paiement_prise",
+            "P_CARBURANT":   "opt_plein_carburant",
+            "ND_DRIVER":     "second_driver",
+            "S_BEBE_5":      "opt_siege_a",
+            "S_BEBE_13":     "opt_siege_b",
+            "S_BEBE_18":     "opt_siege_c",
+            "KLM_ILLIMITED":"opt_klm",
+        }
 
         result = {}
 
-        # mapping des slugs selon l'option
-        slug_map = {
-            "PAIEMENT":           "paiement_prise",
-            "P_CARBURANT":        "opt_plein_carburant",
-            "ND_DRIVER":          "second_driver",
-            "S_BEBE_5":           "opt_siege_a",
-            "S_BEBE_13":          "opt_siege_b",
-            "S_BEBE_18":          "opt_siege_c",
-            "KLM_ILLIMITED":      "opt_klm",
-        }
-
         for opt in options_qs:
-            code = opt.option_code.upper()
-            # détermine le slug (prend la première correspondance)
-            slug = None
-            for key, val in slug_map.items():
-                if key in code:
-                    slug = val
-                    break
+            # Sécurise les attributs qui peuvent être None
+            code      = (opt.option_code or "").upper()
+            tarif     = (opt.type_tarif   or "").lower()
+            prix_base = opt.prix or 0
+
+            # Détermine le slug correspondant
+            slug = next((s for key, s in slug_map.items() if key in code), None)
             if not slug:
-                continue  # ignore les codes non répertoriés
+                continue
 
-            # calcul du prix unitaire (appliqué taux si DZ)
-            prix_unitaire = opt.prix * taux_change
-
-            # calcul du total selon type_tarif
-            if opt.type_tarif == "jour":
-                total = prix_unitaire * nb_jour
-            else:
-                total = prix_unitaire
+            # Calcul du prix unitaire et total
+            prix_unitaire = prix_base * taux_change
+            option_total  = prix_unitaire * nb_jour if tarif == "jour" else prix_unitaire
 
             entry = {
-                "option_name":  opt.name,
+                "option_name":  opt.name or "",
                 "option_prix":  prix_unitaire,
-                "option_total": total,
+                "option_total": option_total,
             }
 
-            # champs spécifiques pour kilométrage illimité
+            # Champs spécifiques pour kilométrage illimité
             if "KLM_ILLIMITED" in code:
+                limit_base     = getattr(opt, "limit_Klm", 0)
+                penalite_base  = getattr(opt, "penalite_Klm", 0)
                 entry.update({
-                    "klm_limit":     opt.limit_Klm * (nb_jour if opt.type_tarif == "jour" else 1),
-                    "penalite_klm":  opt.penalite_Klm * (taux_change if country_code.upper()=="DZ" else 1),
+                    "klm_limit":    limit_base * (nb_jour if tarif == "jour" else 1),
+                    "penalite_klm": penalite_base * (taux_change if country_upper == "DZ" else 1),
                 })
 
             result[slug] = entry
