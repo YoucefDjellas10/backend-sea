@@ -858,7 +858,7 @@ def option_ma_reservation(ref, country_code):
                 penalite_base = getattr(opt, "penalite_Klm", 0)
                 entry.update({
                     "klm_limit":    limit_base * (nb_jour if tarif == "jour" else 1),
-                    "penalite_klm": penalite_base * (taux_change if country_upper == "DZ" else 1),
+                    "penalite_klm": penalite_base * (float(taux_change) if country_upper == "DZ" else 1),
                 })
 
             result[slug] = entry
@@ -887,7 +887,7 @@ def ma_reservation_detail(ref, email, country_code):
         
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
-            taux_change = Decimal(taux.montant) if taux else Decimal("1.0")
+            taux_change = taux.montant
             if ma_reservation :
                 result.append({
                     "currency":"DA",
@@ -911,7 +911,7 @@ def ma_reservation_detail(ref, email, country_code):
                     'mobile': ma_reservation.numero_lieu,
                     'status': ma_reservation.status,
                     'opt_payment': ma_reservation.opt_payment_name,
-                    'opt_payment_price': (ma_reservation.opt_payment_price) * taux_change if ma_reservation.opt_payment_price else 0,
+                    'opt_payment_price': ma_reservation.opt_payment_price * taux_change if ma_reservation.opt_payment_price else 0,
                     'opt_payment_total': ma_reservation.opt_payment_total * taux_change if ma_reservation.opt_payment_total else 0,
                     'opt_klm': ma_reservation.opt_klm_name ,
                     'opt_kilometrage': ma_reservation.opt_kilometrage,
