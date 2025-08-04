@@ -620,9 +620,9 @@ def cencel_request(ref,country_code):
                 montant_rembourse = 0
             reference = record.name
             raisons_annulation = AnnulerRaison.objects.filter()
-            reasons = [raison.name for raison in raisons_annulation]
-            reasons_en = [raison.name_en for raison in raisons_annulation]
-            reasons_ar = [raison.name_ar for raison in raisons_annulation]
+            reasons = [{raison.name: raison.id} for raison in raisons_annulation]
+            reasons_en = [{raison.name_en: raison.id} for raison in raisons_annulation]
+            reasons_ar = [{raison.name_ar: raison.id} for raison in raisons_annulation]
         
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
