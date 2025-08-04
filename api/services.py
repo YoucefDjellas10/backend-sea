@@ -620,9 +620,9 @@ def cencel_request(ref,country_code):
                 montant_rembourse = 0
             reference = record.name
             raisons_annulation = AnnulerRaison.objects.filter()
-            reasons = [{raison.name for raison in raisons_annulation},
-                       {raison.name_en for raison in raisons_annulation},
-                       {raison.name_ar for raison in raisons_annulation}]
+            reasons = [raison.name for raison in raisons_annulation]
+            reasons_en = [raison.name_en for raison in raisons_annulation]
+            reasons_ar = [raison.name_ar for raison in raisons_annulation]
         
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
@@ -634,6 +634,8 @@ def cencel_request(ref,country_code):
             "refund_amount":montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
             "refund":rembourssement,
             "reasons":reasons,
+            "reasons_en":reasons_en,
+            "reasons_ar":reasons_ar,
                   }
         return result
     except Exception as e:
