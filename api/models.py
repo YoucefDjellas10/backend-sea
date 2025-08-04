@@ -916,6 +916,8 @@ class Promotion(models.Model):
 
 class AnnulerRaison(models.Model):
     name = models.CharField()
+    name_en = models.CharField()
+    name_ar = models.CharField()
     class Meta:
         db_table = 'annuler_raison'
         managed = False
