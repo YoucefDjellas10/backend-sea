@@ -2092,7 +2092,7 @@ def cancel_request_view(request):
             ref=ref,
             country_code=country_code
         )
-        if "reference" in resultats:
+        if "success" in resultats:
             return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
         else:
             return JsonResponse({"results": resultats}, status=404, json_dumps_params={"ensure_ascii": False})
