@@ -619,25 +619,37 @@ def cencel_request(ref,country_code):
                 rembourssement = False
                 montant_rembourse = 0
             reference = record.name
-            raisons_annulation = AnnulerRaison.objects.filter()
-            reasons = [{raison.name: raison.id} for raison in raisons_annulation]
-            reasons_en = [{raison.name_en: raison.id} for raison in raisons_annulation]
-            reasons_ar = [{raison.name_ar: raison.id} for raison in raisons_annulation]
+            raisons_annulation = AnnulerRaison.objects.all()
+            cancellation_reasons = [
+                {
+                    "id": raison.id,
+                    "text": {
+                        "fr": raison.name,
+                        "en": raison.name_en,
+                        "ar": raison.name_ar
+                    }
+                }
+                for raison in raisons_annulation
+            ]
         
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
-        result = {
-            "reference":reference,
-            "currency": "DA" if country_code == "DZ" else "EUR",
-            "frais_annulation":un_jour * taux_change if country_code == "DZ" else un_jour,
-            "refund_amount":montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
-            "refund":rembourssement,
-            "reasons":reasons,
-            "reasons_en":reasons_en,
-            "reasons_ar":reasons_ar,
-                  }
-        return result
+        cancellation_data = {
+            "reference": reference,
+            "currency": "DZD" if country_code == "DZ" else "EUR",
+            "cancellation_fee": un_jour * taux_change if country_code == "DZ" else un_jour,
+            "refund_amount": montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
+            "is_refundable": rembourssement
+        }
+
+        return {
+            "success": True,
+            "data": {
+                "cancellation": cancellation_data,
+                "cancellation_reasons": cancellation_reasons
+            }
+        }
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
