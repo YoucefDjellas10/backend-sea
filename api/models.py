@@ -85,8 +85,6 @@ class Lieux(models.Model):
 class Categorie(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, verbose_name="Catégorie")
-    name_en = models.CharField(max_length=255, verbose_name="Catégorie EN")
-    name_ar = models.CharField(max_length=255, verbose_name="Catégorie AR")
     show_order = models.IntegerField(verbose_name="Ordre d'affichage")
     caution_classic = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Caution classique")
     caution_red = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Caution Réduite")
@@ -312,6 +310,8 @@ class Vehicule(models.Model):
 
 class CategorieClient(models.Model):
     name = models.CharField(max_length=255, verbose_name="Catégorie")
+    name_en = models.CharField(max_length=255, verbose_name="Catégorie EN")
+    name_ar = models.CharField(max_length=255, verbose_name="Catégorie AR")
     du_pts = models.IntegerField(verbose_name="Du (pts)")
     au_pts = models.IntegerField(verbose_name="Au (pts)")
     reduction = models.IntegerField(verbose_name="Réduction (%)")
