@@ -40,11 +40,11 @@ def client_info_view(request):
 
         historique = []
 
-        historique_records = HistoriqueSolde.objects.filter(client=client)
+        #historique_records = HistoriqueSolde.objects.filter(client=client)
 
-        for historiques in historique_records :
-            historique.append({"reservation": historiques.reservation,
-                              "montant": historiques.montant * taux if country_code == "DZ" else historiques.montant})
+        #for historiques in historique_records :
+         #   historique.append({"reservation": historiques.reservation,
+          #                    "montant": historiques.montant * taux if country_code == "DZ" else historiques.montant})
         
         result = {
             "currency":"DA" if country_code == "DZ" else "EUR",
