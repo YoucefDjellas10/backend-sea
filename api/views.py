@@ -303,10 +303,11 @@ def ajouter_liste_attente(request):
             data = json.loads(request.body)
             
             client_id = data.get('client_id')
-            try:
-                client = ListeClient.objects.get(id=client_id)
-            except ObjectDoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Client non trouvé'}, status=404)
+            if client_id : 
+                try:
+                    client = ListeClient.objects.get(id=client_id)
+                except ObjectDoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Client non trouvé'}, status=404)
 
             car_model_id = data.get('car_model_id')
             lieu_depart_id = data.get('lieu_depart_id')
