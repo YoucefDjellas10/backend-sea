@@ -23,16 +23,32 @@ from django.utils import timezone
 import time
 import locale
 
+def newsletter_disconnection_view(request):
+    try:
+        email = request.GET.get("email")
+        email_exist = NewsLetter.objects.filter(email=email).first()
+        if email_exist :
+            email_exist.subscribe = "non"
+            email_exist.save()
+            return JsonResponse({'message': "Opération réussie"}, status=200)
+        else :
+            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
 def create_news_letter(request):
     try:
-
         email = request.GET.get("email")
-
-        NewsLetter.objects.create(
-                    email=email,
-                )
-
-        return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
+        email_exist = NewsLetter.objects.filter(email=email).first()
+        if not email_exist : 
+            NewsLetter.objects.create(
+                        email=email,
+                    )
+            return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
+        else :
+            return JsonResponse({'message': "email existe deja"}, status=208)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
