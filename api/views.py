@@ -332,9 +332,15 @@ def ajouter_liste_attente(request):
                 lieu_retour = Lieux.objects.get(id=lieu_retour_id)
             except ObjectDoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Modèle ou lieu non trouvé'}, status=404)
+            
+            def generate_unique_name():
+                while True:
+                    code = str(random.randint(1000, 9999))
+                    if not ListeAttente.objects.filter(name=code).exists():
+                        return code
 
             nouvelle_liste_attente = ListeAttente(
-                name=id,
+                name=generate_unique_name(),
                 client=client,
                 full_name=f"{client.nom} {client.prenom}" if client is not None else full_name ,
                 email=client.email if client is not None else email,
