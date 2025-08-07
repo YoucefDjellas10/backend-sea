@@ -303,7 +303,8 @@ def ajouter_liste_attente(request):
             data = json.loads(request.body)
             
             client_id = data.get('client_id')
-            if client_id : 
+            client = None 
+            if client_id is not None: 
                 try:
                     client = ListeClient.objects.get(id=client_id)
                 except ObjectDoesNotExist:
