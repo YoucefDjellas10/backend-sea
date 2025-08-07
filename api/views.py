@@ -273,7 +273,7 @@ def get_all_categories(request):
             category_data["option_en"] = options_en
         
         options_ar = [
-            f"خصم {cat.reduction}%" if cat.reduction > 0 else None,
+            f"خصم %{cat.reduction}" if cat.reduction > 0 else None,
             cat.option_one.name_ar if cat.option_one else None,
             cat.option_two.name_ar if cat.option_two else None,
             cat.option_three.name_ar if cat.option_three else None,
