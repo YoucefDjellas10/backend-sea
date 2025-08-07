@@ -142,12 +142,14 @@ def modify_protection_request(ref, protection,country_code):
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_pay":total_pay * taux
                             }
                     else:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -155,12 +157,14 @@ def modify_protection_request(ref, protection,country_code):
                     to_refund = reservation.opt_protection_total - total
                     if not reservation.opt_payment_name:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_refund":to_refund * taux
                             }
                     else:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -174,12 +178,14 @@ def modify_protection_request(ref, protection,country_code):
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_pay":total_pay * taux
                             }
                     else:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -187,12 +193,14 @@ def modify_protection_request(ref, protection,country_code):
                     to_refund = reservation.opt_protection_total - total
                     if not reservation.opt_payment_name:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_refund":to_refund * taux
                             }
                     else:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -206,12 +214,14 @@ def modify_protection_request(ref, protection,country_code):
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_pay":total_pay * taux
                             }
                     else:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -219,12 +229,14 @@ def modify_protection_request(ref, protection,country_code):
                     to_refund = reservation.opt_protection_total - total
                     if not reservation.opt_payment_name:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_refund":to_refund * taux
                             }
                     else:
                         return {
+                            "currency":"DA" if country_code == "DZ" else "EUR",
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
