@@ -334,7 +334,7 @@ def ajouter_liste_attente(request):
                 return JsonResponse({'status': 'error', 'message': 'Modèle ou lieu non trouvé'}, status=404)
 
             nouvelle_liste_attente = ListeAttente(
-                name=data.get('name', 'Nouvelle liste d\'attente'),
+                name=id,
                 client=client,
                 full_name=f"{client.nom} {client.prenom}" if client is not None else full_name ,
                 email=client.email if client is not None else email,
