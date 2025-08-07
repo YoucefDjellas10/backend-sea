@@ -309,6 +309,10 @@ def ajouter_liste_attente(request):
                     client = ListeClient.objects.get(id=client_id)
                 except ObjectDoesNotExist:
                     return JsonResponse({'status': 'error', 'message': 'Client non trouvé'}, status=404)
+            else : 
+                full_name = data.get('full_name')
+                email = data.get('email')
+                phone = data.get('phone')
 
             car_model_id = data.get('car_model_id')
             lieu_depart_id = data.get('lieu_depart_id')
@@ -317,6 +321,7 @@ def ajouter_liste_attente(request):
             date_retour = data.get('date_retour')
             heure_debut = data.get('heure_debut')
             heure_fin = data.get('heure_fin')
+
 
             try:
                 if car_model_id is not None:
@@ -331,9 +336,9 @@ def ajouter_liste_attente(request):
             nouvelle_liste_attente = ListeAttente(
                 name=data.get('name', 'Nouvelle liste d\'attente'),
                 client=client,
-                full_name=f"{client.nom} {client.prenom}",
-                email=client.email,
-                phone_number=client.telephone,
+                full_name=f"{client.nom} {client.prenom}" if client is not None else full_name ,
+                email=client.email if client is not None else email,
+                phone_number=client.telephone if client is not None else phone,
                 car_model=car_model,
                 lieu_depart=lieu_depart,
                 date_depart=date_depart,
