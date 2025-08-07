@@ -37,14 +37,6 @@ def client_info_view(request):
 
         taux_change = TauxChange.objects.filter(id=2).first()
         taux = taux_change.montant
-
-        historique = []
-
-        #historique_records = HistoriqueSolde.objects.filter(client=client)
-
-        #for historiques in historique_records :
-         #   historique.append({"reservation": historiques.reservation,
-          #                    "montant": historiques.montant * taux if country_code == "DZ" else historiques.montant})
         
         result = {
             "currency":"DA" if country_code == "DZ" else "EUR",
@@ -61,7 +53,6 @@ def client_info_view(request):
             "solde":client.solde * taux if country_code == "DZ" else client.solde,
             "prime_code":client.code_prime,
             "points_total":client.total_points,
-            "historique_solde":historique
 
         }
         return JsonResponse({'result': result}, status=200)
