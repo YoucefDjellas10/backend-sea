@@ -2144,7 +2144,6 @@ def ma_reservation_view(request):
             email=email,
             country_code=country_code
         )
-        print (resultats)
         protection = protections(ref=ref, email=email, country_code=country_code)
         options = option_ma_reservation(ref=ref, email=email, country_code=country_code)
         if not options or not protection or not resultats:
