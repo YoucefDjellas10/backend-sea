@@ -1870,7 +1870,7 @@ def add_options_put_view(request):
                                                 sb_c=sb_c,
                                                 country_code=country_code
                                                 )
-            
+            print(request_result)
             
             if nd_driver == "yes":
                 if not nom or not prenom or not birthday or not permis_date :
@@ -2160,7 +2160,7 @@ def cancel_do_view(request):
         if not reason:
             return JsonResponse({"error": "Le champ 'reason' est requis."}, status=400)
 
-        annuler_raison = AnnulerRaison.objects.filter(name=reason).first()
+        annuler_raison = AnnulerRaison.objects.filter(id=reason).first()
         reservation = Reservation.objects.filter(name=ref).first()
         if not reservation or not annuler_raison:
             return JsonResponse({"error": "Réservation non trouvée avec la référence spécifiée."}, status=404)
