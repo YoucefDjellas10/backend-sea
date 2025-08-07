@@ -308,6 +308,7 @@ def protection_request_view(request):
 
     ref = request.GET.get("ref")
     protection = request.GET.get("protection")
+    country_code = request.headers.get("X-Country-Code")
 
     if not ref or not protection:
         return JsonResponse({"error": "Les paramètres 'ref' et 'protection' sont requis."}, status=400)
@@ -316,6 +317,7 @@ def protection_request_view(request):
         resultats = modify_protection_request(
             ref=ref,
             protection=protection,
+            country_code=country_code
         )
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:

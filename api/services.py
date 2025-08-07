@@ -122,12 +122,15 @@ def protections(ref, email, country_code):
         # Remonte l'exception pour qu'elle soit gérée dans la vue
         raise
 
-def modify_protection_request(ref, protection):
+def modify_protection_request(ref, protection,country_code):
     try:   
         reservation = Reservation.objects.filter(name=ref).first()
         lieu_depart_obj = reservation.lieu_depart
         nb_jour = reservation.nbr_jour_reservation
         category = reservation.categorie.id
+
+        taux_change = TauxChange.objects.filter(id=2).first()
+        taux = taux_change.montant if country_code == "DZ" else 1
         
         if reservation :
             if protection == "BASE":
@@ -139,27 +142,27 @@ def modify_protection_request(ref, protection):
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
-                            "to_pay":total_pay
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
+                            "to_pay":total_pay * taux
                             }
                     else:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
                     if not reservation.opt_payment_name:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
-                            "to_refund":to_refund
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
+                            "to_refund":to_refund * taux
                             }
                     else:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
                             }
                     
             elif protection == "STANDART":
@@ -171,27 +174,27 @@ def modify_protection_request(ref, protection):
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
-                            "to_pay":total_pay
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
+                            "to_pay":total_pay * taux
                             }
                     else:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
                     if not reservation.opt_payment_name:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
-                            "to_refund":to_refund
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
+                            "to_refund":to_refund * taux
                             }
                     else:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
                             }
                     
             elif protection == "MAX":
@@ -203,27 +206,27 @@ def modify_protection_request(ref, protection):
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
-                            "to_pay":total_pay
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
+                            "to_pay":total_pay * taux
                             }
                     else:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
                     if not reservation.opt_payment_name:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
-                            "to_refund":to_refund
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
+                            "to_refund":to_refund * taux
                             }
                     else:
                         return {
-                            "new_protection_price":prix,
-                            "new_protection_total":total,
+                            "new_protection_price":prix * taux,
+                            "new_protection_total":total * taux,
                             }
                     
             else : 
