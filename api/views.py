@@ -23,13 +23,27 @@ from django.utils import timezone
 import time
 import locale
 
-def newsletter_disconnection_view(request):
+def unsubscribe_newsletter_view(request):
     try:
         email = request.GET.get("email")
         email_exist = NewsLetter.objects.filter(email=email).first()
         if email_exist :
             email_exist.subscribe = "non"
             email_exist.save()
+            sujet = f"Désabonnement newsletter"
+            expediteur = settings.EMAIL_HOST_USER
+
+            html_message = render_to_string('email/newsletter_deconnection_email.html', {
+                "email":email
+            })
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [email],
+                html_message=html_message,
+                fail_silently=False,
+            )
             return JsonResponse({'message': "Opération réussie"}, status=200)
         else :
             return JsonResponse({'message': "l'email n'existe pas"}, status=404)
@@ -61,6 +75,24 @@ def create_news_letter(request):
                 fail_silently=False,
             )
 
+            return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
+        elif email_exist and email_exist.subscribe == "non":
+            email_exist.subscribe = "oui"
+            email_exist.save()
+            sujet = f"Enregistrement newsletter"
+            expediteur = settings.EMAIL_HOST_USER
+
+            html_message = render_to_string('email/newsletter_email.html', {
+                "email":email
+            })
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [email],
+                html_message=html_message,
+                fail_silently=False,
+            )
             return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
         else :
             return JsonResponse({'message': "email existe deja"}, status=208)
