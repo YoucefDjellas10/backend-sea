@@ -27,6 +27,7 @@ def unsubscribe_newsletter_view(request):
     try:
         email = request.GET.get("email")
         email_exist = NewsLetter.objects.filter(email=email).first()
+        print(email_exist.email)
         if email_exist :
             email_exist.subscribe = "non"
             email_exist.save()
