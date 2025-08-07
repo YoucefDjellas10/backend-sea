@@ -252,6 +252,45 @@ def get_all_categories(request):
 
         if options:
             category_data["option"] = options
+        
+        options_en = [
+            f"Réduction de {cat.reduction}%" if cat.reduction > 0 else None,
+            cat.option_one.name_en if cat.option_one else None,
+            cat.option_two.name_en if cat.option_two else None,
+            cat.option_three.name_en if cat.option_three else None,
+            cat.option_four.name_en if cat.option_four else None,
+            cat.option_five.name_en if cat.option_five else None,
+            cat.option_six.name_en if cat.option_six else None,
+            cat.option_seven.name_en if cat.option_seven else None,
+            cat.option_eight.name_en if cat.option_eight else None,
+            cat.option_nine.name_en if cat.option_nine else None,
+            cat.option_ten.name_en if cat.option_ten else None,
+        ]
+
+        options_en = [opt for opt in options if opt is not None]
+
+        if options:
+            category_data["option_en"] = options_en
+        
+        options_ar = [
+            f"Réduction de {cat.reduction}%" if cat.reduction > 0 else None,
+            cat.option_one.name_ar if cat.option_one else None,
+            cat.option_two.name_ar if cat.option_two else None,
+            cat.option_three.name_ar if cat.option_three else None,
+            cat.option_four.name_ar if cat.option_four else None,
+            cat.option_five.name_ar if cat.option_five else None,
+            cat.option_six.name_ar if cat.option_six else None,
+            cat.option_seven.name_ar if cat.option_seven else None,
+            cat.option_eight.name_ar if cat.option_eight else None,
+            cat.option_nine.name_ar if cat.option_nine else None,
+            cat.option_ten.name_ar if cat.option_ten else None,
+        ]
+
+        options_ar = [opt for opt in options if opt is not None]
+
+        if options:
+            category_data["option_ar"] = options_ar
+
 
         categories_list.append(category_data)
 
