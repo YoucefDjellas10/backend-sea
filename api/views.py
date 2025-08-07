@@ -210,13 +210,16 @@ def protection_put_view(request):
         data = json.loads(request.body)
         ref = data.get("ref")
         protection = data.get("protection")
+        country_code = request.headers.get("X-Country-Code")
 
         try:
             resultats = modify_protection_request(
                 ref=ref,
                 protection=protection,
+                country_code=None
             )
             reservation = Reservation.objects.filter(name=ref).first()
+            to_day = date.today()
 
             to_pay_value = resultats.get("to_pay")
 
