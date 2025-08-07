@@ -229,6 +229,8 @@ def get_all_categories(request):
         category_data = {
             "id": cat.id,
             "name": cat.name,
+            "name_en": cat.name_en,
+            "name_ar": cat.name_ar,
             "du_pts": cat.du_pts,
             "au_pts": cat.au_pts if cat.au_pts < 10000 else "+∞",
             "reduction": cat.reduction,
