@@ -50,7 +50,7 @@ def create_news_letter(request):
             expediteur = settings.EMAIL_HOST_USER
 
             html_message = render_to_string('email/newsletter_email.html', {
-                
+                "email":email
             })
             send_mail(
                 sujet,
