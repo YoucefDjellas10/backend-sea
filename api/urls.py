@@ -63,4 +63,5 @@ urlpatterns += [
     path('create-payment-authorization/',create_payment_authorization_session, name='create_payment_authorization'),
     path('capture-payment/',capture_authorized_payment, name='capture_payment'),
     path('cancel-authorization/',cancel_authorized_payment, name='cancel_authorization'),
+    path('client-info/',client_info_view, name='client_info_view'),
 ]

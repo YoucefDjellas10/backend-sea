@@ -23,6 +23,52 @@ from django.utils import timezone
 import time
 import locale
 
+def client_info_view(request):
+    try:
+        client_id = request.GET.get("client_id")
+        country_code = request.headers.get("X-Country-Code")
+
+        client = ListeClient.objects.filter(id=client_id).first()
+
+        if not client :
+            return JsonResponse({'message': "le client n'existe pas"}, status=404)
+        
+        newsletter_exist = NewsLetter.objects.filter(email=client.email,subscribe="yes").first()
+
+        taux_change = TauxChange.objects.filter(id=2).first()
+        taux = taux_change.montant
+
+        historique = []
+
+        historique_records = HistoriqueSolde.objects.filter(client=client)
+
+        for historiques in historique_records :
+            historique.append({"reservation": historiques.reservation,
+                              "montant": historiques.montant * taux if country_code == "DZ" else historiques.montant})
+        
+        result = {
+            "currency":"DA" if country_code == "DZ" else "EUR",
+            "nom": client.nom,
+            "prenom": client.prenom,
+            "email": client.email,
+            "birthday": client.date_de_naissance,
+            "phone": client.telephone,
+            "pemit_date": client.date_de_permis,
+            "newsletter": "yes" if newsletter_exist else "no",
+            "category":client.categorie_client.name,
+            "category_en":client.categorie_client.name_en,
+            "category_ar":client.categorie_client.name_ar,
+            "solde":client.solde * taux if country_code == "DZ" else client.solde,
+            "prime_code":client.code_prime,
+            "points_total":client.total_points,
+            "historique_solde":historique
+
+        }
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
 def unsubscribe_newsletter_view(request):
     try:
         email = request.GET.get("email")
