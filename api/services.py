@@ -55,7 +55,7 @@ def vip_reduction(country_code):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def protections(ref, country_code):
+def protections(ref, email, country_code):
     """
     Retourne un dict de protections indexé par clefs:
       - selected (nom de la protection choisie)
@@ -63,7 +63,7 @@ def protections(ref, country_code):
     Application du taux DZ si nécessaire.
     """
     try:
-        reservation = Reservation.objects.filter(name=ref).first()
+        reservation = Reservation.objects.filter(name=ref, email=email).first()
         if not reservation:
             return {}
 
@@ -804,13 +804,13 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
     
-def option_ma_reservation(ref, country_code):
+def option_ma_reservation(ref, email, country_code):
     """
     Retourne un dict d'options indexées par slug, avec
     prix et totaux (convertis si DZ), et champs spécifiques pour KLM.
     """
     try:
-        reservation = Reservation.objects.filter(name=ref).first()
+        reservation = Reservation.objects.filter(name=ref, email=email).first()
         if not reservation:
             return {}
 

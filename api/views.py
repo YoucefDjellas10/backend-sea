@@ -2145,8 +2145,8 @@ def ma_reservation_view(request):
             country_code=country_code
         )
         print (resultats)
-        protection = protections(ref=ref, country_code=country_code)
-        options = option_ma_reservation(ref=ref , country_code=country_code)
+        protection = protections(ref=ref, email=email, country_code=country_code)
+        options = option_ma_reservation(ref=ref, email=email, country_code=country_code)
         if not options or not protection or not resultats:
             return JsonResponse({"protections":protection,"options": options ,"results": resultats}, status=404, json_dumps_params={"ensure_ascii": False})
         return JsonResponse({"protections":protection,"options": options ,"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
