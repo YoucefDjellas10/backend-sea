@@ -137,7 +137,7 @@ def modify_protection_request(ref, protection):
 
                 if total > reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
-                    if reservation.opt_payment_name:
+                    if not reservation.opt_payment_name:
                         return {
                             "new_protection_price":prix,
                             "new_protection_total":total,
@@ -150,7 +150,7 @@ def modify_protection_request(ref, protection):
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
-                    if reservation.opt_payment_name:
+                    if not reservation.opt_payment_name:
                         return {
                             "new_protection_price":prix,
                             "new_protection_total":total,
@@ -169,7 +169,7 @@ def modify_protection_request(ref, protection):
 
                 if total > reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
-                    if reservation.opt_payment_name:
+                    if not reservation.opt_payment_name:
                         return {
                             "new_protection_price":prix,
                             "new_protection_total":total,
@@ -182,7 +182,7 @@ def modify_protection_request(ref, protection):
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
-                    if reservation.opt_payment_name:
+                    if not reservation.opt_payment_name:
                         return {
                             "new_protection_price":prix,
                             "new_protection_total":total,
@@ -201,7 +201,7 @@ def modify_protection_request(ref, protection):
 
                 if total > reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
-                    if reservation.opt_payment_name:
+                    if not reservation.opt_payment_name:
                         return {
                             "new_protection_price":prix,
                             "new_protection_total":total,
@@ -214,7 +214,7 @@ def modify_protection_request(ref, protection):
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
-                    if reservation.opt_payment_name:
+                    if not reservation.opt_payment_name:
                         return {
                             "new_protection_price":prix,
                             "new_protection_total":total,
