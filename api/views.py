@@ -254,7 +254,7 @@ def get_all_categories(request):
             category_data["option"] = options
         
         options_en = [
-            f"Réduction de {cat.reduction}%" if cat.reduction > 0 else None,
+            f"{cat.reduction}% reduction" if cat.reduction > 0 else None,
             cat.option_one.name_en if cat.option_one else None,
             cat.option_two.name_en if cat.option_two else None,
             cat.option_three.name_en if cat.option_three else None,
