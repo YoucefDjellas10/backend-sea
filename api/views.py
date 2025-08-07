@@ -64,6 +64,7 @@ def client_info_view(request):
             "historique_solde":historique
 
         }
+        return JsonResponse({'result': result}, status=200)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
