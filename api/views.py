@@ -267,7 +267,7 @@ def get_all_categories(request):
             cat.option_ten.name_en if cat.option_ten else None,
         ]
 
-        options_en = [opt for opt in options if opt is not None]
+        options_en = [opt for opt in options_en if opt is not None]
 
         if options:
             category_data["option_en"] = options_en
@@ -286,7 +286,7 @@ def get_all_categories(request):
             cat.option_ten.name_ar if cat.option_ten else None,
         ]
 
-        options_ar = [opt for opt in options if opt is not None]
+        options_ar = [opt for opt in options_ar if opt is not None]
 
         if options:
             category_data["option_ar"] = options_ar
