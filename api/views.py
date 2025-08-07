@@ -46,6 +46,21 @@ def create_news_letter(request):
             NewsLetter.objects.create(
                         email=email,
                     )
+            sujet = f"Enregistrement newsletter"
+            expediteur = settings.EMAIL_HOST_USER
+
+            html_message = render_to_string('email/newsletter_email.html', {
+                
+            })
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+
             return JsonResponse({'message': "Opération réussie"}, status=status.HTTP_201_CREATED)
         else :
             return JsonResponse({'message': "email existe deja"}, status=208)
