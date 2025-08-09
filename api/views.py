@@ -343,7 +343,8 @@ def get_all_categories(request):
             "reduction": cat.reduction,
         }
 
-        options = [
+        # Options FR
+        options_fr = [
             f"Réduction de {cat.reduction}%" if cat.reduction > 0 else None,
             cat.option_one.name if cat.option_one else None,
             cat.option_two.name if cat.option_two else None,
@@ -356,12 +357,9 @@ def get_all_categories(request):
             cat.option_nine.name if cat.option_nine else None,
             cat.option_ten.name if cat.option_ten else None,
         ]
+        options_fr = [opt for opt in options_fr if opt is not None]
 
-        options = [opt for opt in options if opt is not None]
-
-        if options:
-            category_data["option"] = options
-        
+        # Options EN
         options_en = [
             f"{cat.reduction}% discount" if cat.reduction > 0 else None,
             cat.option_one.name_en if cat.option_one else None,
@@ -375,12 +373,9 @@ def get_all_categories(request):
             cat.option_nine.name_en if cat.option_nine else None,
             cat.option_ten.name_en if cat.option_ten else None,
         ]
-
         options_en = [opt for opt in options_en if opt is not None]
 
-        if options:
-            category_data["option_en"] = options_en
-        
+        # Options AR
         options_ar = [
             f"خصم %{cat.reduction}" if cat.reduction > 0 else None,
             cat.option_one.name_ar if cat.option_one else None,
@@ -394,16 +389,19 @@ def get_all_categories(request):
             cat.option_nine.name_ar if cat.option_nine else None,
             cat.option_ten.name_ar if cat.option_ten else None,
         ]
-
         options_ar = [opt for opt in options_ar if opt is not None]
 
-        if options:
-            category_data["option_ar"] = options_ar
-
+        # Si on a au moins une option dans une des langues
+        if options_fr or options_en or options_ar:
+            category_data["option"] = {
+                "fr": options_fr,
+                "en": options_en,
+                "ar": options_ar
+            }
 
         categories_list.append(category_data)
 
-    return JsonResponse({"categories": categories_list}, safe=False)
+    return JsonResponse({"categories": categories_list}, safe=False, json_dumps_params={'ensure_ascii': False})
 
 @csrf_exempt
 def ajouter_liste_attente(request):
