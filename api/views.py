@@ -485,7 +485,7 @@ def create_contact_message(request):
             print(nom_complet)
             print(email)
             print(message_text)
-            
+
 
             if not nom_complet or not email or not message_text : 
                 return JsonResponse({"created": False, "message": "les champs nom_complet et email et message_text sont requis."}, status=405)
@@ -494,8 +494,10 @@ def create_contact_message(request):
             name = str(random.randint(1000, 9999))
 
             create_date = datetime.now()
-            client = ListeClient.objects.filter(id=client_id).first()
-
+            if client_id : 
+                client = ListeClient.objects.filter(id=client_id).first()
+            else : 
+                client = None
 
             ContactMessage.objects.create(
                 name=name,
