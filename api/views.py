@@ -482,6 +482,11 @@ def create_contact_message(request):
             message_text = data.get('message') 
             client_id = data.get('client_id')
 
+            print(nom_complet)
+            print(email)
+            print(message_text)
+            
+
             if not nom_complet or not email or not message_text : 
                 return JsonResponse({"created": False, "message": "les champs nom_complet et email et message_text sont requis."}, status=405)
 
