@@ -59,7 +59,6 @@ def solde_history_view(request):
                 record_dict = {
                     'client': record.client,
                     'reservation': record.reservation.name,
-                    'nouveau_solde': record.nouveau_solde,
                     'montant': record.montant,
                 }
                 history_data.append(record_dict)
