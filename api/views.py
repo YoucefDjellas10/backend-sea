@@ -54,15 +54,7 @@ def solde_history_view(request):
             history_page = paginator.page(paginator.num_pages)
         
         history_data = []
-        if history_page is not None:
-            for record in history_page:
-                record_dict = {
-                    'client': record.client if record.client else None,
-                    'reservation': record.reservation.name if record.reservation.name else None,
-                    'nouveau_solde': record.nouveau_solde if record.nouveau_solde else None,
-                    'montant': record.montant if record.montant else None,
-                }
-                history_data.append(record_dict)
+       
         
         response_data = {
             'data': history_data,
