@@ -56,7 +56,7 @@ def solde_history_view(request):
                 record_dict = {
                     'reservation': record.reservation.name,
                     'montant': record.montant,
-                    'status':"checkout"
+                    'status':"paiement"
                 }
                 history_data.append(record_dict)
         
