@@ -57,11 +57,7 @@ def solde_history_view(request):
         if history_page is not None:
             for record in history_page:
                 record_dict = {
-                    'client': record.client,
-                    'reservation': record.reservation.name,
-                    'nouveau_solde': record.nouveau_solde,
-                    'montant': record.montant,
-                }
+                    'client': '1'}
                 history_data.append(record_dict)
         
         response_data = {
