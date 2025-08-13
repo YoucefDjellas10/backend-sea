@@ -22,6 +22,66 @@ endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 from django.utils import timezone
 import time
 import locale
+from django.forms.models import model_to_dict
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from rest_framework import status
+
+def solde_history_view(request):
+    try :
+        client_id = request.GET.get("client_id")
+        page_number = request.GET.get("page")
+
+        if not client_id:
+            return JsonResponse({'error': 'client_id est requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        client = ListeClient.objects.filter(id=client_id).first()
+
+        if not client:
+            return JsonResponse({'error': 'Client non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+        history_queryset = HistoriqueSolde.objects.filter(
+            client__id=client.id
+        ).order_by('-create_date')  
+        
+        paginator = Paginator(history_queryset, 10)  
+        
+        try:
+            history_page = paginator.page(page_number)
+        except PageNotAnInteger:
+            history_page = paginator.page(1)
+        except EmptyPage:
+            history_page = paginator.page(paginator.num_pages)
+        
+        history_data = []
+        for record in history_page:
+            record_dict = {
+                'client': record.client,
+                'reservation': record.reservation.name,
+                'nouveau_solde': record.nouveau_solde,
+                'montant': record.montant,
+            }
+            history_data.append(record_dict)
+        
+        response_data = {
+            'data': history_data,
+            'pagination': {
+                'current_page': history_page.number,
+                'total_pages': paginator.num_pages,
+                'total_records': paginator.count,
+                'has_next': history_page.has_next(),
+                'has_previous': history_page.has_previous(),
+                'next_page': history_page.next_page_number() if history_page.has_next() else None,
+                'previous_page': history_page.previous_page_number() if history_page.has_previous() else None,
+                'per_page': 10
+            }
+        }
+        
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
+        
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 def client_info_view(request):
     try:

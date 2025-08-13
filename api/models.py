@@ -1420,6 +1420,7 @@ class HistoriqueSolde(models.Model):
     client = models.ForeignKey(ListeClient, on_delete=models.CASCADE, related_name='client')
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reservation')
     montant = models.DecimalField(max_digits=10, decimal_places=2)
+    create_date = models.DateTimeField()
     
     def __str__(self):
         return f"{self.name} - {self.client} - {self.montant}"
