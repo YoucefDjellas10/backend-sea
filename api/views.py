@@ -41,7 +41,7 @@ def solde_history_view(request):
         
 
         history_queryset = HistoriqueSolde.objects.filter(
-            client=client
+            client_id=client_id
         ).order_by('-create_date')  
         
         paginator = Paginator(history_queryset, 10)  
