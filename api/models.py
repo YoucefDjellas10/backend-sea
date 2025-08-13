@@ -1417,8 +1417,8 @@ class Payment(models.Model):
 
 class HistoriqueSolde(models.Model):
     name = models.CharField(max_length=255)
-    client = models.ForeignKey(ListeClient, on_delete=models.CASCADE, related_name='client')
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reservation')
+    client = models.ForeignKey(ListeClient,db_column='client' ,on_delete=models.CASCADE, related_name='client')
+    reservation = models.ForeignKey(Reservation,db_column='reservation', on_delete=models.CASCADE, related_name='reservation')
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     create_date = models.DateTimeField()
     
