@@ -39,7 +39,6 @@ def solde_history_view(request):
         if not client:
             return JsonResponse({'error': 'Client non trouvé'}, status=status.HTTP_404_NOT_FOUND)
         
-
         history_queryset = HistoriqueSolde.objects.filter(client=client).order_by('-create_date')  
         
         paginator = Paginator(history_queryset, 10)  
@@ -50,8 +49,6 @@ def solde_history_view(request):
             history_page = paginator.page(1)
         except EmptyPage:
             history_page = paginator.page(paginator.num_pages)
-        
-        print(history_page)
         
         history_data = []
         if history_page is not None:
@@ -79,7 +76,6 @@ def solde_history_view(request):
         
         return JsonResponse(response_data, status=status.HTTP_200_OK)
         
-
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
