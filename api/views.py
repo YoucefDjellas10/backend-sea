@@ -40,9 +40,7 @@ def solde_history_view(request):
             return JsonResponse({'error': 'Client non trouvé'}, status=status.HTTP_404_NOT_FOUND)
         
 
-        history_queryset = HistoriqueSolde.objects.filter(
-            client=client.id
-        ).order_by('-create_date')  
+        history_queryset = HistoriqueSolde.objects.filter().order_by('-create_date')  
         
         paginator = Paginator(history_queryset, 10)  
         
