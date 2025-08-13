@@ -57,7 +57,7 @@ def solde_history_view(request):
         if history_page is not None:
             for record in history_page:
                 record_dict = {
-                    'client': record.client,
+                    'client': record.client.id,
                     'reservation': record.reservation.name,
                     'montant': record.montant,
                 }
