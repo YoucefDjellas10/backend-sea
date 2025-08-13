@@ -40,9 +40,7 @@ def solde_history_view(request):
             return JsonResponse({'error': 'Client non trouvé'}, status=status.HTTP_404_NOT_FOUND)
         
 
-        history_queryset = HistoriqueSolde.objects.filter(
-            client_id=client_id
-        ).order_by('-create_date')  
+        history_queryset = HistoriqueSolde.objects.filter().order_by('-create_date')  
         
         paginator = Paginator(history_queryset, 10)  
         
@@ -56,10 +54,7 @@ def solde_history_view(request):
         history_data = []
         for record in history_page:
             record_dict = {
-                'client': record.client,
-                'reservation': record.reservation.name,
-                'nouveau_solde': record.nouveau_solde,
-                'montant': record.montant,
+                'client': "1"
             }
             history_data.append(record_dict)
         
