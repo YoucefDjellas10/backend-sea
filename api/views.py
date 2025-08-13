@@ -54,7 +54,7 @@ def solde_history_view(request):
             history_page = paginator.page(paginator.num_pages)
         
         history_data = []
-        if history_page :
+        if history_page is not None:
             for record in history_page:
                 record_dict = {
                     'client': record.client,
