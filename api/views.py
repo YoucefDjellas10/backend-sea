@@ -874,7 +874,7 @@ def add_reservation_post_view(request):
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
             if client :
-                client_solde = client.solde if client.solde else 0
+                client_solde = int(client.solde) if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
             else :
                 return JsonResponse({"error": "client non trouver."}, status=400)
@@ -943,16 +943,16 @@ def add_reservation_post_view(request):
                     last_total = (100-promo_value) * total / 100
                 else : 
                     last_total = total
-                # if client_solde > 0:
-                #     last_total = total - client_solde
-                    # if client.solde_consomer is None and client.solde_total is None :
-                    #      client.solde_consomer +=  0
-                    #      client.solde_total +=  0
-                    #      client.save()
-                    # client.solde = 0.00
-                    # client.solde_consomer += client_solde if client_solde else 0
-                    # client.solde_total += client_solde if client_solde else 0
-                    # client.save()
+                if client_solde > 0:
+                    last_total = total - client_solde
+                    if client.solde_consomer is None and client.solde_total is None :
+                         client.solde_consomer +=  0
+                         client.solde_total +=  0
+                         client.save()
+                    client.solde = 0.00
+                    client.solde_consomer += client_solde if client_solde else 0
+                    client.solde_total += client_solde if client_solde else 0
+                    client.save()
             else:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
         else:
