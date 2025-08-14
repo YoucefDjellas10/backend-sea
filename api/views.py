@@ -1516,8 +1516,8 @@ def add_reservation_post_view(request):
             reduction = client_red_pr,
             total_afficher_reduit = total_afficher_red,
             prix_jour_afficher_reduit = last_prix_unitaire,
-            total_reduit = last_total,
-            total_reduit_euro = last_total
+            total_reduit = Decimal(last_total),
+            total_reduit_euro = Decimal(last_total)
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
