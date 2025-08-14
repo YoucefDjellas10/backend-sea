@@ -943,8 +943,8 @@ def add_reservation_post_view(request):
                     last_total = (100-promo_value) * total / 100
                 else : 
                     last_total = total
-                if client_solde > 0:
-                    last_total = total - client_solde
+                # if client_solde > 0:
+                #     last_total = total - client_solde
                     # if client.solde_consomer is None and client.solde_total is None :
                     #      client.solde_consomer +=  0
                     #      client.solde_total +=  0
@@ -1516,8 +1516,8 @@ def add_reservation_post_view(request):
             reduction = client_red_pr,
             total_afficher_reduit = total_afficher_red,
             prix_jour_afficher_reduit = last_prix_unitaire,
-            total_reduit = Decimal(last_total),
-            total_reduit_euro = Decimal(last_total)
+            total_reduit = last_total,
+            total_reduit_euro = last_total
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
