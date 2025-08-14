@@ -96,6 +96,7 @@ def client_info_view(request):
         
         result = {
             "currency":"DA" if country_code == "DZ" else "EUR",
+            "client_id":client.id,
             "nom": client.nom,
             "prenom": client.prenom,
             "email": client.email,
