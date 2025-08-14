@@ -945,10 +945,8 @@ def add_reservation_post_view(request):
                     last_total = total
                 if client_solde > 0:
                     last_total = total - client_solde
-                    if client.solde_consomer is None and client.solde_total is None :
-                         client.solde_consomer +=  0
-                         client.solde_total +=  0
-                         client.save()
+                    client.solde_consomer = client.solde_consomer or 0
+                    client.solde_total = client.solde_total or 0
                     client.solde = 0.00
                     client.solde_consomer += client_solde if client_solde else 0
                     client.solde_total += client_solde if client_solde else 0
