@@ -38,6 +38,7 @@ def vip_reduction(country_code):
             final_prix = prix - (prix * pourcentage / 100 )
             modele = Modele.objects.filter(id=model_id).first()
             moins_cher.append({
+                "currency": "DZ" if country_code == "DZ" else "EUR",
                 "model_name":modele.name,
                 "model_prix":final_prix,
                 "marketing_text_fr":modele.marketing_text_fr,
@@ -320,6 +321,8 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
 
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
+
+        result["currency"]="DA" if country_code == "DZ" else "EUR"
 
         if klm == "yes" and not reservations.opt_klm_name:
             klM_a = Options.objects.filter(option_code="KLM_ILLIMITED", zone= lieu_depart_obj.zone).first()
