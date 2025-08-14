@@ -943,16 +943,16 @@ def add_reservation_post_view(request):
                     last_total = (100-promo_value) * total / 100
                 else : 
                     last_total = total
-                if client_solde > 0:
-                    if client.solde_consomer is None and client.solde_total is None :
-                         client.solde_consomer +=  0
-                         client.solde_total +=  0
-                         client.save()
-                    last_total = total - client_solde
-                    client.solde = 0
-                    client.solde_consomer += client_solde if client_solde else 0
-                    client.solde_total += client_solde if client_solde else 0
-                    client.save()
+                # if client_solde > 0:
+                #     if client.solde_consomer is None and client.solde_total is None :
+                #          client.solde_consomer +=  0
+                #          client.solde_total +=  0
+                #          client.save()
+                #     last_total = total - client_solde
+                #     client.solde = 0
+                #     client.solde_consomer += client_solde if client_solde else 0
+                #     client.solde_total += client_solde if client_solde else 0
+                #     client.save()
             else:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
         else:
