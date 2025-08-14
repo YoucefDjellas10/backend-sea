@@ -107,7 +107,7 @@ def client_info_view(request):
             "category":client.categorie_client.name,
             "category_en":client.categorie_client.name_en,
             "category_ar":client.categorie_client.name_ar,
-            "solde":client.solde * taux if country_code == "DZ" else client.solde,
+            "solde":float(client.solde) * float(taux) if country_code == "DZ" else float(client.solde),
             "prime_code":client.code_prime,
             "points_total":client.total_points,
 
