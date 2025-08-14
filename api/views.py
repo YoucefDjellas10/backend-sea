@@ -936,7 +936,7 @@ def add_reservation_post_view(request):
 
             if tarif :
                 prix_jour = tarif.prix
-                total += prix_jour * total_days if prix_jour and total_days else 0
+                total += prix_jour * total_days
                 if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                     last_total = (100-client_red_pr) * total / 100
                 elif promo_value > client_red_pr:
