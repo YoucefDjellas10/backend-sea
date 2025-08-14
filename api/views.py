@@ -936,7 +936,7 @@ def add_reservation_post_view(request):
 
             if tarif :
                 prix_jour = tarif.prix
-                total += prix_jour * total_days
+                total += prix_jour * total_days if prix_jour and total_days else 0
                 if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                     last_total = (100-client_red_pr) * total / 100
                 elif promo_value > client_red_pr:
@@ -946,8 +946,8 @@ def add_reservation_post_view(request):
                 if client_solde > 0:
                     last_total = total - client_solde
                     client.solde = 0
-                    client.solde_consomer += client_solde
-                    client.solde_total += client_solde
+                    client.solde_consomer += client_solde if client_solde else 0
+                    client.solde_total += client_solde if client_solde else 0
                     client.save()
             else:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
