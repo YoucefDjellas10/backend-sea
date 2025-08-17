@@ -807,11 +807,19 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
+
+                credit = "no"
+                credit_amount = 0
+                if get_total > total_ and (get_total - total_)>150: 
+                    credit = "yes"
+                    credit_amount = get_total - total_
                 
                 result.append({
                     'is_available':"yes",
                     'old_total': float(get_total) * float(taux_change) if country_code == "DZ" else get_total,
                     'new_total':float(total_) * float(taux_change) if country_code == "DZ" else total_,
+                    "credit":credit,
+                    "credit_amount": credit_amount
                 })
 
             else :
