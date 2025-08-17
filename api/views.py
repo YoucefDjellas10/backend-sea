@@ -827,6 +827,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         content_type="application/json"
                     )
                     payment_session_response = create_payment_session_verify_calculate(fake_request)
+                    print(payment_session_response)
                     if payment_session_response.status_code == 200:
                         payment_session_data = json.loads(payment_session_response.content)
                         session_id = payment_session_data.get("session_id", "")
