@@ -1096,6 +1096,9 @@ class Reservation(models.Model):
     address_fr = models.CharField(null=True, blank=True)
     address_en = models.CharField(null=True, blank=True)
     address_ar = models.CharField(null=True, blank=True)
+    du_au_modifier = models.CharField(null=True, blank=True)
+    ancien_lieu = models.CharField(null=True, blank=True)
+
 
     class Meta:
         db_table = 'reservation'

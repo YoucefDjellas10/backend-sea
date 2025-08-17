@@ -737,6 +737,60 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
+    
+
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, country_code):
+    try:
+        verify_value = verify_and_calculate(
+            ref,
+            lieu_depart,
+            lieu_retour,
+            date_depart,
+            heure_depart,
+            date_retour,
+            heure_retour,
+            country_code
+        )
+        if verify_value and verify_value[0].get('is_available') == "yes":
+            reservation_obj = Reservation.objects.get(name=ref)
+            lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
+            lieu_retour_obj = Lieux.objects.get(id=lieu_retour)
+            date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
+            heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
+            date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
+            heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
+            old_total = verify_value[0].get('old_total') 
+            new_total = verify_value[0].get('new_total')
+            if  date.today() > reservation_obj.date_heure_debut and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                a=0
+            if float(old_total) == float(new_total) or ((float(old_total) > float(new_total)) and (float(old_total) - float(new_total))<= 150):
+                if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                    reservation_obj.du_au_modifier = f"{reservation_obj.date_heure_debut.strftime("%d/%m/%Y %H:%M")} → {reservation_obj.date_heure_fin.strftime("%d/%m/%Y %H:%M")}"
+                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+                    reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+                    reservation_obj.lieu_depart = lieu_depart_obj
+                    reservation_obj.lieu_retour = lieu_retour_obj
+                reservation_obj.save()
+
+            elif float(old_total) > float(new_total) and (float(old_total) - float(new_total)) > 150:
+                if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                    reservation_obj.du_au_modifier = f"{reservation_obj.date_heure_debut.strftime("%d/%m/%Y %H:%M")} → {reservation_obj.date_heure_fin.strftime("%d/%m/%Y %H:%M")}"
+                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+                    reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+                    reservation_obj.lieu_depart = lieu_depart_obj
+                    reservation_obj.lieu_retour = lieu_retour_obj
+                reservation_obj.save()
+
+
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
+    except Exception as e:
+        return {"message": f"Erreur: {str(e)}"}
+     
 
 
 def verify_and_do_view(request):
@@ -749,8 +803,8 @@ def verify_and_do_view(request):
     heure_retour = request.GET.get("heure_retour")
     country_code = request.headers.get("X-Country-Code")
 
-    if not date_retour or not date_depart:
-        return JsonResponse({"error": "Les paramètres 'date_retour' et 'date_depart' sont requis."}, status=400)
+    if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
+        return JsonResponse({"error": "Tous les paramètres sont requis."}, status=400)
 
     try:
         resultats = verify_and_edit(
