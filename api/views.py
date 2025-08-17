@@ -831,7 +831,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         session_id = payment_session_data.get("session_id", "")
                         payment_url = payment_session_data.get("url", "")
         
-            return JsonResponse({"success": "yes" ,"session_id": session_id, "payment_url": payment_url}, status=200)
+            return {"success": "yes" ,"session_id": session_id, "payment_url": payment_url}
         else : 
             return JsonResponse({"success": "no"}, status=400)
 
