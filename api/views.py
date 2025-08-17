@@ -765,7 +765,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 a=0
             if float(old_total) == float(new_total) or ((float(old_total) > float(new_total)) and (float(old_total) - float(new_total))<= 150):
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    reservation_obj.du_au_modifier = f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → {reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}"
+                    reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
+                                                      f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
                     reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                     reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
@@ -776,7 +777,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
             elif float(old_total) > float(new_total) and (float(old_total) - float(new_total)) > 150:
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    reservation_obj.du_au_modifier = f"{reservation_obj.date_heure_debut.strftime("%d/%m/%Y %H:%M")} → {reservation_obj.date_heure_fin.strftime("%d/%m/%Y %H:%M")}"
+                    reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
+                                                      f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
                     reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                     reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
