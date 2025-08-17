@@ -726,7 +726,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     )
                 )
                 for tarif in tarifs:
-                    total = 0
+                    total = 5
                     prix_unitaire = 0
 
                     if tarif.date_depart_one and tarif.date_fin_one:
