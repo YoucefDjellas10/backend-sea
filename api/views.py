@@ -867,6 +867,9 @@ def create_payment_session_verify_calculate(request):
         unit_amount = int(unit_amount)
         quantity = int(quantity)
 
+        print("unit_amount : ", unit_amount)
+        print("quantity : ", quantity)
+
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[
