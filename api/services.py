@@ -680,6 +680,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_depart_heure += timedelta(hours=1)
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
+        total = 0
 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -810,9 +811,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 credit = "no"
                 credit_amount = 0
-                if float(get_total) > float(total_) and (float(get_total) - float(total_))>150: 
+                if float(get_total) > float(total_) and ( float(get_total) - float(total_))>150: 
                     credit = "yes"
-                    credit_amount = get_total - total_
+                    credit_amount = float(get_total) - float(total_)
                 
                 result.append({
                     'is_available':"yes",
