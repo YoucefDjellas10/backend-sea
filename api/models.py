@@ -1098,6 +1098,7 @@ class Reservation(models.Model):
     address_ar = models.CharField(null=True, blank=True)
     du_au_modifier = models.CharField(null=True, blank=True)
     ancien_lieu = models.CharField(null=True, blank=True)
+    reste_payer = models.FloatField()
 
 
     class Meta:

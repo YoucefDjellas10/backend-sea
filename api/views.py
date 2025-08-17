@@ -761,6 +761,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
+            session_id = None
+            payment_url = None
+
             if  date.today() > reservation_obj.date_heure_debut and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                 a=0
             if float(old_total) == float(new_total) or ((float(old_total) > float(new_total)) and (float(old_total) - float(new_total))<= 150):
@@ -788,14 +791,106 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.lieu_depart = lieu_depart_obj
                     reservation_obj.lieu_retour = lieu_retour_obj
                 reservation_obj.save()
+            elif float(old_total) < float(new_total):
+                if reservation_obj.opt_payment_name : 
+                    if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                        reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
+                                                        f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
+                        reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                        reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                    if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+                        reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+                        reservation_obj.lieu_depart = lieu_depart_obj
+                        reservation_obj.lieu_retour = lieu_retour_obj
+                    
+                    reservation_obj.total_reduit_euro = new_total
+                    reservation_obj.reste_payer = float(old_total) - float(new_total)
+                    reservation_obj.save()
 
+                else :
+                    request_factory = RequestFactory()
+                    fake_request = request_factory.post(
+                        path="/create-payment-session-reservation/",
+                        data=json.dumps({
+                            "product_name": f"Réservation N° : {reservation_obj.name}",
+                            "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
+                            "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
+                            "unit_amount": (float(old_total) - float(new_total)) * 100,
+                            "quantity": 1,
+                            "currency": "eur",
+                            "reservation_id": reservation_obj.id,
+                            "montant_paye":(float(old_total) - float(new_total)),
+                            "email": reservation_obj.email
+
+                        }),
+                        content_type="application/json"
+                    )
+                    payment_session_response = create_payment_session_verify_calculate(fake_request)
+                    if payment_session_response.status_code == 200:
+                        payment_session_data = json.loads(payment_session_response.content)
+                        session_id = payment_session_data.get("session_id", "")
+                        payment_url = payment_session_data.get("url", "")
+        
+            return JsonResponse({"success": "yes" ,"session_id": session_id, "payment_url": payment_url}, status=200)
+        else : 
+            return JsonResponse({"success": "no"}, status=400)
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
-     
 
+@csrf_exempt
+def create_payment_session_verify_calculate(request):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+        product_name = data.get("product_name")
+        description = data.get("description")
+        images = data.get("images", [])
+        unit_amount = data.get("unit_amount")
+        quantity = data.get("quantity")
+        currency = data.get("currency", "eur")
+        reservation_id = data.get("reservation_id")
+        customer_email = data.get("email")
+
+        if not all([product_name, description, unit_amount, quantity]):
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        unit_amount = int(unit_amount)
+        quantity = int(quantity)
+
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": product_name,
+                            "description": description,
+                            "images": images,
+                        },
+                        "unit_amount": unit_amount,
+                    },
+                    "quantity": quantity,
+                },
+            ],
+            mode="payment",
+            success_url=f"https://safar.ranwip.com/confirmation/{reservation_id}",
+            cancel_url="https://safar.ranwip.com/cancel",
+            customer_email=customer_email,
+            metadata={
+                "reservation_id": str(reservation_id),
+                "montant_paye": str(data.get("montant_paye", 0))
+            }
+        )
+
+        return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 def verify_and_do_view(request):
     ref = request.GET.get("ref")
@@ -811,7 +906,7 @@ def verify_and_do_view(request):
         return JsonResponse({"error": "Tous les paramètres sont requis."}, status=400)
 
     try:
-        resultats = verify_and_edit(
+        resultats = verify_and_do(
             ref=ref,
             lieu_depart = lieu_depart,
             lieu_retour = lieu_retour,
@@ -1651,7 +1746,7 @@ def create_payment_session_reservation(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safar.ranwip.com/confirmation?id={reservation_id}",
+            success_url=f"https://safar.ranwip.com/confirmation/{reservation_id}",
             cancel_url="https://safar.ranwip.com/cancel",
             customer_email=customer_email,
             metadata={

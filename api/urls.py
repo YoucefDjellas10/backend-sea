@@ -39,6 +39,7 @@ urlpatterns += [
     path("create-payment-session/", create_payment_session, name="create_payment_session"),
     path("create-payment-session-protection/", create_payment_session_protection, name="create_payment_session_protection"),
     path("create-payment-session-reservation/", create_payment_session_reservation, name="create_payment_session_reservation"),
+    path("create-payment-session-verify-calculate/", create_payment_session_verify_calculate, name="create_payment_session_verify_calculate"),
     path("create-payment-session-option/", create_payment_session_option, name="create_payment_session_option"),
     path("stripe-webhook/", stripe_webhook, name="stripe_webhook"),
     path("stripe-webhook-reservation/", stripe_webhook_reservation, name="stripe_webhook_reservation"),
