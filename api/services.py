@@ -768,6 +768,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     print(frais_dossier.prix)
                     if frais_dossier:
                         total += frais_dossier.prix
+                    print(total)
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
                     if frais_livraison :
                         for frais in frais_livraison:
