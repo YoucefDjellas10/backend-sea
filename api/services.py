@@ -810,7 +810,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 credit = "no"
                 credit_amount = 0
-                if get_total > total_ and (get_total - total_)>150: 
+                if float(get_total) > float(total_) and (float(get_total) - float(total_))>150: 
                     credit = "yes"
                     credit_amount = get_total - total_
                 
