@@ -816,7 +816,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             "product_name": f"Réservation N° : {reservation_obj.name}",
                             "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
                             "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
-                            "unit_amount": int((float(new_total) - float(old_total)) * 100),
+                            "unit_amount": -int((float(new_total) - float(old_total)) * 100),
                             "quantity": 1,
                             "currency": "eur",
                             "reservation_id": reservation_obj.id,
@@ -835,6 +835,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     else : 
                         session_id = "Lost"
                         payment_url = "Lost"
+                        return {"success": "no" ,"session_id": session_id, "payment_url": payment_url}
         
             return {"success": "yes" ,"session_id": session_id, "payment_url": payment_url}
         else : 
