@@ -808,7 +808,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.reste_payer = float(old_total) - float(new_total)
                     reservation_obj.save()
                 else :
-                    print("case three - two")
                     request_factory = RequestFactory()
                     fake_request = request_factory.post(
                         path="/create-payment-session-verify-calculate/",
@@ -816,7 +815,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             "product_name": f"Réservation N° : {reservation_obj.name}",
                             "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
                             "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
-                            "unit_amount": -int((float(new_total) - float(old_total)) * 100),
+                            "unit_amount": int((float(new_total) - float(old_total)) * 100),
                             "quantity": 1,
                             "currency": "eur",
                             "reservation_id": reservation_obj.id,
@@ -827,7 +826,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         content_type="application/json"
                     )
                     payment_session_response = create_payment_session_verify_calculate(fake_request)
-                    print(payment_session_response)
                     if payment_session_response.status_code == 200:
                         payment_session_data = json.loads(payment_session_response.content)
                         session_id = payment_session_data.get("session_id", "")
@@ -867,9 +865,6 @@ def create_payment_session_verify_calculate(request):
 
         unit_amount = int(unit_amount)
         quantity = int(quantity)
-
-        print("unit_amount : ", unit_amount)
-        print("quantity : ", quantity)
 
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
