@@ -767,7 +767,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             if  date.today() > reservation_obj.date_heure_debut.date() and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                 a=0
             if float(old_total) == float(new_total) or ((float(old_total) > float(new_total)) and (float(old_total) - float(new_total))<= 150):
-                print("case one")
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
                                                       f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
@@ -780,7 +779,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 reservation_obj.save()
 
             elif float(old_total) > float(new_total) and (float(old_total) - float(new_total)) > 150:
-                print("case two")
                 reservation_obj.client.solde += Decimal(float(old_total) - float(new_total))
                 reservation_obj.client.solde_total += (float(old_total) - float(new_total))
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
@@ -794,9 +792,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.lieu_retour = lieu_retour_obj
                 reservation_obj.save()
             elif float(old_total) < float(new_total):
-                print("case three")
                 if reservation_obj.opt_payment_name : 
-                    print("case three - one")
+                    
                     if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                         reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
                                                         f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
@@ -810,12 +807,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.total_reduit_euro = new_total
                     reservation_obj.reste_payer = float(old_total) - float(new_total)
                     reservation_obj.save()
-
                 else :
                     print("case three - two")
                     request_factory = RequestFactory()
                     fake_request = request_factory.post(
-                        path="/create-payment-session-reservation/",
+                        path="/create-payment-session-verify-calculate/",
                         data=json.dumps({
                             "product_name": f"Réservation N° : {reservation_obj.name}",
                             "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
