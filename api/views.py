@@ -816,7 +816,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             "product_name": f"Réservation N° : {reservation_obj.name}",
                             "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
                             "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
-                            "unit_amount": (float(old_total) - float(new_total)) * 100,
+                            "unit_amount": int((float(old_total) - float(new_total)) * 100),
                             "quantity": 1,
                             "currency": "eur",
                             "reservation_id": reservation_obj.id,
@@ -892,7 +892,7 @@ def create_payment_session_verify_calculate(request):
                 "montant_paye": str(data.get("montant_paye", 0))
             }
         )
-        print("checkout_session : " , checkout_session)
+
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
