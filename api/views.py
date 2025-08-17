@@ -861,15 +861,8 @@ def create_payment_session_verify_calculate(request):
         reservation_id = data.get("reservation_id")
         customer_email = data.get("email")
 
-        print("DATA RECU:", data)
-        print("product_name:", product_name)
-        print("description:", description)
-        print("unit_amount:", unit_amount)
-        print("quantity:", quantity)
-
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
-        print("on est la")
 
         unit_amount = int(unit_amount)
         quantity = int(quantity)
@@ -899,6 +892,8 @@ def create_payment_session_verify_calculate(request):
                 "montant_paye": str(data.get("montant_paye", 0))
             }
         )
+        print("session_id : " , checkout_session.id)
+        print("url : " , checkout_session.url)
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
