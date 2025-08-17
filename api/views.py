@@ -926,7 +926,7 @@ def verify_and_do_view(request):
             heure_retour = heure_retour,
             country_code = country_code
         )
-        if resultats[0].get('success') == "yes":
+        if resultats.get('success') == "yes":
             return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
         else :
             return JsonResponse({"results": resultats}, status=400, json_dumps_params={"ensure_ascii": False})
