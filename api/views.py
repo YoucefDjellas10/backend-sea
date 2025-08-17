@@ -892,8 +892,7 @@ def create_payment_session_verify_calculate(request):
                 "montant_paye": str(data.get("montant_paye", 0))
             }
         )
-        print("session_id : " , checkout_session.id)
-        print("url : " , checkout_session.url)
+        print("checkout_session : " , checkout_session)
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
