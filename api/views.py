@@ -869,6 +869,7 @@ def create_payment_session_verify_calculate(request):
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
+        print("on est la")
 
         unit_amount = int(unit_amount)
         quantity = int(quantity)
