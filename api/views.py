@@ -906,7 +906,8 @@ def create_payment_session_verify_calculate(request):
                 "date_depart":date_depart,
                 "heure_depart":heure_depart,
                 "date_retour":date_retour,
-                "heure_retour":heure_retour
+                "heure_retour":heure_retour,
+                "type":"verify_calculate"
             }
         )
 
@@ -1827,7 +1828,8 @@ def create_payment_session_reservation(request):
             metadata={
                 "reservation_id": str(reservation_id),
                 "montant_total": str(data.get("montant_total", 0)), 
-                "montant_paye": str(data.get("montant_paye", 0))
+                "montant_paye": str(data.get("montant_paye", 0)),
+                "type":"reservation"
             }
         )
 
@@ -1848,158 +1850,195 @@ def stripe_webhook_reservation(request):
         return JsonResponse({"error": "Invalid payload"}, status=400)
     except stripe.error.SignatureVerificationError:
         return JsonResponse({"error": "Invalid signature"}, status=400)
+    type_id = session.get("metadata", {}).get("type")
 
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
+    if type_id == "reservation":
 
-        reservation_id = session.get("metadata", {}).get("reservation_id")
-        montant_total = session.get("metadata", {}).get("montant_total")
-        montant_paye = session.get("metadata", {}).get("montant_paye")
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
 
-        montant_total = float(montant_total) if montant_total else 0
-        montant_paye = float(montant_paye) if montant_paye else 0
+            reservation_id = session.get("metadata", {}).get("reservation_id")
+            montant_total = session.get("metadata", {}).get("montant_total")
+            montant_paye = session.get("metadata", {}).get("montant_paye")
 
-        montant_paye_dec = Decimal(montant_paye) if montant_paye else Decimal("0.00")
+            montant_total = float(montant_total) if montant_total else 0
+            montant_paye = float(montant_paye) if montant_paye else 0
 
-        reservation = Reservation.objects.filter(id=reservation_id).first()
-        reservation.status ="confirmee"
-        reservation.montant_paye = montant_paye_dec
-        reservation.save()
-         
+            montant_paye_dec = Decimal(montant_paye) if montant_paye else Decimal("0.00")
 
-        date_heure_depart = reservation.date_heure_debut
-        date_heure_retour = reservation.date_heure_fin
+            reservation = Reservation.objects.filter(id=reservation_id).first()
+            reservation.status ="confirmee"
+            reservation.montant_paye = montant_paye_dec
+            reservation.save()
+            
 
-        date_debut = date_heure_depart.strftime("%d %B %Y") 
-        heure_debut = date_heure_depart.strftime("%H:%M")  
+            date_heure_depart = reservation.date_heure_debut
+            date_heure_retour = reservation.date_heure_fin
 
-        date_fin = date_heure_retour.strftime("%d %B %Y")
-        heure_fin = date_heure_retour.strftime("%H:%M")
+            date_debut = date_heure_depart.strftime("%d %B %Y") 
+            heure_debut = date_heure_depart.strftime("%H:%M")  
 
-        taux = TauxChange.objects.filter(id=2).first()
-        taux_change = taux.montant
+            date_fin = date_heure_retour.strftime("%d %B %Y")
+            heure_fin = date_heure_retour.strftime("%H:%M")
 
-        sujet = f"Confirmation de votre reservation N°= {reservation.name}"
-        expediteur = settings.EMAIL_HOST_USER
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
 
-        html_message = render_to_string('email/confirmation_mail.html', {
-            "referance":reservation.name,
-            "adresse_one":reservation.lieu_depart.address,
-            "adresse_two":reservation.lieu_retour.address,
-            'client': reservation.client.nom,
-            'client_prenom':reservation.client.prenom,
-            'durrée':reservation.duree_dereservation,
-            'model_name':reservation.model_name,
-            'reste_paye':montant_total - montant_paye,
-            'caution':reservation.opt_protection_caution,
-            'date_depart':date_debut,
-            'heure_depart':heure_debut,
-            'date_retoure':date_fin,
-            'haure_retour':heure_fin,
-            'lieu_depart':reservation.lieu_depart.name,
-            'lieu_retour':reservation.lieu_retour.name
+            sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+            expediteur = settings.EMAIL_HOST_USER
 
-        })
+            html_message = render_to_string('email/confirmation_mail.html', {
+                "referance":reservation.name,
+                "adresse_one":reservation.lieu_depart.address,
+                "adresse_two":reservation.lieu_retour.address,
+                'client': reservation.client.nom,
+                'client_prenom':reservation.client.prenom,
+                'durrée':reservation.duree_dereservation,
+                'model_name':reservation.model_name,
+                'reste_paye':montant_total - montant_paye,
+                'caution':reservation.opt_protection_caution,
+                'date_depart':date_debut,
+                'heure_depart':heure_debut,
+                'date_retoure':date_fin,
+                'haure_retour':heure_fin,
+                'lieu_depart':reservation.lieu_depart.name,
+                'lieu_retour':reservation.lieu_retour.name
 
-
-        send_mail(
-            sujet,
-            strip_tags(html_message),  
-            expediteur,
-            [reservation.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+            })
 
 
-        montant_total = Decimal(montant_total) if montant_total else Decimal("0.00")
-        montant_paye = Decimal(montant_paye) if montant_paye else Decimal("0.00")
-        taux_change = Decimal(taux.montant) if taux else Decimal("1.00")  # Taux de change par défaut
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [reservation.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
 
-        payment = Payment.objects.create(
-            reservation=reservation,
-            vehicule=reservation.vehicule,  
-            modele=reservation.modele,  
-            zone=reservation.lieu_depart.zone,  
-            total_reduit_euro=montant_total,
-            montant=montant_paye,
-            montant_dzd=0,
-            montant_eur_dzd=montant_paye * taux_change,
-            montant_dzd_eur=0,  
-            note="Paiement effectué via Stripe",  
-            total_reduit_dinar=montant_total * taux_change,
-            ecart_eur=montant_total - montant_paye,
-            ecart_da=(montant_total - montant_paye) * taux_change,
-            mode_paiement="carte", 
-            total_encaisse=montant_paye,  
-        )
-        payment.save()
 
-        livraison = Livraison.objects.create(
-            reservation = reservation,
-            name = reservation.name,
-            caution_classic = reservation.opt_protection_caution,
-            caution_red = reservation.opt_protection_caution,
-            caution_classic_eur = reservation.opt_protection_caution,
-            status = reservation.status,
-            date_heure_debut = reservation.date_heure_debut,
-            date_heure_fin = reservation.date_heure_fin,
-            date_de_reservation = reservation.create_date,
-            nbr_jour_reservation = reservation.nbr_jour_reservation,
-            duree_dereservation = reservation.duree_dereservation,
-            lieu_depart = reservation.lieu_depart,
-            zone = reservation.zone,
-            lieu_retour = reservation.lieu_retour,
-            vehicule = reservation.vehicule,
-            modele = reservation.modele,
-            carburant = reservation.carburant,
-            client = reservation.client,
-            nom = reservation.nom,
-            prenom = reservation.prenom,
-            email = reservation.email,
-            mobile = reservation.mobile,
-            total_reduit_euro = reservation.total_reduit_euro,
-            stage = 'reserve',
-            lv_type = "livraison",
-            action_lieu=reservation.lieu_depart.name,
-            action_date=reservation.date_heure_debut,
+            montant_total = Decimal(montant_total) if montant_total else Decimal("0.00")
+            montant_paye = Decimal(montant_paye) if montant_paye else Decimal("0.00")
+            taux_change = Decimal(taux.montant) if taux else Decimal("1.00")  # Taux de change par défaut
 
-        ) 
-        livraison.save()
+            payment = Payment.objects.create(
+                reservation=reservation,
+                vehicule=reservation.vehicule,  
+                modele=reservation.modele,  
+                zone=reservation.lieu_depart.zone,  
+                total_reduit_euro=montant_total,
+                montant=montant_paye,
+                montant_dzd=0,
+                montant_eur_dzd=montant_paye * taux_change,
+                montant_dzd_eur=0,  
+                note="Paiement effectué via Stripe",  
+                total_reduit_dinar=montant_total * taux_change,
+                ecart_eur=montant_total - montant_paye,
+                ecart_da=(montant_total - montant_paye) * taux_change,
+                mode_paiement="carte", 
+                total_encaisse=montant_paye,  
+            )
+            payment.save()
 
-        restitution = Livraison.objects.create(
-            reservation = reservation,
-            name = reservation.name,
-            caution_classic = reservation.opt_protection_caution,
-            caution_red = reservation.opt_protection_caution,
-            caution_classic_eur = reservation.opt_protection_caution,
-            status = reservation.status,
-            date_heure_debut = reservation.date_heure_debut,
-            date_heure_fin = reservation.date_heure_fin,
-            date_de_reservation = reservation.create_date,
-            nbr_jour_reservation = reservation.nbr_jour_reservation,
-            duree_dereservation = reservation.duree_dereservation,
-            lieu_depart = reservation.lieu_depart,
-            zone = reservation.zone,
-            lieu_retour = reservation.lieu_retour,
-            vehicule = reservation.vehicule,
-            modele = reservation.modele,
-            carburant = reservation.carburant,
-            client = reservation.client,
-            nom = reservation.nom,
-            prenom = reservation.prenom,
-            email = reservation.email,
-            mobile = reservation.mobile,
-            total_reduit_euro = reservation.total_reduit_euro,
-            stage = 'reserve',
-            lv_type = "restitution",
-            action_lieu=reservation.lieu_retour.name,
-            action_date=reservation.date_heure_fin,
-        ) 
-        restitution.save()
+            livraison = Livraison.objects.create(
+                reservation = reservation,
+                name = reservation.name,
+                caution_classic = reservation.opt_protection_caution,
+                caution_red = reservation.opt_protection_caution,
+                caution_classic_eur = reservation.opt_protection_caution,
+                status = reservation.status,
+                date_heure_debut = reservation.date_heure_debut,
+                date_heure_fin = reservation.date_heure_fin,
+                date_de_reservation = reservation.create_date,
+                nbr_jour_reservation = reservation.nbr_jour_reservation,
+                duree_dereservation = reservation.duree_dereservation,
+                lieu_depart = reservation.lieu_depart,
+                zone = reservation.zone,
+                lieu_retour = reservation.lieu_retour,
+                vehicule = reservation.vehicule,
+                modele = reservation.modele,
+                carburant = reservation.carburant,
+                client = reservation.client,
+                nom = reservation.nom,
+                prenom = reservation.prenom,
+                email = reservation.email,
+                mobile = reservation.mobile,
+                total_reduit_euro = reservation.total_reduit_euro,
+                stage = 'reserve',
+                lv_type = "livraison",
+                action_lieu=reservation.lieu_depart.name,
+                action_date=reservation.date_heure_debut,
 
-        
-        print(f"Paiement réussi pour la réservation ID: {reservation_id}")
+            ) 
+            livraison.save()
+
+            restitution = Livraison.objects.create(
+                reservation = reservation,
+                name = reservation.name,
+                caution_classic = reservation.opt_protection_caution,
+                caution_red = reservation.opt_protection_caution,
+                caution_classic_eur = reservation.opt_protection_caution,
+                status = reservation.status,
+                date_heure_debut = reservation.date_heure_debut,
+                date_heure_fin = reservation.date_heure_fin,
+                date_de_reservation = reservation.create_date,
+                nbr_jour_reservation = reservation.nbr_jour_reservation,
+                duree_dereservation = reservation.duree_dereservation,
+                lieu_depart = reservation.lieu_depart,
+                zone = reservation.zone,
+                lieu_retour = reservation.lieu_retour,
+                vehicule = reservation.vehicule,
+                modele = reservation.modele,
+                carburant = reservation.carburant,
+                client = reservation.client,
+                nom = reservation.nom,
+                prenom = reservation.prenom,
+                email = reservation.email,
+                mobile = reservation.mobile,
+                total_reduit_euro = reservation.total_reduit_euro,
+                stage = 'reserve',
+                lv_type = "restitution",
+                action_lieu=reservation.lieu_retour.name,
+                action_date=reservation.date_heure_fin,
+            ) 
+            restitution.save()
+
+            
+            print(f"Paiement réussi pour la réservation ID: {reservation_id}")
+    elif type_id == "verify_calculate":
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+
+            reservation_id = session.get("metadata", {}).get("reservation_id")
+            lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
+            lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
+            date_depart = session.get("metadata", {}).get("date_depart")
+            heure_depart = session.get("metadata", {}).get("heure_depart")
+            date_retour = session.get("metadata", {}).get("date_retour")
+            heure_retour = session.get("metadata", {}).get("heure_retour")
+            montant_paye = session.get("metadata", {}).get("montant_paye")
+
+            reservation_obj = Reservation.objects.get(name=reservation_id)
+            lieu_depart_obj = Lieux.objects.get(id=lieu_depart_id)
+            lieu_retour_obj = Lieux.objects.get(id=lieu_retour_id)
+            date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
+            heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
+            date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
+            heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
+
+
+            if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
+                                                    f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
+                reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+            if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+                reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+                reservation_obj.lieu_depart = lieu_depart_obj
+                reservation_obj.lieu_retour = lieu_retour_obj
+            reservation_obj.save()
+            
+            print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
 
     return JsonResponse({"status": "success"}, status=200)
 
