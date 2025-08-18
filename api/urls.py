@@ -43,6 +43,7 @@ urlpatterns += [
     path("create-payment-session-option/", create_payment_session_option, name="create_payment_session_option"),
     path("stripe-webhook/", stripe_webhook, name="stripe_webhook"),
     path("stripe-webhook-reservation/", stripe_webhook_reservation, name="stripe_webhook_reservation"),
+    path("stripe-webhook-verfy-calculate/", stripe_webhook_verfy_calculate, name="stripe_webhook_verfy_calculate"),
     path('cancel-request/', cancel_request_view, name='cancel_request'),
     path('cancel-do/', cancel_do_view, name='cancel_do'),
     path('my-reservations/', mes_reservations_view, name='my_reservations'),

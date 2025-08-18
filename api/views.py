@@ -820,7 +820,13 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             "currency": "eur",
                             "reservation_id": reservation_obj.id,
                             "montant_paye":(float(new_total) - float(old_total)),
-                            "email": reservation_obj.email
+                            "email": reservation_obj.email,
+                            "lieu_depart_id":lieu_depart,
+                            "lieu_retour_id":lieu_retour,
+                            "date_depart":date_depart,
+                            "heure_depart":heure_depart,
+                            "date_retour":date_retour,
+                            "heure_retour":heure_retour
 
                         }),
                         content_type="application/json"
@@ -859,6 +865,12 @@ def create_payment_session_verify_calculate(request):
         currency = data.get("currency", "eur")
         reservation_id = data.get("reservation_id")
         customer_email = data.get("email")
+        lieu_depart = data.get("lieu_depart")
+        lieu_retour = data.get("lieu_retour")
+        date_depart = data.get("date_depart")
+        heure_depart = data.get("heure_depart")
+        date_retour = data.get("date_retour")
+        heure_retour = data.get("heure_retour")
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
@@ -888,7 +900,13 @@ def create_payment_session_verify_calculate(request):
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
-                "montant_paye": str(data.get("montant_paye", 0))
+                "montant_paye": str(data.get("montant_paye", 0)),
+                "lieu_depart_id":lieu_depart,
+                "lieu_retour_id":lieu_retour,
+                "date_depart":date_depart,
+                "heure_depart":heure_depart,
+                "date_retour":date_retour,
+                "heure_retour":heure_retour
             }
         )
 
@@ -896,6 +914,55 @@ def create_payment_session_verify_calculate(request):
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+    
+@csrf_exempt
+def stripe_webhook_verfy_calculate(request):
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET  
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except ValueError:
+        return JsonResponse({"error": "Invalid payload"}, status=400)
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({"error": "Invalid signature"}, status=400)
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+
+        reservation_id = session.get("metadata", {}).get("reservation_id")
+        lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
+        lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
+        date_depart = session.get("metadata", {}).get("date_depart")
+        heure_depart = session.get("metadata", {}).get("heure_depart")
+        date_retour = session.get("metadata", {}).get("date_retour")
+        heure_retour = session.get("metadata", {}).get("heure_retour")
+        montant_paye = session.get("metadata", {}).get("montant_paye")
+
+        reservation_obj = Reservation.objects.get(name=reservation_id)
+        lieu_depart_obj = Lieux.objects.get(id=lieu_depart_id)
+        lieu_retour_obj = Lieux.objects.get(id=lieu_retour_id)
+        date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
+        heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
+        date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
+        heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
+
+
+        if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+            reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
+                                                f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
+            reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+            reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+        if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+            reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+            reservation_obj.lieu_depart = lieu_depart_obj
+            reservation_obj.lieu_retour = lieu_retour_obj
+        reservation_obj.save()
+        
+        print(f"Paiement réussi pour la réservation ID: {reservation_id}")
+
+    return JsonResponse({"status": "success"}, status=200)
 
 def verify_and_do_view(request):
     ref = request.GET.get("ref")
