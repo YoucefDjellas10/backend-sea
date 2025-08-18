@@ -764,8 +764,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             session_id = None
             payment_url = None
 
-            if  date.today() > reservation_obj.date_heure_debut.date() and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                a=0
+            #if  date.today() > reservation_obj.date_heure_debut.date() and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                
             if float(old_total) == float(new_total) or ((float(old_total) > float(new_total)) and (float(old_total) - float(new_total))<= 150):
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
@@ -808,6 +808,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.reste_payer = float(old_total) - float(new_total)
                     reservation_obj.save()
                 else :
+                    print("depart : ", lieu_depart ,"retour : ", lieu_retour)
                     request_factory = RequestFactory()
                     fake_request = request_factory.post(
                         path="/create-payment-session-verify-calculate/",
