@@ -871,6 +871,8 @@ def create_payment_session_verify_calculate(request):
         heure_depart = data.get("heure_depart")
         date_retour = data.get("date_retour")
         heure_retour = data.get("heure_retour")
+        print("lieu_depart : ", lieu_depart)
+        print("lieu_retour : ", lieu_retour)
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
