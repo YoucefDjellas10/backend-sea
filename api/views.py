@@ -808,7 +808,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.reste_payer = float(old_total) - float(new_total)
                     reservation_obj.save()
                 else :
-                    print("depart : ", lieu_depart ,"retour : ", lieu_retour)
                     request_factory = RequestFactory()
                     fake_request = request_factory.post(
                         path="/create-payment-session-verify-calculate/",
@@ -872,8 +871,6 @@ def create_payment_session_verify_calculate(request):
         heure_depart = data.get("heure_depart")
         date_retour = data.get("date_retour")
         heure_retour = data.get("heure_retour")
-        print("lieu_depart : ", lieu_depart)
-        print("lieu_retour : ", lieu_retour)
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
@@ -2027,7 +2024,8 @@ def stripe_webhook_reservation(request):
             date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
 
-
+            print("reservation_date_one : ",reservation_obj.date_heure_debut , " date_two : ",reservation_obj.date_heure_fin)
+            print("new_date_one : ",datetime.combine(date_depart_obj, heure_depart_obj) , " date_two : ",datetime.combine(date_retour_obj, heure_retour_obj))
             if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                 reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
                                                     f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
