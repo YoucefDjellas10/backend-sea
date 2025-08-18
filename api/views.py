@@ -2030,7 +2030,7 @@ def stripe_webhook_reservation(request):
                                                     f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
                 reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                 reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-            if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+            if reservation_obj.lieu_depart.id != lieu_depart_obj.id or reservation_obj.lieu_retour.id != lieu_retour_obj.id :
                 reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
                 reservation_obj.lieu_depart = lieu_depart_obj
                 reservation_obj.lieu_retour = lieu_retour_obj
