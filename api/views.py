@@ -1850,13 +1850,13 @@ def stripe_webhook_reservation(request):
         return JsonResponse({"error": "Invalid payload"}, status=400)
     except stripe.error.SignatureVerificationError:
         return JsonResponse({"error": "Invalid signature"}, status=400)
-    type_id = session.get("metadata", {}).get("type")
 
-    if type_id == "reservation":
+    
 
-        if event["type"] == "checkout.session.completed":
-            session = event["data"]["object"]
-
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        type_id = session.get("metadata", {}).get("type")
+        if type_id == "reservation":
             reservation_id = session.get("metadata", {}).get("reservation_id")
             montant_total = session.get("metadata", {}).get("montant_total")
             montant_paye = session.get("metadata", {}).get("montant_paye")
@@ -2005,10 +2005,8 @@ def stripe_webhook_reservation(request):
 
             
             print(f"Paiement réussi pour la réservation ID: {reservation_id}")
-    elif type_id == "verify_calculate":
-        if event["type"] == "checkout.session.completed":
+        elif type_id == "verify_calculate":
             session = event["data"]["object"]
-
             reservation_id = session.get("metadata", {}).get("reservation_id")
             lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
             lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
