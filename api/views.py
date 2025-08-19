@@ -31,6 +31,8 @@ def solde_history_view(request):
         client_id = request.GET.get("client_id")
         page_number = request.GET.get("page")
 
+        country_code = request.headers.get("X-Country-Code")
+
         if not client_id:
             return JsonResponse({'error': 'client_id est requis'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -50,17 +52,29 @@ def solde_history_view(request):
         except EmptyPage:
             history_page = paginator.page(paginator.num_pages)
         
+        taux = 1
+
+        if country_code =="DZ" :
+            taux_change = TauxChange.objects.get(id=2)
+            taux = taux_change.montant
+        else : 
+            taux = 1
+        
         history_data = []
         if history_page is not None:
             for record in history_page:
                 record_dict = {
-                    'reservation': record.reservation.name,
-                    'montant': record.montant,
-                    'status':"paiement"
+                    'label': record.reservation.name,
+                    'label_en': record.reservation.name,
+                    'label_ar': record.reservation.name,
+                    'montant': record.montant * taux,
+                    'status':"paiement",
+                    'reservation': record.reservation.name
                 }
                 history_data.append(record_dict)
         
         response_data = {
+            'currency': "DA" if country_code == "DZ" else "EUR",
             'data': history_data,
             'pagination': {
                 'current_page': history_page.number,
