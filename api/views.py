@@ -103,7 +103,7 @@ def client_info_view(request):
         if not client :
             return JsonResponse({'message': "le client n'existe pas"}, status=404)
         
-        newsletter_exist = NewsLetter.objects.filter(email=client.email,subscribe="yes").first()
+        newsletter_exist = NewsLetter.objects.filter(email=client.email,subscribe="oui").first()
 
         taux_change = TauxChange.objects.filter(id=2).first()
         taux = taux_change.montant
