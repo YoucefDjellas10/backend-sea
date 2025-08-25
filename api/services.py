@@ -1102,6 +1102,31 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
             create_date=datetime.now()
         )
         client_create.save()
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                sujet = f"enregistrement de compte & activation"
+                expediteur = settings.EMAIL_HOST_USER
+                html_message = render_to_string('email/create_account.html', {
+                    "nom": nom,
+                    "prenom": prenom
+                })
+                
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),
+                    expediteur,
+                    [email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                break  
+                
+            except Exception as mail_error:
+                if attempt == max_retries - 1:  
+                    print(f"Erreur envoi email: {mail_error}")
+                else:
+                    time.sleep(2)
  
                    
         return {"created": True, "client_id": client_create.id}
