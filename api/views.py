@@ -1915,7 +1915,7 @@ def stripe_webhook_reservation(request):
             sujet = f"Confirmation de votre reservation N°= {reservation.name}"
             expediteur = settings.EMAIL_HOST_USER
 
-            html_message = render_to_string('email/confirmation_mail.html', {
+            html_message = render_to_string('email/confirmation_email.html', {
                 "referance":reservation.name,
                 "adresse_one":reservation.lieu_depart.address,
                 "adresse_two":reservation.lieu_retour.address,
