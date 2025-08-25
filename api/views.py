@@ -136,29 +136,44 @@ def unsubscribe_newsletter_view(request):
     try:
         email = request.GET.get("email")
         email_exist = NewsLetter.objects.filter(email=email).first()
-        if email_exist :
+        
+        if email_exist:
             email_exist.subscribe = "non"
             email_exist.save()
-            sujet = f"Désabonnement newsletter"
-            expediteur = settings.EMAIL_HOST_USER
-
-            html_message = render_to_string('email/newsletter_deconnection_email.html', {
-                "email":email
-            })
-            send_mail(
-                sujet,
-                strip_tags(html_message),  
-                expediteur,
-                [email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            
+            # Essayer d'envoyer l'email avec retry
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    sujet = f"Désabonnement newsletter"
+                    expediteur = settings.EMAIL_HOST_USER
+                    html_message = render_to_string('email/newsletter_deconnection_email.html', {
+                        "email": email
+                    })
+                    
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                    break  # Si succès, sortir de la boucle
+                    
+                except Exception as mail_error:
+                    if attempt == max_retries - 1:  # Dernier essai
+                        # Log l'erreur mais continue sans faire échouer la vue
+                        print(f"Erreur envoi email: {mail_error}")
+                    else:
+                        time.sleep(2)  # Attendre 2 secondes avant retry
+            
             return JsonResponse({'message': "Opération réussie"}, status=200)
-        else :
+        else:
             return JsonResponse({'message': "l'email n'existe pas"}, status=404)
 
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'error': str(e)}, status=400)
     
 
 def create_news_letter(request):
