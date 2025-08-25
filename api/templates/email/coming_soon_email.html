@@ -753,7 +753,7 @@
                                         color: #edecec;
                                       "
                                     >
-                                      <strong>Achour AZZOUNI</strong>
+                                      <strong>{{ clien_name }}</strong>
                                     </h1>
                                   </td>
                                 </tr>
@@ -810,7 +810,7 @@
                                     >
                                       Votre voiture de location est prête !
                                     <br/>
-                                      Référence:" SEA002634"
+                                      Référence:" {{ reference }}"
                                     </p>
                                   </td>
                                 </tr>
@@ -1016,7 +1016,7 @@
                                       "
                                     >
                                     <strong style="font-size: 15px; color: #141b34">Solde + Caution:<br/> </strong>
-<strong>→Reste à payer :</strong> 500 EU en espèces a la prise <br/><strong>→La caution :</strong> 500 EU 
+<strong>→Reste à payer :</strong> {{ rest_payer }} EU en espèces a la prise <br/><strong>→La caution :</strong> {{ caution }} EU 
 Espèces ou <mark>empreinte bancaire</mark>
 
                                  
@@ -1602,7 +1602,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       "
                                       class="p_option"
                                     >
-                                      - Véhicule / Modèle : PEUGEOT TRAVELER 9
+                                      - Véhicule / Modèle : {{ model_name }}
                                       places
                                     </p>
                                   </td>
@@ -1626,7 +1626,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       "
                                       class="p_option"
                                     >
-                                      - Durée : 10 jours
+                                      - Durée : {{ duree }}
                                     </p>
                                   </td>
                                 </tr>
@@ -1654,7 +1654,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       class="p_option_s"
                                     >
                                       - Reste à payer :
-                                      <strong>817.50EU </strong
+                                      <strong>{{ rest_payer }}EU </strong
                                       ><span style="color: #ff5e00"
                                         >en espèces&nbsp;</span
                                       >
@@ -1685,7 +1685,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       class="p_option_s"
                                     >
                                       - Caution :&nbsp;&nbsp;<strong
-                                        >500EU&nbsp;&nbsp;</strong
+                                        >{{ caution }}EU&nbsp;&nbsp;</strong
                                       >
                                       <span style="color: #ff5e00">
                                         ( Espèces / Empreinte )</span
@@ -1978,7 +1978,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                         font-size: 14px;
                                       "
                                     >
-                                      - Départ : 17 Aug 2024
+                                      - Départ : {{ date_depart }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2004,7 +2004,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                         font-size: 14px;
                                       "
                                     >
-                                      - Heure prise : 15:00<br />
+                                      - Heure prise : {{ heur_depart }}<br />
                                     </p>
                                   </td>
                                 </tr>
@@ -2031,7 +2031,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       "
                                       class="p_option_s"
                                     >
-                                      - Lieu de prise : Aéroport Oran<strong
+                                      - Lieu de prise : {{ lieu_depart }}<strong
                                       ></strong>
                                     </p>
                                   </td>
@@ -2060,7 +2060,7 @@ Espèces ou <mark>empreinte bancaire</mark>
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
 >
- <u> Comptoir d'Air   Algérie</u>
+ <u> {{ address_one }}</u>
 </span></a>
 
                                     </p>
@@ -2335,7 +2335,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       "
                                       class="p_option"
                                     >
-                                      - Retour : 27 Aug 2024
+                                      - Retour : {{ date_retour }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2361,7 +2361,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                         font-size: 14px;
                                       "
                                     >
-                                      - Heure retour: 22:30<br />
+                                      - Heure retour: {{ heure_fin }}<br />
                                     </p>
                                   </td>
                                 </tr>
@@ -2388,7 +2388,7 @@ Espèces ou <mark>empreinte bancaire</mark>
                                       "
                                       class="p_option_s"
                                     >
-                                      - Lieu de retour : Aéroport Oran
+                                      - Lieu de retour : {{ lieu_retour }}
                                     </p>
                                     
                                   </td>
@@ -2417,7 +2417,7 @@ Espèces ou <mark>empreinte bancaire</mark>
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
 >
- <u> Comptoir d'Air   Algérie</u>
+ <u> {{ address_two }}</u>
 </span></a>
 
                                     </p>

@@ -26,6 +26,72 @@ from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework import status
 
+def coming_soon_email_view(request):
+    try:
+        ref = request.GET.get("ref")
+        reservation = Reservation.objects.get(name=ref)
+
+        if not reservation or reservation is None : 
+            return JsonResponse({'error': "there are not reservation with this ref"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        date_heure_depart = reservation.date_heure_debut
+        date_heure_retour = reservation.date_heure_fin
+
+        date_debut = date_heure_depart.strftime("%d %B %Y") 
+        heure_debut = date_heure_depart.strftime("%H:%M")  
+
+        date_fin = date_heure_retour.strftime("%d %B %Y")
+        heure_fin = date_heure_retour.strftime("%H:%M")
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                sujet = f"Désabonnement newsletter"
+                expediteur = settings.EMAIL_HOST_USER
+                html_message = render_to_string('email/newsletter_deconnection_email.html', {
+                    "clien_name" : reservation.client.name,
+                    "reference": ref,
+                    "rest_payer": reservation.reste_payer,
+                    "caution": reservation.opt_protection_caution,
+                    "link":"link", #generation du lien
+                    "model_name" : reservation.model_name,
+                    "duree": reservation.duree_dereservation,
+                    "date_depart":date_debut,
+                    "heur_depart":heure_debut,
+                    "lieu_depart":reservation.lieu_depart.name,
+                    "address_one":reservation.lieu_depart.address,
+                    "date_retour":date_fin,
+                    "heure_fin":heure_fin,
+                    "lieu_retour":reservation.lieu_retour.name,
+                    "address_two":reservation.lieu_retour.address
+                })
+                
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),
+                    expediteur,
+                    [reservation.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                break  
+                
+            except Exception as mail_error:
+                if attempt == max_retries - 1:  
+                    print(f"Erreur envoi email: {mail_error}")
+                else:
+                    time.sleep(2)  
+        
+            return JsonResponse({'message': "Opération réussie"}, status=200)
+        else:
+            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
+    
+    
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 def solde_history_view(request):
     try :
         client_id = request.GET.get("client_id")
@@ -141,7 +207,6 @@ def unsubscribe_newsletter_view(request):
             email_exist.subscribe = "non"
             email_exist.save()
             
-            # Essayer d'envoyer l'email avec retry
             max_retries = 3
             for attempt in range(max_retries):
                 try:
@@ -159,14 +224,13 @@ def unsubscribe_newsletter_view(request):
                         html_message=html_message,
                         fail_silently=False,
                     )
-                    break  # Si succès, sortir de la boucle
+                    break  
                     
                 except Exception as mail_error:
-                    if attempt == max_retries - 1:  # Dernier essai
-                        # Log l'erreur mais continue sans faire échouer la vue
+                    if attempt == max_retries - 1:  
                         print(f"Erreur envoi email: {mail_error}")
                     else:
-                        time.sleep(2)  # Attendre 2 secondes avant retry
+                        time.sleep(2)  
             
             return JsonResponse({'message': "Opération réussie"}, status=200)
         else:
