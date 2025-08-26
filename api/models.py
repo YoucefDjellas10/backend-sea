@@ -9,7 +9,7 @@ class IrAttachment(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255, null=True)
     mimetype = models.CharField(max_length=255, null=True)
-    datas = models.TextField(null=True)        # base64 text souvent
+    #datas = models.TextField(null=True)        # base64 text souvent
     store_fname = models.CharField(max_length=255, null=True)
     res_model = models.CharField(max_length=255, null=True)
     res_id = models.BigIntegerField(null=True)
