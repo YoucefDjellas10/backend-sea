@@ -48,9 +48,9 @@ def coming_soon_email_view(request):
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                sujet = f"Désabonnement newsletter"
+                sujet = f"Coming-Up-Soon N = {reservation.name}"
                 expediteur = settings.EMAIL_HOST_USER
-                html_message = render_to_string('email/newsletter_deconnection_email.html', {
+                html_message = render_to_string('email/coming_soon_email.html', {
                     "clien_name" : reservation.client.name,
                     "reference": ref,
                     "rest_payer": reservation.reste_payer,
