@@ -5,6 +5,27 @@ import random
 import string
 from datetime import date,datetime, timedelta
 
+class IrAttachment(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=255, null=True)
+    mimetype = models.CharField(max_length=255, null=True)
+    datas = models.TextField(null=True)        # base64 text souvent
+    store_fname = models.CharField(max_length=255, null=True)
+    res_model = models.CharField(max_length=255, null=True)
+    res_id = models.BigIntegerField(null=True)
+
+    class Meta:
+        db_table = 'ir_attachment'
+        managed = False
+
+class LivraisonIrAttachmentRel(models.Model):
+    livraison_id = models.BigIntegerField()
+    ir_attachment_id = models.BigIntegerField()
+
+    class Meta:
+        db_table = 'ir_attachment_livraison_rel'
+        managed = False
+
 class TauxChange(models.Model):
 
     name = models.CharField(

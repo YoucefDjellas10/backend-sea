@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from .models import *
 from .serializers import *
 from rest_framework.response import Response
@@ -25,6 +25,30 @@ import locale
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework import status
+import base64, mimetypes, os
+from django.shortcuts import get_object_or_404
+
+
+ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
+
+def get_attachments_for_livraison(livraison_id):
+    # Filtrer les attachments liés à la livraison via res_model/res_id
+    return IrAttachment.objects.filter(res_model='livraison', res_id=livraison_id)
+
+def livraison_photo_by_res(request, livraison_id, attachment_id):
+    # Cherche l'attachment pour la livraison
+    att = get_object_or_404(IrAttachment, pk=attachment_id, res_model='livraison', res_id=livraison_id)
+
+    if att.store_fname:
+        path = os.path.join(ODOO_DATA_DIR, att.store_fname)
+        if not os.path.exists(path):
+            raise Http404(f"Fichier introuvable : {path}")
+        with open(path, 'rb') as f:
+            raw = f.read()
+        mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
+        return HttpResponse(raw, content_type=mimetype)
+
+    raise Http404("Aucun fichier trouvé")
 
 def coming_soon_email_view(request):
     try:
