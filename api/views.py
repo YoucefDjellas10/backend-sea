@@ -41,6 +41,8 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
             ir_attachment_id=attachment_id
         ).exists()
 
+        logger.info(f"Relation existe: {rel_exists}")
+
         if not rel_exists:
             raise Http404("Ce fichier n'est pas lié à cette livraison")
 
@@ -52,37 +54,20 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
         path = os.path.join(ODOO_DATA_DIR, *att.store_fname.split('/'))
         logger.info(f"Chemin fichier: {path}")
         
-        # Vérifier si le fichier existe
         if not os.path.exists(path):
             logger.error(f"Fichier introuvable: {path}")
             raise Http404(f"Fichier introuvable : {path}")
         
-        # Vérifier les permissions de lecture
-        if not os.access(path, os.R_OK):
-            logger.error(f"Pas de permission de lecture sur: {path}")
-            raise Http404(f"Permission refusée pour le fichier : {path}")
-        
-        try:
-            with open(path, 'rb') as f:
-                raw = f.read()
-        except PermissionError as e:
-            logger.error(f"Erreur de permission lors de la lecture: {e}")
-            raise Http404(f"Permission refusée lors de la lecture du fichier")
-        except Exception as e:
-            logger.error(f"Erreur lors de la lecture du fichier: {e}")
-            raise Http404(f"Erreur lors de la lecture du fichier")
-            
+        with open(path, 'rb') as f:
+            raw = f.read()
         mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
-        logger.info(f"Fichier servi avec succès, mimetype: {mimetype}, taille: {len(raw)} bytes")
+        logger.info(f"Fichier servi avec succès, mimetype: {mimetype}")
         return HttpResponse(raw, content_type=mimetype)
         
-    except Http404:
-        raise
     except Exception as e:
         logger.error(f"Erreur dans livraison_photo_by_res: {str(e)}")
-        raise Http404(f"Erreur interne: {str(e)}")
-    
-    
+        raise
+
 def coming_soon_email_view(request):
     try:
         ref = request.GET.get("ref")
