@@ -29,8 +29,6 @@ import base64, mimetypes, os
 from django.shortcuts import get_object_or_404
 
 
-ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
-
 def livraison_photo_by_res(request, livraison_id, attachment_id):
     # Vérifie dans la table relationnelle
     rel_exists = LivraisonIrAttachmentRel.objects.filter(
@@ -45,7 +43,7 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
     att = get_object_or_404(IrAttachment, pk=attachment_id)
 
     ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
-    path = os.path.join(ODOO_DATA_DIR, att.store_fname)
+    path = os.path.join(ODOO_DATA_DIR, *att.store_fname.split('/'))
     
     if not os.path.exists(path):
         raise Http404(f"Fichier introuvable : {path}")
