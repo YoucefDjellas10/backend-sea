@@ -25,6 +25,7 @@ class LivraisonIrAttachmentRel(models.Model):
     class Meta:
         db_table = 'ir_attachment_livraison_rel'
         managed = False
+        unique_together = (('livraison_id', 'ir_attachment_id'),)
 
 class TauxChange(models.Model):
 
