@@ -54,7 +54,7 @@ def coming_soon_email_view(request):
                     "clien_name" : reservation.client.name,
                     "reference": ref,
                     "rest_payer": reservation.reste_payer if reservation.reste_payer else 0,
-                    "caution": reservation.opt_protection_caution if reservation.opt_protection_cautio else 0,
+                    "caution": reservation.opt_protection_caution if reservation.opt_protection_caution else 0,
                     "link":"link", #generation du lien
                     "model_name" : reservation.model_name,
                     "duree": reservation.duree_dereservation,
