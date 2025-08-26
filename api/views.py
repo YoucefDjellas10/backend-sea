@@ -75,8 +75,9 @@ def coming_soon_email_view(request):
                     [reservation.email],
                     html_message=html_message,
                     fail_silently=False,
-                )
-                break  
+                ) 
+
+                return JsonResponse({'message': "Opération réussie"}, status=200)      
                 
             except Exception as mail_error:
                 if attempt == max_retries - 1:  
@@ -84,7 +85,7 @@ def coming_soon_email_view(request):
                 else:
                     time.sleep(2)  
         
-            return JsonResponse({'message': "Opération réussie"}, status=200)
+            
         else:
             return JsonResponse({'message': "l'email n'existe pas"}, status=404)
     
