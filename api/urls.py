@@ -67,4 +67,5 @@ urlpatterns += [
     path('cancel-authorization/',cancel_authorized_payment, name='cancel_authorization'),
     path('client-info/',client_info_view, name='client_info_view'),
     path('solde-histoty/',solde_history_view, name='solde_history_view'),
+    path('comming-soon-email/',coming_soon_email_view, name='coming_soon_email_view'),
 ]

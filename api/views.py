@@ -29,6 +29,8 @@ from rest_framework import status
 def coming_soon_email_view(request):
     try:
         ref = request.GET.get("ref")
+
+        
         reservation = Reservation.objects.get(name=ref)
 
         if not reservation or reservation is None : 
