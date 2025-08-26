@@ -31,19 +31,19 @@ from django.shortcuts import get_object_or_404
 
 ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
 
-def get_attachments_for_livraison(livraison_id):
-    # Filtrer les attachments liés à la livraison via res_model/res_id
-    return IrAttachment.objects.filter(res_model='livraison', res_id=livraison_id)
-
 def livraison_photo_by_res(request, livraison_id, attachment_id):
-    # Vérifie d'abord dans la table relationnelle
-    rel = get_object_or_404(LivraisonIrAttachmentRel, 
-                            livraison_id=livraison_id, 
-                            ir_attachment_id=attachment_id)
+    # Vérifie dans la table relationnelle
+    rel_exists = LivraisonIrAttachmentRel.objects.filter(
+        livraison_id=livraison_id,
+        ir_attachment_id=attachment_id
+    ).exists()
 
+    if not rel_exists:
+        raise Http404("Ce fichier n'est pas lié à cette livraison")
+
+    # Récupère l'attachment
     att = get_object_or_404(IrAttachment, pk=attachment_id)
 
-    # construit le chemin vers le filestore
     ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
     path = os.path.join(ODOO_DATA_DIR, att.store_fname)
     
