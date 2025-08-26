@@ -60,7 +60,7 @@ class TauxChange(models.Model):
 class Zone(models.Model):
     id = models.AutoField(db_column='id', primary_key=True)
     name = models.CharField(max_length=255, verbose_name="Nom de la zone")
-    transmission_point = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='transmission_point', verbose_name="point de transmission") 
+    transmission_point = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='transmission_point', related_name='zones_transmission') 
 
     class Meta:
         db_table = 'zone'
@@ -1408,7 +1408,7 @@ class ConditionAnnulation(models.Model):
 from django.core.validators import MinValueValidator
 class Payment(models.Model):
     name = models.CharField(max_length=255, unique=True, editable=False)
-    reservation = models.ForeignKey(Reservation, db_column='reservation', on_delete=models.CASCADE, related_name='reservation')
+    reservation = models.ForeignKey(Reservation, db_column='reservation', on_delete=models.CASCADE,related_name='payments')
     vehicule = models.ForeignKey(Vehicule, on_delete=models.CASCADE,db_column='vehicule', null=True, blank=True,related_name='vehicule')
     modele = models.ForeignKey(Modele, on_delete=models.CASCADE, db_column='modele', verbose_name="Modèle", related_name='modele')
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE,db_column='zone', verbose_name="Zone de livraison",related_name='zone')
@@ -1444,7 +1444,7 @@ class Payment(models.Model):
 class HistoriqueSolde(models.Model):
     name = models.CharField(max_length=255)
     client = models.ForeignKey(ListeClient,db_column='client' ,on_delete=models.CASCADE, related_name='client')
-    reservation = models.ForeignKey(Reservation,db_column='reservation', on_delete=models.CASCADE, related_name='reservation')
+    reservation = models.ForeignKey(Reservation,db_column='reservation', on_delete=models.CASCADE, related_name='historique_soldes')
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     create_date = models.DateTimeField()
     
