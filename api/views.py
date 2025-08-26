@@ -36,19 +36,24 @@ def get_attachments_for_livraison(livraison_id):
     return IrAttachment.objects.filter(res_model='livraison', res_id=livraison_id)
 
 def livraison_photo_by_res(request, livraison_id, attachment_id):
-    # Cherche l'attachment pour la livraison
-    att = get_object_or_404(IrAttachment, pk=attachment_id, res_model='livraison', res_id=livraison_id)
+    # Vérifie d'abord dans la table relationnelle
+    rel = get_object_or_404(LivraisonIrAttachmentRel, 
+                            livraison_id=livraison_id, 
+                            ir_attachment_id=attachment_id)
 
-    if att.store_fname:
-        path = os.path.join(ODOO_DATA_DIR, att.store_fname)
-        if not os.path.exists(path):
-            raise Http404(f"Fichier introuvable : {path}")
-        with open(path, 'rb') as f:
-            raw = f.read()
-        mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
-        return HttpResponse(raw, content_type=mimetype)
+    att = get_object_or_404(IrAttachment, pk=attachment_id)
 
-    raise Http404("Aucun fichier trouvé")
+    # construit le chemin vers le filestore
+    ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
+    path = os.path.join(ODOO_DATA_DIR, att.store_fname)
+    
+    if not os.path.exists(path):
+        raise Http404(f"Fichier introuvable : {path}")
+    
+    with open(path, 'rb') as f:
+        raw = f.read()
+    mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
+    return HttpResponse(raw, content_type=mimetype)
 
 def coming_soon_email_view(request):
     try:
