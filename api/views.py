@@ -51,10 +51,10 @@ def success_pick_up_view(request):
         context = {
             'livraison': livraison,
             'contract_number': livraison.reservation.name,  
-            'client_name': livraison.client if hasattr(livraison, 'client_name') else 'Client',
-            'vehicle_name': livraison.modele.name if hasattr(livraison, 'vehicle_name') else 'Véhicule',
-            'pickup_date': date_debut if hasattr(livraison, 'pickup_date') else 'Date non définie',
-            'pickup_time': heure_debut if hasattr(livraison, 'pickup_time') else 'Heure non définie',
+            'client_name': livraison.client.name if livraison.client.name else 'Client',
+            'vehicle_name': livraison.modele.name if livraison.modele.name else 'Véhicule',
+            'pickup_date': date_debut if date_debut else 'Date non définie',
+            'pickup_time': heure_debut if heure_debut else 'Heure non définie',
 
         }
         
