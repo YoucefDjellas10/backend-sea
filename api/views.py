@@ -28,6 +28,7 @@ from rest_framework import status
 import base64, mimetypes, os
 from django.shortcuts import get_object_or_404
 import logging
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,54 @@ def success_pick_up_view(request):
         livraison = get_object_or_404(Livraison, id=livraison_id)
 
         date_heure_depart = livraison.date_heure_debut
-
         date_debut = date_heure_depart.strftime("%d %B %Y") 
         heure_debut = date_heure_depart.strftime("%H:%M")  
 
-
+        # Récupérer toutes les relations photo-livraison
+        photo_relations = LivraisonIrAttachmentRel.objects.filter(livraison_id=livraison_id)
+        
+        # Créer une liste des photos avec leurs URLs
+        photos = []
+        photo_labels = [
+            "Face avant", "Face arrière", "Côté conducteur", "Côté passager",
+            "Tableau de bord", "Compteur kilométrique", "Intérieur avant", 
+            "Intérieur arrière", "Coffre", "Roue avant droite", 
+            "Documents véhicule", "État général"
+        ]
+        
+        for i, photo_rel in enumerate(photo_relations):
+            try:
+                # Récupérer l'attachment
+                attachment = IrAttachment.objects.get(id=photo_rel.ir_attachment_id)
+                
+                # Créer l'URL pour afficher la photo
+                photo_url = reverse('livraison_photo', kwargs={
+                    'livraison_id': livraison_id,
+                    'attachment_id': attachment.id
+                })
+                
+                # Déterminer le label de la photo
+                label = photo_labels[i] if i < len(photo_labels) else f"Photo {i+1}"
+                
+                photos.append({
+                    'url': photo_url,
+                    'label': label,
+                    'name': attachment.name,
+                    'mimetype': attachment.mimetype
+                })
+                
+            except IrAttachment.DoesNotExist:
+                # Si l'attachment n'existe pas, on continue
+                continue
+        
+        # Compléter avec des placeholders si moins de 12 photos
+        while len(photos) < 12:
+            photos.append({
+                'url': None,
+                'label': photo_labels[len(photos)] if len(photos) < len(photo_labels) else f"Photo {len(photos)+1}",
+                'name': None,
+                'mimetype': None
+            })
         
         context = {
             'livraison': livraison,
@@ -55,15 +99,15 @@ def success_pick_up_view(request):
             'vehicle_name': livraison.modele.name if livraison.modele.name else 'Véhicule',
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
-
+            'photos': photos,
+            'total_photos': len([p for p in photos if p['url']]),
         }
         
         return render(request, 'photo_livraison_template.html', context)
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-  
+    
 
 def livraison_photo_by_res(request, livraison_id, attachment_id):
     logger.info(f"Requête reçue: livraison_id={livraison_id}, attachment_id={attachment_id}")
