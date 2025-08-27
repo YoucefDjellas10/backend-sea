@@ -45,6 +45,7 @@ def success_pick_up_view(request):
 
         date_debut = date_heure_depart.strftime("%d %B %Y") 
         heure_debut = date_heure_depart.strftime("%H:%M")  
+        print("test")
 
         photos = LivraisonIrAttachmentRel.objects.filter(livraison_id=livraison_id)
 
