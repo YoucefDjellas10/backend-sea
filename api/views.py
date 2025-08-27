@@ -41,18 +41,14 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
             ir_attachment_id=attachment_id
         ).exists()
 
-        logger.info(f"Relation existe: {rel_exists}")
-
         if not rel_exists:
             raise Http404("Ce fichier n'est pas lié à cette livraison")
 
-        # Récupère l'attachment
         att = get_object_or_404(IrAttachment, pk=attachment_id)
-        logger.info(f"Attachment trouvé: {att.name}, store_fname: {att.store_fname}")
-
-        ODOO_DATA_DIR = '/opt/odoo17/.local/share/Odoo/filestore/safarelamir'
+        
+        # Changez le chemin pour pointer vers le montage
+        ODOO_DATA_DIR = '/mnt/odoo-filestore/safarelamir'
         path = os.path.join(ODOO_DATA_DIR, *att.store_fname.split('/'))
-        logger.info(f"Chemin fichier: {path}")
         
         if not os.path.exists(path):
             logger.error(f"Fichier introuvable: {path}")
@@ -61,7 +57,6 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
         with open(path, 'rb') as f:
             raw = f.read()
         mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
-        logger.info(f"Fichier servi avec succès, mimetype: {mimetype}")
         return HttpResponse(raw, content_type=mimetype)
         
     except Exception as e:
