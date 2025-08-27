@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Inspection Véhicule - SAFAR EL AMIR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .company-logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .company-tagline {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .contract-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .info-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .inspection-title {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        }
+
+        .inspection-title h2 {
+            color: #495057;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .inspection-subtitle {
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .photo-container {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(45deg, #e9ecef, #f8f9fa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .photo-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+            padding: 15px;
+            font-weight: 500;
+        }
+
+        .photo-number {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .footer {
+            background: #495057;
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .footer-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .print-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .print-button:hover {
+            transform: scale(1.1);
+        }
+
+        @media print {
+            body { background: white; }
+            .print-button { display: none; }
+            .container { box-shadow: none; }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header avec informations client -->
+        <div class="header">
+            <div class="header-content">
+                <div class="company-logo">🚗 SAFAR EL AMIR</div>
+                <div class="company-tagline">Location de Voitures</div>
+                
+                <div class="contract-info">
+                    <div class="info-card">
+                        <div class="info-label">N° Contrat</div>
+                        <div class="info-value">{{ contract_number }}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Client</div>
+                        <div class="info-value">{{ client_name }}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Véhicule</div>
+                        <div class="info-value">{{ vehicle_name }}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Date de prise</div>
+                        <div class="info-value">{{ pickup_date }} - {{ pickup_time }}</div>
+                    </div>
+                </div>
+                <div class="status-badge">✓ Véhicule Pris en Charge</div>
+            </div>
+        </div>
+
+        <!-- Titre de la section inspection -->
+        <div class="inspection-title">
+            <h2>📸 Rapport d'Inspection Véhicule</h2>
+            <p class="inspection-subtitle">Photos prises lors de la prise en charge du véhicule</p>
+        </div>
+
+        <!-- Grille des photos -->
+        <div class="photos-grid">
+            <div class="photo-card" onclick="openPhoto(1)">
+                <div class="photo-container">
+                    <div class="photo-number">1</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Face avant</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(2)">
+                <div class="photo-container">
+                    <div class="photo-number">2</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Face arrière</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(3)">
+                <div class="photo-container">
+                    <div class="photo-number">3</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Côté conducteur</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(4)">
+                <div class="photo-container">
+                    <div class="photo-number">4</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Côté passager</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(5)">
+                <div class="photo-container">
+                    <div class="photo-number">5</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Tableau de bord</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(6)">
+                <div class="photo-container">
+                    <div class="photo-number">6</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Compteur kilométrique</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(7)">
+                <div class="photo-container">
+                    <div class="photo-number">7</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Intérieur avant</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(8)">
+                <div class="photo-container">
+                    <div class="photo-number">8</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Intérieur arrière</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(9)">
+                <div class="photo-container">
+                    <div class="photo-number">9</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Coffre</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(10)">
+                <div class="photo-container">
+                    <div class="photo-number">10</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Roue avant droite</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(11)">
+                <div class="photo-container">
+                    <div class="photo-number">11</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">Documents véhicule</div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="openPhoto(12)">
+                <div class="photo-container">
+                    <div class="photo-number">12</div>
+                    <div class="photo-placeholder">📷</div>
+                    <div class="photo-label">État général</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-info">
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>📱 WhatsApp: +213 XXX XXX XXX</p>
+                    <p>📧 contact@safaramir.dz</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Adresse</h4>
+                    <p>📍 Oran, Algérie</p>
+                    <p>Aéroport Ahmed Ben Bella</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Horaires</h4>
+                    <p>🕐 7j/7 - 24h/24</p>
+                    <p>Service client disponible</p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #6c757d; padding-top: 20px; margin-top: 20px;">
+                <p>&copy; 2025 SAFAR EL AMIR - Tous droits réservés | 21 ans d'excellence en location de voitures</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton d'impression -->
+    <button class="print-button" onclick="window.print()" title="Imprimer le rapport">
+        🖨️
+    </button>
+
+    <script>
+        function openPhoto(photoNumber) {
+            // Ici vous pouvez ajouter la logique pour ouvrir/agrandir la photo
+            alert(`Ouverture de la photo ${photoNumber}`);
+        }
+
+        // Animation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.photo-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

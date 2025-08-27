@@ -31,6 +31,40 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+def success_pick_up_view(request):
+    try:
+        livraison_id = request.GET.get("livraison_id")
+        
+        if not livraison_id:
+            return JsonResponse({'error': 'livraison_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        livraison = get_object_or_404(Livraison, id=livraison_id)
+
+        date_heure_depart = livraison.date_heure_debut
+
+        date_debut = date_heure_depart.strftime("%d %B %Y") 
+        heure_debut = date_heure_depart.strftime("%H:%M")  
+
+
+        
+        context = {
+            'livraison': livraison,
+            'contract_number': livraison.reservation.name,  
+            'client_name': livraison.client if hasattr(livraison, 'client_name') else 'Client',
+            'vehicle_name': livraison.modele.name if hasattr(livraison, 'vehicle_name') else 'Véhicule',
+            'pickup_date': date_debut if hasattr(livraison, 'pickup_date') else 'Date non définie',
+            'pickup_time': heure_debut if hasattr(livraison, 'pickup_time') else 'Heure non définie',
+
+        }
+        
+        return render(request, 'photo_livraison_template.html', context)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+  
+
 def livraison_photo_by_res(request, livraison_id, attachment_id):
     logger.info(f"Requête reçue: livraison_id={livraison_id}, attachment_id={attachment_id}")
     
