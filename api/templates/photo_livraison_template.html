@@ -281,101 +281,21 @@
 
         <!-- Grille des photos -->
         <div class="photos-grid">
-            <div class="photo-card" onclick="openPhoto(1)">
+            {% for photo in photos %}
+            <div class="photo-card">
                 <div class="photo-container">
-                    <div class="photo-number">1</div>
-                    <div class="photo-placeholder"><img src="{{ photo_one }}" alt="Documents véhicule" class="photo-img"></div>
-                    <div class="photo-label">Face avant</div>
+                    <div class="photo-number">{{ photo.number }}</div>
+                    <div class="photo-placeholder">
+                        {% if photo.url %}
+                            <img src="{{ photo.url }}" alt="{{ photo.label }}" class="photo-img">
+                        {% else %}
+                            📷
+                        {% endif %}
+                    </div>
+                    <div class="photo-label">{{ photo.label }}</div>
                 </div>
             </div>
-
-            <div class="photo-card" onclick="openPhoto(2)">
-                <div class="photo-container">
-                    <div class="photo-number">2</div>
-                    <div class="photo-placeholder"><img src="{{ photo_two }}" alt="Documents véhicule" class="photo-img"></div>
-                    <div class="photo-label">Face arrière</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(3)">
-                <div class="photo-container">
-                    <div class="photo-number">3</div>
-                    <div class="photo-placeholder"><img src="{{ photo_three }}" alt="Documents véhicule" class="photo-img"></div>
-                    <div class="photo-label">Côté conducteur</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(4)">
-                <div class="photo-container">
-                    <div class="photo-number">4</div>
-                    <div class="photo-placeholder"><img src="{{ photo_four }}" alt="Documents véhicule" class="photo-img"></div>
-                    <div class="photo-label">Côté passager</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(5)">
-                <div class="photo-container">
-                    <div class="photo-number">5</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">Tableau de bord</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(6)">
-                <div class="photo-container">
-                    <div class="photo-number">6</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">Compteur kilométrique</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(7)">
-                <div class="photo-container">
-                    <div class="photo-number">7</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">Intérieur avant</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(8)">
-                <div class="photo-container">
-                    <div class="photo-number">8</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">Intérieur arrière</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(9)">
-                <div class="photo-container">
-                    <div class="photo-number">9</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">Coffre</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(10)">
-                <div class="photo-container">
-                    <div class="photo-number">10</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">Roue avant droite</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(11)">
-                <div class="photo-container">
-                    <div class="photo-number">11</div>
-                    <div class="photo-placeholder"><img src="https://api.safarelamir.com/livraison/337/photo/1657/" alt="Documents véhicule" class="photo-img"></div>
-                    <div class="photo-label">Documents véhicule</div>
-                </div>
-            </div>
-
-            <div class="photo-card" onclick="openPhoto(12)">
-                <div class="photo-container">
-                    <div class="photo-number">12</div>
-                    <div class="photo-placeholder">📷</div>
-                    <div class="photo-label">État général</div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
         <!-- Footer -->

@@ -51,28 +51,29 @@ def success_pick_up_view(request):
 
         print(photos)
 
-        photo_id_one = photos[0].ir_attachment_id if len(photos) > 0 else None
-        photo_id_two = photos[1].ir_attachment_id if len(photos) > 0 else None
-        photo_id_three = photos[2].ir_attachment_id if len(photos) > 0 else None
-        photo_id_four = photos[3].ir_attachment_id if len(photos) > 0 else None
-        photo_id_five = photos[4].ir_attachment_id if len(photos) > 0 else None
-        photo_id_six = photos[5].ir_attachment_id if len(photos) > 0 else None
-        photo_id_seeven = photos[6].ir_attachment_id if len(photos) > 0 else None
-        photo_id_eight = photos[7].ir_attachment_id if len(photos) > 0 else None
-        photo_id_nine = photos[8].ir_attachment_id if len(photos) > 0 else None
-        photo_id_ten = photos[9].ir_attachment_id if len(photos) > 0 else None
-        photo_id_eleven = photos[10].ir_attachment_id if len(photos) > 0 else None
-        photo_id_twelf = photos[11].ir_attachment_id if len(photos) > 0 else None
+        labels = [
+            "Face avant",
+            "Face arrière",
+            "Côté conducteur",
+            "Côté passager",
+            "Tableau de bord",
+            "Compteur kilométrique",
+            "Intérieur avant",
+            "Intérieur arrière",
+            "Coffre",
+            "Roue avant droite",
+            "Documents véhicule",
+            "État général"
+        ]
 
-        
-        
-        
-
-
-
-
-
-        
+        # Construction de la liste finale
+        photos_list = []
+        for i, label in enumerate(labels):
+            if i < len(photos):  # si une photo existe
+                url = f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photos[i].ir_attachment_id}/'
+            else:
+                url = None  # pas de photo dispo
+            photos_list.append({"number": i+1, "label": label, "url": url})
         context = {
             'livraison': livraison,
             'contract_number': livraison.reservation.name,  
@@ -80,10 +81,7 @@ def success_pick_up_view(request):
             'vehicle_name': livraison.modele.name if livraison.modele.name else 'Véhicule',
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
-            'photo_one': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_one}/',
-            'photo_two': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_two}/',
-            'photo_three': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_three}/',
-            'photo_four': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_four}/',
+            'photos': photos_list,
 
         }
         
