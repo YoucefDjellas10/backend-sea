@@ -46,6 +46,28 @@ def success_pick_up_view(request):
         date_debut = date_heure_depart.strftime("%d %B %Y") 
         heure_debut = date_heure_depart.strftime("%H:%M")  
 
+        photos = LivraisonIrAttachmentRel.objects.filter(livraison_id=livraison_id)
+
+        photo_id_one = photos[0].ir_attachment_id if len(photos) > 0 else None
+        photo_id_two = photos[1].ir_attachment_id if len(photos) > 0 else None
+        photo_id_three = photos[2].ir_attachment_id if len(photos) > 0 else None
+        photo_id_four = photos[3].ir_attachment_id if len(photos) > 0 else None
+        photo_id_five = photos[4].ir_attachment_id if len(photos) > 0 else None
+        photo_id_six = photos[5].ir_attachment_id if len(photos) > 0 else None
+        photo_id_seeven = photos[6].ir_attachment_id if len(photos) > 0 else None
+        photo_id_eight = photos[7].ir_attachment_id if len(photos) > 0 else None
+        photo_id_nine = photos[8].ir_attachment_id if len(photos) > 0 else None
+        photo_id_ten = photos[9].ir_attachment_id if len(photos) > 0 else None
+        photo_id_eleven = photos[10].ir_attachment_id if len(photos) > 0 else None
+        photo_id_twelf = photos[11].ir_attachment_id if len(photos) > 0 else None
+
+        
+        
+        
+
+
+
+
 
         
         context = {
@@ -55,6 +77,10 @@ def success_pick_up_view(request):
             'vehicle_name': livraison.modele.name if livraison.modele.name else 'Véhicule',
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
+            'photo_one': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_one}/',
+            'photo_two': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_two}/',
+            'photo_three': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_three}/',
+            'photo_four': f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photo_id_four}/',
 
         }
         
