@@ -241,6 +241,68 @@
             font-weight: 500;
             margin-top: 10px;
         }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.8);
+            padding-top: 60px;
+        }
+
+        /* Contenu de la modale */
+        .modal-content {
+            background: #fff;
+            margin: auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+            position: relative;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        /* Image affichée */
+        .modal-content img {
+            width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        /* Label sous l’image */
+        .modal-label {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Bouton de fermeture */
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .close-btn:hover {
+            color: #e74c3c;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -282,7 +344,7 @@
         <!-- Grille des photos -->
         <div class="photos-grid">
             {% for photo in photos %}
-            <div class="photo-card">
+            <div class="photo-card" onclick="openPhoto('{{ photo.number }}')">
                 <div class="photo-container">
                     <div class="photo-number">{{ photo.number }}</div>
                     <div class="photo-placeholder">
@@ -326,25 +388,40 @@
 
     <script>
         function openPhoto(photoNumber) {
-            // Ici vous pouvez ajouter la logique pour ouvrir/agrandir la photo
-            alert(`Ouverture de la photo ${photoNumber}`);
+            // Cherche la carte cliquée
+            const card = document.querySelector(`.photo-card:nth-child(${photoNumber})`);
+            if (!card) return;
+
+            // Récupère l'image et le label
+            const img = card.querySelector("img");
+            const label = card.querySelector(".photo-label").textContent;
+
+            // Injecte dans la modale
+            document.getElementById("modalImage").src = img.src;
+            document.getElementById("modalLabel").textContent = label;
+
+            // Affiche la modale
+            document.getElementById("photoModal").style.display = "block";
         }
 
-        // Animation au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.photo-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px)';
-                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, 100);
-                }, index * 100);
-            });
-        });
+        function closePhoto() {
+            document.getElementById("photoModal").style.display = "none";
+        }
+
+        // Fermer la modale si on clique à l’extérieur du contenu
+        window.onclick = function(event) {
+            const modal = document.getElementById("photoModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePhoto()">&times;</span>
+            <img id="modalImage" src="" alt="Photo véhicule">
+            <div id="modalLabel" class="modal-label"></div>
+        </div>
+    </div>
 </body>
 </html>
