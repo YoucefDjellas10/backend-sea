@@ -48,6 +48,8 @@ def success_pick_up_view(request):
 
         photos = LivraisonIrAttachmentRel.objects.filter(livraison_id=livraison_id)
 
+        print(photos)
+
         photo_id_one = photos[0].ir_attachment_id if len(photos) > 0 else None
         photo_id_two = photos[1].ir_attachment_id if len(photos) > 0 else None
         photo_id_three = photos[2].ir_attachment_id if len(photos) > 0 else None
