@@ -192,6 +192,54 @@
             font-size: 14px;
         }
 
+        .photo-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .photo-status.empty {
+            background: rgba(220, 53, 69, 0.9);
+        }
+
+        .stats-summary {
+            background: white;
+            margin: 0 40px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
         .footer {
             background: #495057;
             color: white;
@@ -285,6 +333,22 @@
             <p class="inspection-subtitle">Photos prises lors de la prise en charge du véhicule</p>
         </div>
 
+        <!-- Résumé statistique -->
+        <div class="stats-summary">
+            <div class="stat-item">
+                <div class="stat-number">{{ total_photos }}</div>
+                <div class="stat-label">Photos disponibles</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Photos requises</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{% widthratio total_photos 12 100 %}%</div>
+                <div class="stat-label">Complétude</div>
+            </div>
+        </div>
+
         <!-- Grille des photos -->
         <div class="photos-grid">
             {% for photo in photos %}
@@ -335,9 +399,81 @@
     </button>
 
     <script>
-        function openPhoto(photoNumber) {
-            // Ici vous pouvez ajouter la logique pour ouvrir/agrandir la photo
-            alert(`Ouverture de la photo ${photoNumber}`);
+        // Modal pour afficher les photos en grand
+        function createModal() {
+            const modal = document.createElement('div');
+            modal.id = 'photo-modal';
+            modal.style.cssText = `
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.9);
+                cursor: pointer;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                max-width: 90%;
+                max-height: 90%;
+                text-align: center;
+            `;
+            
+            const modalImg = document.createElement('img');
+            modalImg.id = 'modal-image';
+            modalImg.style.cssText = `
+                max-width: 100%;
+                max-height: 80vh;
+                object-fit: contain;
+                border-radius: 10px;
+            `;
+            
+            const modalLabel = document.createElement('p');
+            modalLabel.id = 'modal-label';
+            modalLabel.style.cssText = `
+                color: white;
+                font-size: 18px;
+                margin-top: 20px;
+                text-align: center;
+            `;
+            
+            modalContent.appendChild(modalImg);
+            modalContent.appendChild(modalLabel);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Fermer au clic
+            modal.onclick = function() {
+                modal.style.display = 'none';
+            };
+            
+            return modal;
+        }
+
+        function openPhoto(photoUrl, photoLabel) {
+            if (!photoUrl) {
+                alert('Aucune photo disponible pour : ' + photoLabel);
+                return;
+            }
+            
+            let modal = document.getElementById('photo-modal');
+            if (!modal) {
+                modal = createModal();
+            }
+            
+            const modalImg = document.getElementById('modal-image');
+            const modalLabel = document.getElementById('modal-label');
+            
+            modalImg.src = photoUrl;
+            modalLabel.textContent = photoLabel;
+            modal.style.display = 'block';
         }
 
         // Animation au chargement
@@ -353,6 +489,18 @@
                         card.style.transform = 'translateY(0)';
                     }, 100);
                 }, index * 100);
+            });
+
+            // Gestion des erreurs de chargement d'images
+            const images = document.querySelectorAll('.actual-photo');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.style.display = 'none';
+                    const placeholder = this.parentElement.querySelector('.photo-placeholder');
+                    if (placeholder) {
+                        placeholder.style.display = 'flex';
+                    }
+                });
             });
         });
     </script>
