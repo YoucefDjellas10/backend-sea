@@ -19,8 +19,7 @@ class IrAttachment(models.Model):
         managed = False
 
 class LivraisonIrAttachmentRel(models.Model):
-    id = models.BigAutoField(primary_key=True) 
-    livraison_id = models.BigIntegerField()
+    livraison_id = models.BigIntegerField(primary_key=True)
     ir_attachment_id = models.BigIntegerField()
 
     class Meta:
