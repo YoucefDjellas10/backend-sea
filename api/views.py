@@ -42,51 +42,32 @@ def success_pick_up_view(request):
         livraison = get_object_or_404(Livraison, id=livraison_id)
 
         date_heure_depart = livraison.date_heure_debut
-
         date_debut = date_heure_depart.strftime("%d %B %Y") 
         heure_debut = date_heure_depart.strftime("%H:%M")  
-        print("test")
 
         photos = LivraisonIrAttachmentRel.objects.filter(livraison_id=livraison_id)
 
-        print(photos)
-
-        labels = [
-            "Face avant",
-            "Face arrière",
-            "Côté conducteur",
-            "Côté passager",
-            "Tableau de bord",
-            "Compteur kilométrique",
-            "Intérieur avant",
-            "Intérieur arrière",
-            "Coffre",
-            "Roue avant droite",
-            "Documents véhicule",
-            "État général"
-        ]
-
-        # Construction de la liste finale
         photos_list = []
-        for i, label in enumerate(labels):
-            if i < len(photos):  # si une photo existe
-                url = f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{photos[i].ir_attachment_id}/'
-            else:
-                url = None  # pas de photo dispo
-            photos_list.append({"number": i+1, "label": label, "url": url})
+        for i, p in enumerate(photos, start=1):
+            url = f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{p.ir_attachment_id}/'
+            photos_list.append({
+                "number": i,
+                "label": f"Photo {i}",   # ou bien "Face avant", etc. si tu veux garder des labels fixes
+                "url": url
+            })
+
         context = {
             'livraison': livraison,
             'contract_number': livraison.reservation.name,  
-            'client_name': livraison.client.name if livraison.client.name else 'Client',
-            'vehicle_name': livraison.modele.name if livraison.modele.name else 'Véhicule',
+            'client_name': livraison.client.name if livraison.client and livraison.client.name else 'Client',
+            'vehicle_name': livraison.modele.name if livraison.modele and livraison.modele.name else 'Véhicule',
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
             'photos': photos_list,
-
         }
-        
+
         return render(request, 'photo_livraison_template.html', context)
-        
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

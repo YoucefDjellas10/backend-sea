@@ -286,11 +286,7 @@
                 <div class="photo-container">
                     <div class="photo-number">{{ photo.number }}</div>
                     <div class="photo-placeholder">
-                        {% if photo.url %}
-                            <img src="{{ photo.url }}" alt="{{ photo.label }}" class="photo-img">
-                        {% else %}
-                            📷
-                        {% endif %}
+                        <img src="{{ photo.url }}" alt="{{ photo.label }}" class="photo-img">
                     </div>
                     <div class="photo-label">{{ photo.label }}</div>
                 </div>
