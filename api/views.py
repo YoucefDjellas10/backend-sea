@@ -64,6 +64,9 @@ def success_pick_up_view(request):
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
             'photos': photos_list,
+            'city':livraison.lieu_depart.city.name,
+            'lieu':livraison.lieu_depart.name
+
         }
 
         return render(request, 'photo_livraison_template.html', context)
