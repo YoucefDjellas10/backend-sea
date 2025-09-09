@@ -31,22 +31,28 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_signature_by_id(request, livraison_id):  # ← AJOUT du paramètre livraison_id
-    """
-    Vue pour récupérer et afficher la signature d'une livraison
-    URL: /signature/337/
-    """
+def get_signature_by_id(request, livraison_id):
     try:
-        # Utiliser directement livraison_id du paramètre URL (pas GET)
         livraison = get_object_or_404(Livraison, id=livraison_id)
         
-        if not livraison.signature:
-            return HttpResponse("Aucune signature trouvée", status=404)
+        # Debug : voir tous les champs disponibles
+        print("Champs disponibles:", [f.name for f in livraison._meta.fields])
         
-        # Décoder la signature base64
-        image_data = base64.b64decode(livraison.signature)
+        # Vérifier si le champ signature existe
+        if hasattr(livraison, 'signature'):
+            print(f"Signature trouvée: {type(livraison.signature)}")
+            if not livraison.signature:
+                return HttpResponse("Signature vide", status=404)
+        else:
+            return HttpResponse("Champ signature n'existe pas", status=404)
         
-        # Déterminer le type de contenu
+        # Si c'est déjà en bytes (pas base64)
+        if isinstance(livraison.signature, (bytes, memoryview)):
+            image_data = bytes(livraison.signature)
+        else:
+            # Si c'est en base64 (string)
+            image_data = base64.b64decode(livraison.signature)
+        
         content_type = 'image/png'
         if image_data.startswith(b'\xff\xd8'):
             content_type = 'image/jpeg'
@@ -54,7 +60,6 @@ def get_signature_by_id(request, livraison_id):  # ← AJOUT du paramètre livra
             content_type = 'image/png'
         
         response = HttpResponse(image_data, content_type=content_type)
-        response['Content-Disposition'] = f'inline; filename="signature_{livraison_id}.png"'
         return response
         
     except Exception as e:
