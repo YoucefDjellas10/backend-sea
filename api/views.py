@@ -54,17 +54,17 @@ def contract_download(request):
     # CSS pour éliminer toutes les marges
     css_no_margins = CSS(string='''
         @page {
-            margin: 0;
+            margin: 8px 4px 4px 4px;
             padding: 0;
         }
         
         body {
-            margin: 0;
+            margin: 8px 4px 4px 4px;
             padding: 0;
         }
         
         html {
-            margin: 0;
+            margin: 8px 4px 4px 4px;
             padding: 0;
         }
     ''')
