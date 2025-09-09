@@ -36,6 +36,7 @@ def get_signature_by_id(request, livraison_id):
     try:
         # Cherche l'attachment lié à la signature
         attachment = IrAttachment.objects.filter(
+            name='signature',
             res_model='livraison',
             res_id=livraison_id,
             mimetype__startswith='image/'
@@ -62,9 +63,6 @@ def get_signature_by_id(request, livraison_id):
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
-
-
-
 
 def success_pick_up_view(request):
     try:
