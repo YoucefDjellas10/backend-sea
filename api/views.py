@@ -30,64 +30,26 @@ from django.shortcuts import get_object_or_404
 import logging
 
 logger = logging.getLogger(__name__)
-
 def get_signature_by_id(request, livraison_id):
     try:
-        livraison = get_object_or_404(Livraison, id=livraison_id)
-        
-        # Debug
-        print(f"Livraison trouvée: {livraison.id}")
-        print(f"Signature type: {type(livraison.signature)}")
-        print(f"Signature exists: {livraison.signature is not None}")
-        
-        if not livraison.signature:
+        attachment = IrAttachment.objects.filter(
+            res_model='livraison',
+            res_id=livraison_id,
+            mimetype__startswith='image/'  # on ne prend que les images
+        ).first()
+
+        if not attachment or not attachment.db_datas:
             return HttpResponse("Aucune signature trouvée", status=404)
-        
-        # Odoo stocke les champs Binary comme bytes en PostgreSQL
-        if isinstance(livraison.signature, (bytes, memoryview)):
-            # Si c'est déjà en bytes, utilisez directement
-            image_data = bytes(livraison.signature)
-        elif isinstance(livraison.signature, str):
-            # Si c'est une string base64 (cas rare)
-            image_data = base64.b64decode(livraison.signature)
-        else:
-            return HttpResponse(f"Type de signature non supporté: {type(livraison.signature)}", status=500)
-        
-        # Vérifier si c'est bien une image
-        if len(image_data) == 0:
-            return HttpResponse("Signature vide", status=404)
-        
-        # Déterminer le type de contenu
-        content_type = 'image/png'  # Par défaut
-        
-        if image_data.startswith(b'\xff\xd8\xff'):
-            content_type = 'image/jpeg'
-        elif image_data.startswith(b'\x89PNG\r\n\x1a\n'):
-            content_type = 'image/png'
-        elif image_data.startswith(b'GIF87a') or image_data.startswith(b'GIF89a'):
-            content_type = 'image/gif'
-        elif image_data.startswith(b'data:'):
-            # Si c'est un data URI, extraire les données
-            try:
-                header, data = image_data.decode().split(',', 1)
-                image_data = base64.b64decode(data)
-                if 'jpeg' in header:
-                    content_type = 'image/jpeg'
-                elif 'png' in header:
-                    content_type = 'image/png'
-            except:
-                pass
-        
+
+        image_data = bytes(attachment.db_datas)
+        content_type = attachment.mimetype or 'image/png'
+
         response = HttpResponse(image_data, content_type=content_type)
         response['Content-Disposition'] = f'inline; filename="signature_{livraison_id}.png"'
         response['Cache-Control'] = 'no-cache'
-        
         return response
-        
-    except Livraison.DoesNotExist:
-        return HttpResponse("Livraison non trouvée", status=404)
+
     except Exception as e:
-        print(f"Erreur détaillée: {str(e)}")
         return HttpResponse(f"Erreur: {e}", status=500)
 
 
