@@ -66,6 +66,8 @@ def get_signature_by_id(request, livraison_id):
 def success_pick_up_view(request):
     try:
         livraison_id = request.GET.get("livraison_id")
+
+        print("ici")
         
         if not livraison_id:
             return JsonResponse({'error': 'livraison_id is required'}, status=status.HTTP_400_BAD_REQUEST)
