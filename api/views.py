@@ -40,8 +40,6 @@ def contract_download(request):
         livraison_id = request.GET.get("livraison_id")
 
         if not livraison_id: 
-            return HttpResponse(status=404)
-        else : 
             livraison_id = 337
 
         livraison = Livraison.objects.get(id=livraison_id)
