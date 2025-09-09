@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 def get_signature_by_id(request, livraison_id):
     try:
-        # Cherche l'attachment lié à la signature
         attachment = IrAttachment.objects.filter(
             name='signature',
             res_model='livraison',
@@ -64,7 +63,7 @@ def get_signature_by_id(request, livraison_id):
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
 
-def success_pick_up_view(request):
+def inspection_report(request):
     try:
         livraison_id = request.GET.get("livraison_id")
         
@@ -84,7 +83,7 @@ def success_pick_up_view(request):
             url = f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{p.ir_attachment_id}/'
             photos_list.append({
                 "number": i,
-                "label": f"Photo {i}",   # ou bien "Face avant", etc. si tu veux garder des labels fixes
+                "label": f"Photo {i}",   
                 "url": url
             })
 
@@ -106,13 +105,10 @@ def success_pick_up_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-  
-
 def livraison_photo_by_res(request, livraison_id, attachment_id):
     logger.info(f"Requête reçue: livraison_id={livraison_id}, attachment_id={attachment_id}")
     
     try:
-        # Vérifie dans la table relationnelle
         rel_exists = LivraisonIrAttachmentRel.objects.filter(
             livraison_id=livraison_id,
             ir_attachment_id=attachment_id
@@ -123,7 +119,6 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
 
         att = get_object_or_404(IrAttachment, pk=attachment_id)
         
-        # Changez le chemin pour pointer vers le montage
         ODOO_DATA_DIR = '/mnt/odoo-filestore/safarelamir'
         path = os.path.join(ODOO_DATA_DIR, *att.store_fname.split('/'))
         
