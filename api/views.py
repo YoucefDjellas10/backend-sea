@@ -38,7 +38,7 @@ def get_signature_by_id(request, livraison_id):
             mimetype__startswith='image/'  # on ne prend que les images
         ).first()
 
-        if not attachment or not attachment.db_datas:
+        if not attachment :
             return HttpResponse("Aucune signature trouvée", status=404)
 
         image_data = bytes(attachment.db_datas)
