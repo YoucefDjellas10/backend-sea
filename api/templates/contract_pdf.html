@@ -20,7 +20,7 @@
             </td>
             <td style="width: 30%; text-align: right; padding: 0;">
                 <p style="font-size: 10px; margin: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.4;">
-                    Service Livraison : 0561 61 14 15<br>
+                    Service Livraison : {{ SERVICE }}<br>
                     Service Réservation : +213 560 65 93 09
                 </p>
             </td>
@@ -28,7 +28,7 @@
     
         <tr>
             <td colspan="3" style="text-align: center;">
-                <h4 style="margin: 0; font-family:Verdana, Geneva, Tahoma, sans-serif; color: #1d3c44">  CONTRAT DE LOCATION <br/><em>N° SEA004167</em>  </h4>
+                <h4 style="margin: 0; font-family:Verdana, Geneva, Tahoma, sans-serif; color: #1d3c44">  CONTRAT DE LOCATION <br/><em>N° {{ REF }}</em>  </h4>
             </td>
         </tr>
     </table>
@@ -43,14 +43,14 @@ style="text-align: justify; background-image: url('https://i.ibb.co/JWXhXwHm/fil
 
     <!-- Ligne 1 -->
     <tr><td >  <strong style="color:  #1d3c44;">  ✔         Identité du client :
-       Bendjillali Mohammed
+       {{ NOM }} {{ PRÉNOM }}
         - Né le
-  25-05-1990
+  {{ DATE_DE_NAISSANCE }}
                     </strong>   </td></tr>
 
 
     <!-- Ligne 2 -->
-    <tr><td >  <strong style="color:  #1d3c44;"> ✔                Permis de conduire délivré le
+    <tr><td >  <strong style="color:  #1d3c44;"> ✔                Permis de conduire délivré le {{ DATE_PERMIS }}
         <t t-esc="o.client.date_de_permis"/>
                     </strong> </td></tr>
 
@@ -59,24 +59,24 @@ style="text-align: justify; background-image: url('https://i.ibb.co/JWXhXwHm/fil
     <tr><td >    <strong style="color:  #1d3c44;">  ✔     
         2ème conducteur :</strong>
         <t t-esc="o.nom_nd_condicteur"/>
-        - Permis de conduire délivré le : 09/2015.                  </td></tr>
+       {{ NOM_2EME_CONDUCTEUR }} - Permis de conduire délivré le : {{ DATE_PERMIS_2EME }}.                  </td></tr>
 
 
     <!-- Ligne 4 -->
-    <tr><td > <strong style="color:  #1d3c44;"> ✔          Durée de location :</strong> Du 12 déc. 2023 à 10:00 Au 15 déc. 2023 à 10:00                 </td></tr>
+    <tr><td > <strong style="color:  #1d3c44;"> ✔          Durée de location :</strong> Du {{ DATE_DEPART }} à {{ HEURE_DEPART }} Au {{ DATE_RETOUR }} à {{ HEUERE_RETOUR }}                 </td></tr>
 
 
     <!-- Ligne 5 -->
-    <tr><td ><strong style="color:  #1d3c44;">    ✔     Références du véhicule : </strong>FIAT 500X Coupé Automatique Immatriculation : 03534-123-31                     </td></tr>
+    <tr><td ><strong style="color:  #1d3c44;">    ✔     Références du véhicule : </strong>{{ NOM_VEHICULE }} Immatriculation : {{ MATRICULE }}                     </td></tr>
 
 
     <!-- Ligne 6 -->
     <tr><td >  <strong style="color:  #1d3c44;">
-        ✔      Montant de la location :</strong>28 160 Dz algériens.                      </td></tr>
+        ✔      Montant de la location :</strong>{{ TOTAL }} Dz algériens.                      </td></tr>
 
 
     <!-- Ligne 7 -->
-    <tr><td ><strong style="color:  #1d3c44;"> ✔       Caution :</strong> Le client doit déposer sa pièce d'identité originale valide + 77000 Dz de  caution en espèces.                      </td></tr>
+    <tr><td ><strong style="color:  #1d3c44;"> ✔       Caution :</strong> Le client doit déposer sa pièce d'identité originale valide + {{ CAUTION }} Dz de  caution en espèces.                      </td></tr>
 
 
     <!-- Ligne 8 -->
@@ -164,7 +164,7 @@ Dans tous les cas, le montant réclamé ne peut en aucun cas dépasser le montan
 
 <tr>
     <td style="color: #1d3c44;">Si les frais (sinistre, retard, nettoyage, pénalités,prolongation) ne sont pas réglés au moment de la restitution,
-je soussigné [NOM] [PRÉNOM] - Né le [DATE_DE_NAISSANCE], en ma qualité de client, autorise pleinement Safar El Amir, en sa qualité de loueur, en vertu de
+je soussigné {{ NOM }} {{ PRÉNOM }} - Né le {{ DATE_DE_NAISSANCE }}, en ma qualité de client, autorise pleinement Safar El Amir, en sa qualité de loueur, en vertu de
 ce contrat à débiter ces frais à hauteur maximale de la caution de ma carte N° xxxx xxxx xxxx xxxx.</td>
 </tr>
  
@@ -204,7 +204,7 @@ ce contrat à débiter ces frais à hauteur maximale de la caution de ma carte N
                     LE LOCATAIRE<br>
                      <strong style="color:  #1d3c44;">(Signature avec mention 'Lu et approuvé')</strong>
                 </p>
-                <img src="./image/ob_88f18c_signature-guy-2-transparent.png" alt="Signature" style="max-width: 4cm; height: auto; object-fit: contain;">
+                <img src="{{ SIGNATURE }}" alt="Signature" style="max-width: 4cm; height: auto; object-fit: contain;">
             </td>
         </tr>
     </table>

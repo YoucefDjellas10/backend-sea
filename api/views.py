@@ -33,50 +33,81 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 #def pick_up_mail_view
+
+
 def contract_download(request):
-    # Données fictives, à remplacer par ton vrai contexte
-    context = {
-        "NOM": "Ahmed",
-        "PRÉNOM": "Ali",
-        "DATE_DE_NAISSANCE": "01/01/1990",
-        "DATE_PERMIS": "10/10/2010",
-        "NOM_2EME_CONDUCTEUR": "Karim",
-        "DATE_PERMIS_2EME": "05/05/2015",
-        "DUREE_RESERVATION": "7 jours",
-        "NOM_VEHICULE": "Clio 4",
-        "MATRICULE": "123-456-16",
-        "TOTAL": "35000"
-    }
+    try:
+        livraison_id = request.GET.get("livraison_id")
 
-    # Générer HTML à partir du template
-    html_string = render_to_string("contract_pdf.html", context)
+        if not livraison_id: 
+            return HttpResponse(status=404)
+        else : 
+            livraison_id = 337
 
-    # CSS pour éliminer toutes les marges
-    css_no_margins = CSS(string='''
-        @page {
-            margin: 4px 10px 4px 10px;
-            padding: 0;
+        livraison = Livraison.objects.get(id=livraison_id)
+        date_heure_depart = livraison.date_heure_debut
+        date_heure_retour = livraison.date_heure_fin
+
+        date_debut = date_heure_depart.strftime("%d %B %Y") 
+        heure_debut = date_heure_depart.strftime("%H:%M")  
+
+        date_fin = date_heure_retour.strftime("%d %B %Y")
+        heure_fin = date_heure_retour.strftime("%H:%M")
+
+        birthday_date = livraison.client.date_de_naissance
+        birthday = birthday_date.strftime("%d %B %Y")
+
+        permis = livraison.client.date_de_permis
+        permit_date = permis.strftime("%B/%Y")
+
+        context = {
+            "REF": livraison.reservation.name,
+            "SERVICE":livraison.lieu_depart.mobile,
+            "NOM": livraison.nom,
+            "PRÉNOM": livraison.prenom,
+            "DATE_DE_NAISSANCE": birthday,
+            "DATE_PERMIS":permit_date,
+            "NOM_2EME_CONDUCTEUR": "Karim",
+            "DATE_PERMIS_2EME": "05/05/2015",
+            "DATE_DEPART": date_debut,
+            "HEURE_DEPART": heure_debut,
+            "DATE_RETOUR": date_fin,
+            "HEUERE_RETOUR": heure_fin,
+            "DUREE_RESERVATION": livraison.duree_dereservation,
+            "NOM_VEHICULE": livraison.modele.name,
+            "MATRICULE": livraison.vehicule.matricule,
+            "CAUTION": livraison.reservation.opt_protection_caution,
+            "TOTAL": livraison.reservation.total_reduit_euro,
+            "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/"
         }
-        
-        body {
-            margin:  4px 10px 4px 10px;
-            padding: 0;
-        }
-        
-        html {
-            margin:  4px 10px 4px 10px;
-            padding: 0;
-        }
-    ''')
 
-    # Convertir en PDF avec CSS personnalisé
-    html = HTML(string=html_string)
-    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+        html_string = render_to_string("contract_pdf.html", context)
 
-    # Réponse HTTP pour téléchargement
-    response = HttpResponse(pdf_file, content_type="application/pdf")
-    response['Content-Disposition'] = 'attachment; filename="contrat_safar_el_amir.pdf"'
-    return response
+        css_no_margins = CSS(string='''
+            @page {
+                margin: 4px 10px 4px 10px;
+                padding: 0;
+            }
+            
+            body {
+                margin:  4px 10px 4px 10px;
+                padding: 0;
+            }
+            
+            html {
+                margin:  4px 10px 4px 10px;
+                padding: 0;
+            }
+        ''')
+
+        html = HTML(string=html_string)
+        pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+
+        response = HttpResponse(pdf_file, content_type="application/pdf")
+        response['Content-Disposition'] = 'attachment; filename="contrat_safar_el_amir.pdf"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Erreur: {e}", status=500)
 
 def get_signature_by_id(request, livraison_id):
     try:
