@@ -32,6 +32,7 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 
 logger = logging.getLogger(__name__)
+#def pick_up_mail_view
 
 def contract_download(request):
     # Données fictives, à remplacer par ton vrai contexte
