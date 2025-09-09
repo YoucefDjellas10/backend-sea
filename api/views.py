@@ -28,9 +28,37 @@ from rest_framework import status
 import base64, mimetypes, os
 from django.shortcuts import get_object_or_404
 import logging
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 logger = logging.getLogger(__name__)
 
+def contract_download(request):
+    # Données fictives, à remplacer par ton vrai contexte
+    context = {
+        "NOM": "Ahmed",
+        "PRÉNOM": "Ali",
+        "DATE_DE_NAISSANCE": "01/01/1990",
+        "DATE_PERMIS": "10/10/2010",
+        "NOM_2EME_CONDUCTEUR": "Karim",
+        "DATE_PERMIS_2EME": "05/05/2015",
+        "DUREE_RESERVATION": "7 jours",
+        "NOM_VEHICULE": "Clio 4",
+        "MATRICULE": "123-456-16",
+        "TOTAL": "35000"
+    }
+
+    # Générer HTML à partir du template
+    html_string = render_to_string("contract_pdf.html", context)
+
+    # Convertir en PDF
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf()
+
+    # Réponse HTTP pour téléchargement
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = 'attachment; filename="contrat_safar_el_amir.pdf"'
+    return response
 
 def get_signature_by_id(request, livraison_id):
     try:
