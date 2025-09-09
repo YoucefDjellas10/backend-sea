@@ -31,10 +31,47 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_signature_by_id(request):
+def get_signature_by_id(request, livraison_id):  # ← AJOUT du paramètre livraison_id
+    """
+    Vue pour récupérer et afficher la signature d'une livraison
+    URL: /signature/337/
+    """
+    try:
+        # Utiliser directement livraison_id du paramètre URL (pas GET)
+        livraison = get_object_or_404(Livraison, id=livraison_id)
+        
+        if not livraison.signature:
+            return HttpResponse("Aucune signature trouvée", status=404)
+        
+        # Décoder la signature base64
+        image_data = base64.b64decode(livraison.signature)
+        
+        # Déterminer le type de contenu
+        content_type = 'image/png'
+        if image_data.startswith(b'\xff\xd8'):
+            content_type = 'image/jpeg'
+        elif image_data.startswith(b'\x89PNG'):
+            content_type = 'image/png'
+        
+        response = HttpResponse(image_data, content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="signature_{livraison_id}.png"'
+        return response
+        
+    except Exception as e:
+        return HttpResponse(f"Erreur: {e}", status=500)
 
+
+# Alternative si vous préférez utiliser les paramètres GET (?livraison_id=337)
+def get_signature_by_param(request):
+    """
+    Vue alternative pour récupérer avec paramètre GET
+    URL: /?livraison_id=337
+    """
     try:
         livraison_id = request.GET.get("livraison_id")
+        
+        if not livraison_id:
+            return HttpResponse("ID de livraison manquant", status=400)
         
         livraison = get_object_or_404(Livraison, id=livraison_id)
         
