@@ -29,11 +29,10 @@ import base64, mimetypes, os
 from django.shortcuts import get_object_or_404
 import logging
 from django.template.loader import render_to_string
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 #def pick_up_mail_view
-
 def contract_download(request):
     # Données fictives, à remplacer par ton vrai contexte
     context = {
@@ -52,9 +51,27 @@ def contract_download(request):
     # Générer HTML à partir du template
     html_string = render_to_string("contract_pdf.html", context)
 
-    # Convertir en PDF
+    # CSS pour éliminer toutes les marges
+    css_no_margins = CSS(string='''
+        @page {
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            margin: 0;
+            padding: 0;
+        }
+    ''')
+
+    # Convertir en PDF avec CSS personnalisé
     html = HTML(string=html_string)
-    pdf_file = html.write_pdf()
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
 
     # Réponse HTTP pour téléchargement
     response = HttpResponse(pdf_file, content_type="application/pdf")
