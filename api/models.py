@@ -1294,6 +1294,7 @@ class Livraison(models.Model):
 
     class Meta:
         db_table = 'livraison'
+        managed = False
 
 
     def __str__(self):

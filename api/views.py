@@ -35,68 +35,90 @@ def get_signature_by_id(request, livraison_id):
     try:
         livraison = get_object_or_404(Livraison, id=livraison_id)
         
-        # Debug : voir tous les champs disponibles
-        print("Champs disponibles:", [f.name for f in livraison._meta.fields])
-        
-        # Vérifier si le champ signature existe
-        if hasattr(livraison, 'signature'):
-            print(f"Signature trouvée: {type(livraison.signature)}")
-            if not livraison.signature:
-                return HttpResponse("Signature vide", status=404)
-        else:
-            return HttpResponse("Champ signature n'existe pas", status=404)
-        
-        # Si c'est déjà en bytes (pas base64)
-        if isinstance(livraison.signature, (bytes, memoryview)):
-            image_data = bytes(livraison.signature)
-        else:
-            # Si c'est en base64 (string)
-            image_data = base64.b64decode(livraison.signature)
-        
-        content_type = 'image/png'
-        if image_data.startswith(b'\xff\xd8'):
-            content_type = 'image/jpeg'
-        elif image_data.startswith(b'\x89PNG'):
-            content_type = 'image/png'
-        
-        response = HttpResponse(image_data, content_type=content_type)
-        return response
-        
-    except Exception as e:
-        return HttpResponse(f"Erreur: {e}", status=500)
-
-
-# Alternative si vous préférez utiliser les paramètres GET (?livraison_id=337)
-def get_signature_by_param(request):
-    """
-    Vue alternative pour récupérer avec paramètre GET
-    URL: /?livraison_id=337
-    """
-    try:
-        livraison_id = request.GET.get("livraison_id")
-        
-        if not livraison_id:
-            return HttpResponse("ID de livraison manquant", status=400)
-        
-        livraison = get_object_or_404(Livraison, id=livraison_id)
+        # Debug
+        print(f"Livraison trouvée: {livraison.id}")
+        print(f"Signature type: {type(livraison.signature)}")
+        print(f"Signature exists: {livraison.signature is not None}")
         
         if not livraison.signature:
             return HttpResponse("Aucune signature trouvée", status=404)
         
-        image_data = base64.b64decode(livraison.signature)
+        # Odoo stocke les champs Binary comme bytes en PostgreSQL
+        if isinstance(livraison.signature, (bytes, memoryview)):
+            # Si c'est déjà en bytes, utilisez directement
+            image_data = bytes(livraison.signature)
+        elif isinstance(livraison.signature, str):
+            # Si c'est une string base64 (cas rare)
+            image_data = base64.b64decode(livraison.signature)
+        else:
+            return HttpResponse(f"Type de signature non supporté: {type(livraison.signature)}", status=500)
         
-        content_type = 'image/png'
-        if image_data.startswith(b'\xff\xd8'):
+        # Vérifier si c'est bien une image
+        if len(image_data) == 0:
+            return HttpResponse("Signature vide", status=404)
+        
+        # Déterminer le type de contenu
+        content_type = 'image/png'  # Par défaut
+        
+        if image_data.startswith(b'\xff\xd8\xff'):
             content_type = 'image/jpeg'
-        elif image_data.startswith(b'\x89PNG'):
+        elif image_data.startswith(b'\x89PNG\r\n\x1a\n'):
             content_type = 'image/png'
+        elif image_data.startswith(b'GIF87a') or image_data.startswith(b'GIF89a'):
+            content_type = 'image/gif'
+        elif image_data.startswith(b'data:'):
+            # Si c'est un data URI, extraire les données
+            try:
+                header, data = image_data.decode().split(',', 1)
+                image_data = base64.b64decode(data)
+                if 'jpeg' in header:
+                    content_type = 'image/jpeg'
+                elif 'png' in header:
+                    content_type = 'image/png'
+            except:
+                pass
         
         response = HttpResponse(image_data, content_type=content_type)
         response['Content-Disposition'] = f'inline; filename="signature_{livraison_id}.png"'
+        response['Cache-Control'] = 'no-cache'
+        
         return response
         
+    except Livraison.DoesNotExist:
+        return HttpResponse("Livraison non trouvée", status=404)
     except Exception as e:
+        print(f"Erreur détaillée: {str(e)}")
         return HttpResponse(f"Erreur: {e}", status=500)
+
+
+# Vue alternative avec debug plus poussé
+def debug_signature(request, livraison_id):
+    """
+    Vue pour debugger le contenu de la signature
+    URL: /debug-signature/337/
+    """
+    try:
+        livraison = get_object_or_404(Livraison, id=livraison_id)
+        
+        debug_info = {
+            'id': livraison.id,
+            'signature_exists': livraison.signature is not None,
+            'signature_type': str(type(livraison.signature)),
+            'signature_length': len(livraison.signature) if livraison.signature else 0,
+        }
+        
+        if livraison.signature:
+            # Afficher les premiers bytes pour identifier le format
+            if isinstance(livraison.signature, (bytes, memoryview)):
+                first_bytes = bytes(livraison.signature)[:20]
+                debug_info['first_bytes'] = first_bytes.hex()
+                debug_info['starts_with_jpeg'] = first_bytes.startswith(b'\xff\xd8')
+                debug_info['starts_with_png'] = first_bytes.startswith(b'\x89PNG')
+        
+        return HttpResponse(f"Debug info: {debug_info}", content_type='text/plain')
+        
+    except Exception as e:
+        return HttpResponse(f"Debug error: {e}", content_type='text/plain')
 
 
 def success_pick_up_view(request):
