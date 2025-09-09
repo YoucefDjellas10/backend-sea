@@ -91,34 +91,6 @@ def get_signature_by_id(request, livraison_id):
         return HttpResponse(f"Erreur: {e}", status=500)
 
 
-# Vue alternative avec debug plus poussé
-def debug_signature(request, livraison_id):
-    """
-    Vue pour debugger le contenu de la signature
-    URL: /debug-signature/337/
-    """
-    try:
-        livraison = get_object_or_404(Livraison, id=livraison_id)
-        
-        debug_info = {
-            'id': livraison.id,
-            'signature_exists': livraison.signature is not None,
-            'signature_type': str(type(livraison.signature)),
-            'signature_length': len(livraison.signature) if livraison.signature else 0,
-        }
-        
-        if livraison.signature:
-            # Afficher les premiers bytes pour identifier le format
-            if isinstance(livraison.signature, (bytes, memoryview)):
-                first_bytes = bytes(livraison.signature)[:20]
-                debug_info['first_bytes'] = first_bytes.hex()
-                debug_info['starts_with_jpeg'] = first_bytes.startswith(b'\xff\xd8')
-                debug_info['starts_with_png'] = first_bytes.startswith(b'\x89PNG')
-        
-        return HttpResponse(f"Debug info: {debug_info}", content_type='text/plain')
-        
-    except Exception as e:
-        return HttpResponse(f"Debug error: {e}", content_type='text/plain')
 
 
 def success_pick_up_view(request):
