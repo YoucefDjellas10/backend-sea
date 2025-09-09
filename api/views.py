@@ -63,7 +63,7 @@ def get_signature_by_id(request, livraison_id):
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
 
-def inspection_report(request):
+def success_pick_up_view(request):
     try:
         livraison_id = request.GET.get("livraison_id")
         
