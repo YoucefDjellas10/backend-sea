@@ -67,12 +67,13 @@ def success_pick_up_view(request):
     try:
         livraison_id = request.GET.get("livraison_id")
 
-        print("ici")
+        
         
         if not livraison_id:
             return JsonResponse({'error': 'livraison_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         livraison = get_object_or_404(Livraison, id=livraison_id)
+        print("ici")
 
         date_heure_depart = livraison.date_heure_debut
         date_debut = date_heure_depart.strftime("%d %B %Y") 
