@@ -36,76 +36,73 @@ logger = logging.getLogger(__name__)
 
 
 def contract_download(request):
-    try:
-        livraison_id = request.GET.get("livraison_id")
 
-        if not livraison_id: 
-            livraison_id = 337
 
-        livraison = Livraison.objects.get(id=livraison_id)
-        date_heure_depart = livraison.date_heure_debut
-        date_heure_retour = livraison.date_heure_fin
+    livraison_id = 337
 
-        date_debut = date_heure_depart.strftime("%d %B %Y") 
-        heure_debut = date_heure_depart.strftime("%H:%M")  
+    livraison = Livraison.objects.get(id=livraison_id)
+    date_heure_depart = livraison.date_heure_debut
+    date_heure_retour = livraison.date_heure_fin
 
-        date_fin = date_heure_retour.strftime("%d %B %Y")
-        heure_fin = date_heure_retour.strftime("%H:%M")
+    date_debut = date_heure_depart.strftime("%d %B %Y") 
+    heure_debut = date_heure_depart.strftime("%H:%M")  
 
-        birthday_date = livraison.client.date_de_naissance
-        birthday = birthday_date.strftime("%d %B %Y")
+    date_fin = date_heure_retour.strftime("%d %B %Y")
+    heure_fin = date_heure_retour.strftime("%H:%M")
 
-        permis = livraison.client.date_de_permis
-        permit_date = permis.strftime("%B/%Y")
+    birthday_date = livraison.client.date_de_naissance
+    birthday = birthday_date.strftime("%d %B %Y")
 
-        context = {
-            "REF": livraison.reservation.name,
-            "SERVICE":livraison.lieu_depart.mobile,
-            "NOM": livraison.nom,
-            "PRÉNOM": livraison.prenom,
-            "DATE_DE_NAISSANCE": birthday,
-            "DATE_PERMIS":permit_date,
-            "NOM_2EME_CONDUCTEUR": "Karim",
-            "DATE_PERMIS_2EME": "05/05/2015",
-            "DATE_DEPART": date_debut,
-            "HEURE_DEPART": heure_debut,
-            "DATE_RETOUR": date_fin,
-            "HEUERE_RETOUR": heure_fin,
-            "DUREE_RESERVATION": livraison.duree_dereservation,
-            "NOM_VEHICULE": livraison.modele.name,
-            "MATRICULE": livraison.vehicule.matricule,
-            "CAUTION": livraison.reservation.opt_protection_caution,
-            "TOTAL": livraison.reservation.total_reduit_euro,
-            "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/"
+    permis = livraison.client.date_de_permis
+    permit_date = permis.strftime("%B/%Y")
+
+    context = {
+        "REF": livraison.reservation.name,
+        "SERVICE":livraison.lieu_depart.mobile,
+        "NOM": livraison.nom,
+        "PRÉNOM": livraison.prenom,
+        "DATE_DE_NAISSANCE": birthday,
+        "DATE_PERMIS":permit_date,
+        "NOM_2EME_CONDUCTEUR": "Karim",
+        "DATE_PERMIS_2EME": "05/05/2015",
+        "DATE_DEPART": date_debut,
+        "HEURE_DEPART": heure_debut,
+        "DATE_RETOUR": date_fin,
+        "HEUERE_RETOUR": heure_fin,
+        "DUREE_RESERVATION": livraison.duree_dereservation,
+        "NOM_VEHICULE": livraison.modele.name,
+        "MATRICULE": livraison.vehicule.matricule,
+        "CAUTION": livraison.reservation.opt_protection_caution,
+        "TOTAL": livraison.reservation.total_reduit_euro,
+        "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/"
+    }
+
+    html_string = render_to_string("contract_pdf.html", context)
+
+    css_no_margins = CSS(string='''
+        @page {
+            margin: 4px 10px 4px 10px;
+            padding: 0;
         }
+        
+        body {
+            margin:  4px 10px 4px 10px;
+            padding: 0;
+        }
+        
+        html {
+            margin:  4px 10px 4px 10px;
+            padding: 0;
+        }
+    ''')
 
-        html_string = render_to_string("contract_pdf.html", context)
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
 
-        css_no_margins = CSS(string='''
-            @page {
-                margin: 4px 10px 4px 10px;
-                padding: 0;
-            }
-            
-            body {
-                margin:  4px 10px 4px 10px;
-                padding: 0;
-            }
-            
-            html {
-                margin:  4px 10px 4px 10px;
-                padding: 0;
-            }
-        ''')
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = 'attachment; filename="contrat_safar_el_amir.pdf"'
+    return response
 
-        html = HTML(string=html_string)
-        pdf_file = html.write_pdf(stylesheets=[css_no_margins])
-
-        response = HttpResponse(pdf_file, content_type="application/pdf")
-        response['Content-Disposition'] = 'attachment; filename="contrat_safar_el_amir.pdf"'
-        return response
-    except Exception as e:
-        return HttpResponse(f"Erreur: {e}", status=500)
 
 def get_signature_by_id(request, livraison_id):
     try:
