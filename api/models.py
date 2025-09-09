@@ -13,7 +13,6 @@ class IrAttachment(models.Model):
     store_fname = models.CharField(max_length=255, null=True)
     res_model = models.CharField(max_length=255, null=True)
     res_id = models.BigIntegerField(null=True)
-    db_datas = models.BinaryField(null=True, blank=True)
 
     class Meta:
         db_table = 'ir_attachment'

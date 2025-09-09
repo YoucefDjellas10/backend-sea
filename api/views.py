@@ -30,21 +30,32 @@ from django.shortcuts import get_object_or_404
 import logging
 
 logger = logging.getLogger(__name__)
+
+
 def get_signature_by_id(request, livraison_id):
     try:
+        # Cherche l'attachment lié à la signature
         attachment = IrAttachment.objects.filter(
             res_model='livraison',
             res_id=livraison_id,
-            mimetype__startswith='image/'  # on ne prend que les images
+            mimetype__startswith='image/'
         ).first()
 
-        if not attachment or not attachment.db_datas:
+        if not attachment or not attachment.store_fname:
             return HttpResponse("Aucune signature trouvée", status=404)
 
-        image_data = bytes(attachment.db_datas)
-        content_type = attachment.mimetype or 'image/png'
+        ODOO_DATA_DIR = '/mnt/odoo-filestore/safarelamir'
+        path = os.path.join(ODOO_DATA_DIR, *attachment.store_fname.split('/'))
 
-        response = HttpResponse(image_data, content_type=content_type)
+        if not os.path.exists(path):
+            raise Http404(f"Signature introuvable: {path}")
+
+        with open(path, 'rb') as f:
+            raw = f.read()
+
+        mimetype = attachment.mimetype or mimetypes.guess_type(attachment.name or '')[0] or 'application/octet-stream'
+
+        response = HttpResponse(raw, content_type=mimetype)
         response['Content-Disposition'] = f'inline; filename="signature_{livraison_id}.png"'
         response['Cache-Control'] = 'no-cache'
         return response
