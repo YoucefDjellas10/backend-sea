@@ -70,4 +70,5 @@ urlpatterns += [
     path('comming-soon-email/',coming_soon_email_view, name='coming_soon_email_view'),
     path('livraison/<int:livraison_id>/photo/<int:attachment_id>/', livraison_photo_by_res, name='livraison_photo'),
     path('inspection-report/', success_pick_up_view, name='inspection_report'),
+    path('signature/<int:livraison_id>/', get_signature_by_id, name='signature_by_id'),
 ]

@@ -31,6 +31,31 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def get_signature_by_id(request):
+
+    try:
+        livraison_id = request.GET.get("livraison_id")
+        
+        livraison = get_object_or_404(Livraison, id=livraison_id)
+        
+        if not livraison.signature:
+            return HttpResponse("Aucune signature trouvée", status=404)
+        
+        image_data = base64.b64decode(livraison.signature)
+        
+        content_type = 'image/png'
+        if image_data.startswith(b'\xff\xd8'):
+            content_type = 'image/jpeg'
+        elif image_data.startswith(b'\x89PNG'):
+            content_type = 'image/png'
+        
+        response = HttpResponse(image_data, content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="signature_{livraison_id}.png"'
+        return response
+        
+    except Exception as e:
+        return HttpResponse(f"Erreur: {e}", status=500)
+
 
 def success_pick_up_view(request):
     try:

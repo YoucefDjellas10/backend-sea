@@ -1193,7 +1193,7 @@ class Livraison(models.Model):
         ('passport', 'Passport'),
         ('cin', 'CIN'),
     ], verbose_name='Document Fourni', null=True, blank=True)
-    #signature = models.BinaryField(verbose_name='Signature', null=True, blank=True)
+    signature = models.TextField(verbose_name='Signature', null=True, blank=True)
 
     total_da = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Total Dégradation (DA)', null=True, blank=True)
     total_eur = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Dégradation (EUR)', null=True, blank=True)
