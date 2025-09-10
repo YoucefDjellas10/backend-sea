@@ -105,7 +105,7 @@ def contract_download(request):
     file_name = f"contrat_{livraison.reservation.name}.pdf"
 
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response['Content-Disposition'] = 'attachment; filename= "{file_name}"'
+    response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
     return response
 
 
