@@ -38,7 +38,10 @@ logger = logging.getLogger(__name__)
 def contract_download(request):
 
 
-    livraison_id = 337
+    livraison_id = request.GET.get("livraison_id")
+
+    if not livraison_id : 
+        return HttpResponse("Livraison non disponible", status=404)
 
     livraison = Livraison.objects.get(id=livraison_id)
     date_heure_depart = livraison.date_heure_debut
