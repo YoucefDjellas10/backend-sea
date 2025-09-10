@@ -112,7 +112,7 @@ def contract_download(request):
         "MATRICULE": livraison.vehicule.matricule,
         "CAUTION": livraison.reservation.opt_protection_caution * taux,
         "TOTAL": livraison.reservation.total_reduit_euro * taux,
-        "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/",
+        "SIGNATURE": livraison_id,
         "PROTECTION_NAME" : protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
 
