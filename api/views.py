@@ -33,6 +33,8 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 #def pick_up_mail_view
+
+
 def contract_download(request):
     livraison_id = request.GET.get("livraison_id")
 
@@ -58,6 +60,8 @@ def contract_download(request):
     taux_change = TauxChange.objects.get(id=2)
     taux = taux_change.montant
 
+
+
     protection = livraison.reservation.opt_protection 
 
     protection_name = " "
@@ -65,10 +69,10 @@ def contract_download(request):
 
     if protection and "MAX" in protection.option_code :
         protection_name = " ✔      Assurance Protection :  Maximale:"
-        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes , ainsi le bris de glace involontaire. Elle permet également de bénéficier d'une caution réduite par rapport à la protection standard."
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes , ainsi le bris de glace involontaire. Elle permet également de bénéficier d’une caution réduite par rapport à la protection standard."
     elif protection and "STANDART" in protection.option_code :
         protection_name = "✔      Assurance Protection :  Standard:"
-        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d'une caution réduite par rapport à la protection Basique."
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d’une caution réduite par rapport à la protection Basique."
     else :
         protection_name = " "
         protection_dercription = " "
@@ -88,74 +92,29 @@ def contract_download(request):
     else : 
         nd_client_name = " "
         permi_desc = " "
+       
+    signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
 
-    # ===== NOUVELLE GESTION DES SIGNATURES =====
-    def get_signature_base64(livraison_id):
-        """Récupère la signature et la convertit en Base64 pour WeasyPrint"""
-        signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
-        print(f"🔍 Tentative de récupération: {signature_url}")
-        
-        try:
-            import requests
-            import base64
-            
-            # Configuration de la session avec headers
-            session = requests.Session()
-            session.headers.update({
-                'User-Agent': 'Mozilla/5.0 (compatible; Django PDF Generator)',
-                'Accept': 'image/*',
-                'Cache-Control': 'no-cache'
-            })
-            
-            # Tentative de récupération
-            response = session.get(signature_url, timeout=15, verify=True)
-            
-            print(f"📊 Status Code: {response.status_code}")
-            print(f"📊 Content-Type: {response.headers.get('content-type', 'N/A')}")
-            print(f"📊 Content-Length: {len(response.content)}")
-            
-            if response.status_code == 200 and len(response.content) > 0:
-                # Vérifier que c'est bien une image
-                content_type = response.headers.get('content-type', '')
-                if 'image' not in content_type.lower():
-                    print(f"⚠️  Content-Type inattendu: {content_type}")
-                    # Essayer quand même, en supposant que c'est une image
-                    content_type = 'image/png'
-                
-                # Conversion en Base64
-                image_base64 = base64.b64encode(response.content).decode('utf-8')
-                signature_data_url = f"data:{content_type};base64,{image_base64}"
-                
-                print(f"✅ Signature convertie en Base64 (longueur: {len(signature_data_url)})")
-                return signature_data_url
-            else:
-                print(f"❌ Réponse invalide: {response.status_code}")
-                if response.text:
-                    print(f"📄 Response body: {response.text[:200]}")
-                
-        except requests.exceptions.SSLError as e:
-            print(f"🔒 Erreur SSL: {e}")
-        except requests.exceptions.ConnectionError as e:
-            print(f"🌐 Erreur de connexion: {e}")
-        except requests.exceptions.Timeout as e:
-            print(f"⏰ Timeout: {e}")
-        except Exception as e:
-            print(f"💥 Erreur inattendue: {type(e).__name__}: {e}")
-            
-        return None
-
-    # Récupération de la signature
-    signature_data = get_signature_base64(livraison_id)
+    print(signature_url)
+    
+    import requests
+    try:
+        response = requests.head(signature_url, timeout=55)
+        print("response : ", response.status_code)
+        if response.status_code != 200:
+            signature_url = ""  
+    except:
+        signature_url = ""
 
     context = {
         "REF": livraison.reservation.name,
-        "SERVICE": livraison.lieu_depart.mobile,
+        "SERVICE":livraison.lieu_depart.mobile,
         "NOM": livraison.nom,
         "PRÉNOM": livraison.prenom,
         "DATE_DE_NAISSANCE": birthday,
-        "DATE_PERMIS": permit_date,
-        "NOM_2EME_CONDUCTEUR": nd_client_name,
-        "DATE_PERMIS_2EME": f" - Permis de conduire délivré le : {permi_desc}",
+        "DATE_PERMIS":permit_date,
+        "NOM_2EME_CONDUCTEUR":nd_client_name,
+        "DATE_PERMIS_2EME":f" - Permis de conduire délivré le : {permi_desc}",
         "DATE_DEPART": date_debut,
         "HEURE_DEPART": heure_debut,
         "DATE_RETOUR": date_fin,
@@ -165,12 +124,11 @@ def contract_download(request):
         "MATRICULE": livraison.vehicule.matricule,
         "CAUTION": livraison.reservation.opt_protection_caution * taux,
         "TOTAL": livraison.reservation.total_reduit_euro * taux,
-        "SIGNATURE_URL": signature_data,  # Base64 data URL ou None
-        "PROTECTION_NAME": protection_name,
+        "SIGNATURE_URL": signature_url,
+        "PROTECTION_NAME" : protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
-    }
 
-    print(f"📝 SIGNATURE_URL dans context: {'✅ Présente' if signature_data else '❌ Absente'}")
+    }
 
     html_string = render_to_string("contract_pdf.html", context)
 
@@ -189,35 +147,15 @@ def contract_download(request):
             margin:  4px 12px 4px 12px;
             padding: 0;
         }
-        
-        /* Styles pour la signature */
-        .signature-container {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #eee;
-        }
-        
-        .signature-img {
-            max-width: 4cm;
-            max-height: 3cm;
-            object-fit: contain;
-        }
     ''')
 
-    try:
-        html = HTML(string=html_string, base_url=request.build_absolute_uri())
-        pdf_file = html.write_pdf(stylesheets=[css_no_margins])
-        print("🎯 PDF généré avec succès")
-    except Exception as e:
-        print(f"❌ Erreur génération PDF: {e}")
-        raise
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
 
     file_name = f"contrat_{livraison.reservation.name}.pdf"
 
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+    response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
     return response
 
 def get_signature_by_id(request, livraison_id):
