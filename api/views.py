@@ -30,6 +30,7 @@ from django.shortcuts import get_object_or_404
 import logging
 from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
+import requests
 
 logger = logging.getLogger(__name__)
 #def pick_up_mail_view
@@ -93,6 +94,13 @@ def contract_download(request):
         nd_client_name = " "
         permi_desc = " "
        
+    signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
+    response = requests.get(signature_url)
+    signature_b64 = ""
+    if response.status_code == 200:
+        mime_type = response.headers.get("Content-Type", "image/png")
+        encoded = base64.b64encode(response.content).decode("utf-8")
+        signature_b64 = f"data:{mime_type};base64,{encoded}"
 
     context = {
         "REF": livraison.reservation.name,
@@ -112,7 +120,7 @@ def contract_download(request):
         "MATRICULE": livraison.vehicule.matricule,
         "CAUTION": livraison.reservation.opt_protection_caution * taux,
         "TOTAL": livraison.reservation.total_reduit_euro * taux,
-        "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/",
+        "SIGNATURE":signature_b64,
         "PROTECTION_NAME" : protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
 
@@ -137,7 +145,7 @@ def contract_download(request):
         }
     ''')
 
-    html = HTML(string=html_string)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri("/"))
     pdf_file = html.write_pdf(stylesheets=[css_no_margins])
 
     file_name = f"contrat_{livraison.reservation.name}.pdf"
