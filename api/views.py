@@ -77,12 +77,12 @@ def contract_download(request):
         protection_name = " "
         protection_dercription = " "
 
-    nd_clinet = livraison.reservation.nd_client
+    nd_clinet = livraison.reservation.nd_client if livraison.reservation.nd_client else None
     nd_client_name = " "
     permi_desc = " "
-    nd_client_name_ = livraison.reservation.nd_client.name
-    permis_nd = nd_clinet.date_de_permis
-    permit_date_nd = permis_nd.strftime("%B/%Y")
+    nd_client_name_ = nd_clinet.name if nd_clinet else " "
+    permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else " "
     if nd_clinet :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
