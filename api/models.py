@@ -997,7 +997,7 @@ class Reservation(models.Model):
 
 
     client = models.ForeignKey('ListeClient', on_delete=models.CASCADE,db_column='client', related_name='reservations')
-    nd_client = models.ForeignKey('ListeClient', on_delete=models.CASCADE,db_column='nd_client', related_name='reservations')
+    nd_client = models.ForeignKey('ListeClient', on_delete=models.CASCADE,db_column='nd_client', related_name='nd_client_reservations')
     nom = models.CharField(max_length=255, editable=False)
     prenom = models.CharField(max_length=255, editable=False)
     email = models.EmailField(editable=False)
