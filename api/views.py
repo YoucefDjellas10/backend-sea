@@ -94,10 +94,13 @@ def contract_download(request):
         permi_desc = " "
        
     signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
+
+    print(signature_url)
     
     import requests
     try:
         response = requests.head(signature_url, timeout=5)
+        print("response : ", response.status_code)
         if response.status_code != 200:
             signature_url = ""  
     except:
