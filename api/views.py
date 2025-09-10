@@ -99,7 +99,7 @@ def contract_download(request):
     
     import requests
     try:
-        response = requests.head(signature_url, timeout=55)
+        response = requests.head(signature_url, timeout=10)
         print("response : ", response.status_code)
         if response.status_code != 200:
             signature_url = ""  
