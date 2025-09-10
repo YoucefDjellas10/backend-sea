@@ -36,8 +36,6 @@ logger = logging.getLogger(__name__)
 
 
 def contract_download(request):
-
-
     livraison_id = request.GET.get("livraison_id")
 
     if not livraison_id : 
@@ -59,6 +57,23 @@ def contract_download(request):
     permis = livraison.client.date_de_permis
     permit_date = permis.strftime("%B/%Y")
 
+    taux_change = TauxChange.objects.get(id=2)
+    taux = taux_change.montant
+
+
+
+    protection = livraison.reservation.opt_protection 
+
+    protection_name = " "
+    protection_dercription = " "
+
+    if protection and "MAX" in protection.option_code :
+        protection_name = " ✔      Assurance Protection :  Maximale:"
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes , ainsi le bris de glace involontaire. Elle permet également de bénéficier d’une caution réduite par rapport à la protection standard."
+    elif protection and "STANDART" in protection.option_code :
+        protection_name = "✔      Assurance Protection :  Standard:"
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d’une caution réduite par rapport à la protection Basique."
+
     context = {
         "REF": livraison.reservation.name,
         "SERVICE":livraison.lieu_depart.mobile,
@@ -75,9 +90,12 @@ def contract_download(request):
         "DUREE_RESERVATION": livraison.duree_dereservation,
         "NOM_VEHICULE": livraison.modele.name,
         "MATRICULE": livraison.vehicule.matricule,
-        "CAUTION": livraison.reservation.opt_protection_caution,
-        "TOTAL": livraison.reservation.total_reduit_euro,
-        "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/"
+        "CAUTION": livraison.reservation.opt_protection_caution * taux,
+        "TOTAL": livraison.reservation.total_reduit_euro * taux,
+        "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/",
+        "PROTECTION_NAME" : protection_name,
+        "DESCRIPTION_PROTECTION": protection_dercription
+        
     }
 
     html_string = render_to_string("contract_pdf.html", context)
@@ -107,7 +125,6 @@ def contract_download(request):
     response = HttpResponse(pdf_file, content_type="application/pdf")
     response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
     return response
-
 
 def get_signature_by_id(request, livraison_id):
     try:
