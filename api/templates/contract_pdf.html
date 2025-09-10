@@ -206,7 +206,15 @@ ce contrat à débiter ces frais à hauteur maximale de la caution de ma carte N
                     LE LOCATAIRE<br>
                      <strong style="color:  #1d3c44;">(Signature avec mention 'Lu et approuvé')</strong>
                 </p>
-                <img src="https://api.safarelamir.com/signature/{{ SIGNATURE }}/" alt="Signature" style="max-width: 4cm; height: auto; object-fit: contain;">
+                {% if SIGNATURE_URL %}
+                    <div class="signature-container">
+                        <img src="{{ SIGNATURE_URL }}" alt="Signature du locataire" class="signature-img">
+                    </div>
+                {% else %}
+                    <div style="height: 80px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; font-style: italic; color: #666;">
+                        Signature non disponible
+                    </div>
+                {% endif %}
             </td>
         </tr>
     </table>

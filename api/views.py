@@ -93,6 +93,15 @@ def contract_download(request):
         nd_client_name = " "
         permi_desc = " "
        
+    signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
+    
+    import requests
+    try:
+        response = requests.head(signature_url, timeout=5)
+        if response.status_code != 200:
+            signature_url = ""  
+    except:
+        signature_url = ""
 
     context = {
         "REF": livraison.reservation.name,
@@ -112,7 +121,7 @@ def contract_download(request):
         "MATRICULE": livraison.vehicule.matricule,
         "CAUTION": livraison.reservation.opt_protection_caution * taux,
         "TOTAL": livraison.reservation.total_reduit_euro * taux,
-        "SIGNATURE": livraison_id,
+        "SIGNATURE_URL": signature_url,
         "PROTECTION_NAME" : protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
 
@@ -122,17 +131,17 @@ def contract_download(request):
 
     css_no_margins = CSS(string='''
         @page {
-            margin: 4px 10px 4px 10px;
+            margin: 4px 12px 4px 12px;
             padding: 0;
         }
         
         body {
-            margin:  4px 10px 4px 10px;
+            margin:  4px 12px 4px 12px;
             padding: 0;
         }
         
         html {
-            margin:  4px 10px 4px 10px;
+            margin:  4px 12px 4px 12px;
             padding: 0;
         }
     ''')
