@@ -77,7 +77,10 @@ def contract_download(request):
         protection_name = " "
         protection_dercription = " "
 
-    nd_clinet = livraison.reservation.nd_client if livraison.reservation.nd_client else None
+    reservation = livraison.reservation
+    nd_clinet = None
+    if reservation.nd_client_id:  
+        nd_clinet = reservation.nd_client
     nd_client_name = " "
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else " "
