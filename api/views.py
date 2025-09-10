@@ -73,6 +73,23 @@ def contract_download(request):
     elif protection and "STANDART" in protection.option_code :
         protection_name = "✔      Assurance Protection :  Standard:"
         protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d’une caution réduite par rapport à la protection Basique."
+    else :
+        protection_name = " "
+        protection_dercription = " "
+
+    nd_clinet = livraison.reservation.nd_client
+    nd_client_name = " "
+    permi_desc = " "
+    nd_client_name_ = livraison.reservation.nd_client.name
+    permis_nd = nd_clinet.date_de_permis
+    permit_date_nd = permis_nd.strftime("%B/%Y")
+    if nd_clinet :
+        nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
+        permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
+    else : 
+        nd_client_name = " "
+        permi_desc = " "
+       
 
     context = {
         "REF": livraison.reservation.name,
@@ -81,8 +98,8 @@ def contract_download(request):
         "PRÉNOM": livraison.prenom,
         "DATE_DE_NAISSANCE": birthday,
         "DATE_PERMIS":permit_date,
-        "NOM_2EME_CONDUCTEUR": "Karim",
-        "DATE_PERMIS_2EME": "05/05/2015",
+        "NOM_2EME_CONDUCTEUR":nd_client_name,
+        "DATE_PERMIS_2EME":f" - Permis de conduire délivré le : {permi_desc}",
         "DATE_DEPART": date_debut,
         "HEURE_DEPART": heure_debut,
         "DATE_RETOUR": date_fin,
@@ -94,8 +111,8 @@ def contract_download(request):
         "TOTAL": livraison.reservation.total_reduit_euro * taux,
         "SIGNATURE": f"https://api.safarelamir.com/signature/{livraison_id}/",
         "PROTECTION_NAME" : protection_name,
-        "DESCRIPTION_PROTECTION": protection_dercription
-        
+        "DESCRIPTION_PROTECTION": protection_dercription,
+
     }
 
     html_string = render_to_string("contract_pdf.html", context)
