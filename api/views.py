@@ -95,17 +95,7 @@ def contract_download(request):
        
     signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
 
-    print(signature_url)
     
-    import requests
-    try:
-        response = requests.head(signature_url, timeout=10)
-        print("response : ", response.status_code)
-        if response.status_code != 200:
-            signature_url = ""  
-    except:
-        signature_url = ""
-
     context = {
         "REF": livraison.reservation.name,
         "SERVICE":livraison.lieu_depart.mobile,
