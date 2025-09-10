@@ -47,7 +47,7 @@ def pick_up_mail_view(request):
             try:
                 sujet = f"Livraison réussite N = {livraison.reservation.name}"
                 expediteur = settings.EMAIL_HOST_USER
-                html_message = render_to_string('email/coming_soon_email.html', {
+                html_message = render_to_string('email/livraison_email.html', {
                     "clien_name" : livraison.client.name,
                     "photos_link": f"https://api.safarelamir.com/inspection-report/?livraison_id={livraison_id}",
                     "contract_link":f"https://api.safarelamir.com/contract-download/?livraison_id={livraison_id}"
