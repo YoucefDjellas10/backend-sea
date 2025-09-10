@@ -32,8 +32,51 @@ from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
-#def pick_up_mail_view
 
+def pick_up_mail_view(request):
+    try:
+        livraison_id = request.GET.get("livraison_id")
+
+        livraison = Livraison.objects.get(id=livraison_id)
+
+        if not livraison or livraison is None : 
+            return JsonResponse({'error': "there are not livraison with this ref"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                sujet = f"Livraison réussite N = {livraison.reservation.name}"
+                expediteur = settings.EMAIL_HOST_USER
+                html_message = render_to_string('email/coming_soon_email.html', {
+                    "clien_name" : livraison.client.name,
+                    "photos_link": f"https://api.safarelamir.com/inspection-report/?livraison_id={livraison_id}",
+                    "contract_link":f"https://api.safarelamir.com/contract-download/?livraison_id={livraison_id}"
+                    
+                })
+                
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),
+                    expediteur,
+                    [livraison.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                ) 
+
+                return JsonResponse({'message': "Opération réussie"}, status=200)      
+                
+            except Exception as mail_error:
+                if attempt == max_retries - 1:  
+                    print(f"Erreur envoi email: {mail_error}")
+                else:
+                    time.sleep(2)  
+        
+            
+        else:
+            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
+
+    except Exception as e:
+        return HttpResponse(f"Erreur: {e}", status=500)
 
 def contract_download(request):
     livraison_id = request.GET.get("livraison_id")
