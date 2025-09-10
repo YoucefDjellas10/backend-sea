@@ -1435,6 +1435,8 @@ def add_reservation_post_view(request):
         num_vol = data.get("num_vol")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
 
+        print("date : ", data)
+
         prix_jour = 0
         total = 0
         last_total = 0
