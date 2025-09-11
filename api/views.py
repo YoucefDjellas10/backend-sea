@@ -48,11 +48,16 @@ def restitution_email_view(request):
             try:
                 sujet = f"Réstitution réussite N = {livraison.reservation.name}"
                 expediteur = settings.EMAIL_HOST_USER
-                html_message = render_to_string('restitution_email.html', {
-                    "clien_name" : livraison.client.name,
-                    
-                })
-               
+                if review == "yes": 
+                    html_message = render_to_string('email/restitution_email.html', {
+                        "clien_name" : livraison.client.name,
+                        
+                    })
+                else :
+                    html_message = render_to_string('email/restitution_email_without_reviw.html', {
+                        "clien_name" : livraison.client.name,
+                        
+                    })
                 
                 send_mail(
                     sujet,
@@ -71,6 +76,9 @@ def restitution_email_view(request):
                 else:
                     time.sleep(2)  
         
+            
+        else:
+            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
