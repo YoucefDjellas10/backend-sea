@@ -75,10 +75,6 @@ def restitution_email_view(request):
                     print(f"Erreur envoi email: {mail_error}")
                 else:
                     time.sleep(2)  
-        
-            
-        else:
-            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
