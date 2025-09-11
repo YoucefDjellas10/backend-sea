@@ -48,16 +48,11 @@ def restitution_email_view(request):
             try:
                 sujet = f"Réstitution réussite N = {livraison.reservation.name}"
                 expediteur = settings.EMAIL_HOST_USER
-                if review == "yes": 
-                    html_message = render_to_string('restitution_email.html', {
-                        "clien_name" : livraison.client.name,
-                        
-                    })
-                else :
-                    html_message = render_to_string('restitution_email_without_reviw.html', {
-                        "clien_name" : livraison.client.name,
-                        
-                    })
+                html_message = render_to_string('restitution_email.html', {
+                    "clien_name" : livraison.client.name,
+                    
+                })
+               
                 
                 send_mail(
                     sujet,
@@ -75,6 +70,7 @@ def restitution_email_view(request):
                     print(f"Erreur envoi email: {mail_error}")
                 else:
                     time.sleep(2)  
+        
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
