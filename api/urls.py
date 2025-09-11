@@ -73,4 +73,5 @@ urlpatterns += [
     path('signature/<int:livraison_id>/', get_signature_by_id, name='signature_by_id'),
     path("contract-download/", contract_download, name="contract_download"),
     path("success-pickup-email/", pick_up_mail_view, name="pick_up_mail_view"),
+    path("restitution-email/", restitution_email_view, name="restitution_email_view"),
 ]
