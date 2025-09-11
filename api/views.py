@@ -39,6 +39,7 @@ def restitution_email_view(request):
         review = request.GET.get("review")
 
         livraison = Livraison.objects.get(id=livraison_id)
+        print("review : ",review)
 
         if not livraison or livraison is None : 
             return JsonResponse({'error': "there are not livraison with this ref"}, status=status.HTTP_400_BAD_REQUEST)
