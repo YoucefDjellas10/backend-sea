@@ -17,10 +17,6 @@ from django.template.loader import render_to_string
 import re
 from django.utils.timezone import now
 from django.utils import timezone
-from django.db import transaction
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def vip_reduction(country_code):
@@ -1175,106 +1171,38 @@ def otp_send(email):
     except Exception as e:
         return {"sent": False,"message": f"Erreur inattendue : {str(e)}", "client_id": None}
     
+def otp_verify(email, otp, client_id):
+    try:
+        client = ListeClient.objects.filter(id=client_id).first()
+        if not client:
+            return {"success": False, "message": "Aucun client trouvé avec cet email."}
+        
+        otp_time = client.otp_created_at
 
-class OTPService:
-    OTP_VALIDITY_MINUTES = 7
-    MAX_ATTEMPTS = 3
-    
-    @staticmethod
-    def otp_verify(email, otp, client_id):
-        """
-        Vérifie l'OTP avec limitation des tentatives
-        """
-        try:
-            with transaction.atomic():
-                client = ListeClient.objects.select_for_update().filter(id=client_id).first()
-                
-                if not client:
-                    logger.warning(f"Tentative de vérification OTP pour client inexistant: {client_id}")
-                    return {
-                        "success": False, 
-                        "message": "Client non trouvé.",
-                        "error_code": "CLIENT_NOT_FOUND"
-                    }
-                
-                # Vérifier si un OTP existe
-                if not client.otp or not client.otp_created_at:
-                    return {
-                        "success": False, 
-                        "message": "Aucun OTP en cours de validation.",
-                        "error_code": "NO_OTP"
-                    }
-                
-                # Normaliser le temps OTP (gérer timezone)
-                otp_time = client.otp_created_at
-                if timezone.is_naive(otp_time):
-                    otp_time = timezone.make_aware(otp_time)
-                
-                # Vérifier si l'OTP a expiré
-                time_elapsed = timezone.now() - otp_time
-                if time_elapsed > timedelta(minutes=OTPService.OTP_VALIDITY_MINUTES):
-                    OTPService._reset_otp_data(client)
-                    return {
-                        "success": False, 
-                        "message": "L'OTP a expiré. Veuillez demander un nouveau code.",
-                        "expired": True,
-                        "error_code": "OTP_EXPIRED"
-                    }
-                
-                # Vérifier l'OTP
-                if str(client.otp) == str(otp):
-                    # OTP correct
-                    OTPService._reset_otp_data(client)
-                    logger.info(f"OTP vérifié avec succès pour le client {client_id}")
-                    return {
-                        "success": True,
-                        "message": "OTP vérifié avec succès."
-                    }
-                else:
-                    # OTP incorrect - incrémenter les tentatives
-                    client.otp_attempts += 1
-                    
-                    if client.otp_attempts >= OTPService.MAX_ATTEMPTS:
-                        # Nombre maximum de tentatives atteint
-                        OTPService._reset_otp_data(client)
-                        logger.warning(f"Nombre maximum de tentatives OTP atteint pour le client {client_id}")
-                        return {
-                            "success": False,
-                            "message": f"Nombre maximum de tentatives ({OTPService.MAX_ATTEMPTS}) atteint. Veuillez demander un nouveau code.",
-                            "max_attempts_reached": True,
-                            "error_code": "MAX_ATTEMPTS_REACHED"
-                        }
-                    else:
-                        # Sauvegarder le nombre de tentatives
-                        client.save(update_fields=['otp_attempts'])
-                        remaining_attempts = OTPService.MAX_ATTEMPTS - client.otp_attempts
-                        
-                        logger.info(f"Tentative OTP incorrecte pour le client {client_id}. Tentatives restantes: {remaining_attempts}")
-                        return {
-                            "success": False,
-                            "message": f"OTP incorrect. {remaining_attempts} tentative(s) restante(s).",
-                            "incorrect": True,
-                            "remaining_attempts": remaining_attempts,
-                            "error_code": "INCORRECT_OTP"
-                        }
-                        
-        except Exception as e:
-            logger.error(f"Erreur lors de la vérification OTP pour le client {client_id}: {str(e)}")
-            return {
-                "success": False, 
-                "message": "Une erreur inattendue s'est produite.",
-                "error_code": "UNEXPECTED_ERROR"
-            }
-    
-    @staticmethod
-    def _reset_otp_data(client):
-        """
-        Remet à zéro toutes les données OTP du client
-        """
-        client.otp = None
-        client.otp_created_at = None
-        client.otp_attempts = 0
-        client.save(update_fields=['otp', 'otp_created_at', 'otp_attempts'])
+        if timezone.is_naive(otp_time):
+            otp_time = timezone.make_aware(otp_time)
+        
+        otp_time += timedelta(hours=1)
+
+        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=7):
+            client.otp = None
+            client.otp_created_at = None
+            client.save()
+            return {"success": True}
+        elif str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=7):
+            client.otp = None
+            client.otp_created_at = None
+            client.save()
+            return {"success": False, "expired":True}
+        elif str(client.otp) != str(otp) and client.otp:
+            client.otp = None
+            client.otp_created_at = None
+            client.save()
+            return {"success": False, "incorrect":True}
+        else:
+            return {"success": False}
+    except Exception as e:
+        return {"success": False, "message": f"Erreur inattendue : {str(e)}"}
 
 def rechercher_vehicules_disponibles(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour):
 
