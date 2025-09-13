@@ -33,6 +33,47 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def update_category_email_view(request):
+    try:
+        client_id = request.GET.get("client_id")
+
+        client = ListeClient.objects.get(id=client_id)
+
+        client_category = client.categorie_client
+
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                sujet = f"Mis à jours des point pour {client.name}"
+                expediteur = settings.EMAIL_HOST_USER
+                html_message = render_to_string('email/restitution_email.html', {
+                    "clien_name" : client.name,
+                    "points": client.total_points,
+                    "category_name": client.category_client_name
+                    
+                })
+                
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),
+                    expediteur,
+                    [client.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                ) 
+
+                return JsonResponse({'message': "Opération réussie"}, status=200)      
+                
+            except Exception as mail_error:
+                if attempt == max_retries - 1:  
+                    print(f"Erreur envoi email: {mail_error}")
+                else:
+                    time.sleep(2) 
+
+
+    except Exception as e:
+        return HttpResponse(f"Erreur: {e}", status=500)
+
 def restitution_email_view(request):
     try:
         livraison_id = request.GET.get("livraison_id")
@@ -1485,8 +1526,6 @@ def add_reservation_post_view(request):
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
-
-        print("date : ", data)
 
         prix_jour = 0
         total = 0
