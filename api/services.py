@@ -995,7 +995,7 @@ def ma_reservation_detail(ref, email, country_code):
                     'age_min': ma_reservation.age_min,
                     'nbr_jour_reservation': ma_reservation.nbr_jour_reservation,
                     'total_reduit_euro': ma_reservation.total_reduit_euro * taux_change if ma_reservation.total_reduit_euro else 0,
-                    "montant_paye":ma_reservation.montant_paye,
+                    "montant_paye":ma_reservation.montant_paye * taux_change if ma_reservation.total_reduit_euro else 0,
                     "email":ma_reservation.email,
                 })
         else :  
