@@ -3120,23 +3120,77 @@ def otp_send_client(request):
     return JsonResponse({"sent": False, "message": "Méthode non autorisée. Utilisez GET."})
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def otp_verify_client(request):
-    if request.method == "POST":
+
+    try:
+        # Validation du Content-Type
+        if not request.content_type or 'application/json' not in request.content_type:
+            return JsonResponse({
+                "success": False, 
+                "message": "Content-Type doit être application/json",
+                "error_code": "INVALID_CONTENT_TYPE"
+            }, status=400)
+        
+        # Parsing des données JSON
         try:
             data = json.loads(request.body.decode('utf-8'))
-            email = data.get("email")
-            otp = data.get("otp")
-            client_id = data.get("client_id")
-
-            if not email or not otp:
-                return JsonResponse({"success": False, "message": "Email et OTP sont requis."})
-
-            result = otp_verify(email, otp, client_id)
-            return JsonResponse(result)
-        except Exception as e:
-            return JsonResponse({"success": False, "message": f"Erreur: {str(e)}"})
-
-    return JsonResponse({"success": False, "message": "Méthode non autorisée. Utilisez POST."})
+        except json.JSONDecodeError:
+            return JsonResponse({
+                "success": False, 
+                "message": "Données JSON invalides",
+                "error_code": "INVALID_JSON"
+            }, status=400)
+        
+        email = data.get("email", "").strip()
+        otp = data.get("otp", "").strip()
+        client_id = data.get("client_id")
+        
+        validation_errors = []
+        
+        if not email:
+            validation_errors.append("Email requis")
+        
+        if not otp:
+            validation_errors.append("OTP requis")
+        elif not otp.isdigit():
+            validation_errors.append("OTP doit contenir uniquement des chiffres")
+        elif len(otp) != 6: 
+            validation_errors.append("OTP doit contenir 6 chiffres")
+            
+        if not client_id:
+            validation_errors.append("ID client requis")
+        
+        if validation_errors:
+            return JsonResponse({
+                "success": False, 
+                "message": "Données invalides: " + ", ".join(validation_errors),
+                "error_code": "VALIDATION_ERROR"
+            }, status=400)
+        
+        result = OTPService.otp_verify(email, otp, client_id)
+        
+        status_code = 200
+        if not result.get("success"):
+            error_code = result.get("error_code", "")
+            if error_code in ["CLIENT_NOT_FOUND", "NO_OTP"]:
+                status_code = 404
+            elif error_code in ["VALIDATION_ERROR", "INVALID_JSON", "INVALID_CONTENT_TYPE"]:
+                status_code = 400
+            elif error_code in ["OTP_EXPIRED", "MAX_ATTEMPTS_REACHED", "INCORRECT_OTP"]:
+                status_code = 422  
+        
+        logger.info(f"Tentative de vérification OTP pour client {client_id}: {'succès' if result.get('success') else 'échec'}")
+        
+        return JsonResponse(result, status=status_code)
+        
+    except Exception as e:
+        logger.error(f"Erreur inattendue dans otp_verify_client: {str(e)}")
+        return JsonResponse({
+            "success": False, 
+            "message": "Une erreur inattendue s'est produite",
+            "error_code": "UNEXPECTED_ERROR"
+        }, status=500)
 
 def search_result_view(request):
     lieu_depart_id = request.GET.get("lieu_depart_id")

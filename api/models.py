@@ -502,6 +502,7 @@ class ListeClient(models.Model):
     otp = models.CharField(max_length=6, null=True, blank=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
     create_date = models.DateTimeField(null=True, blank=True)
+    otp_attempts = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'liste_client'
