@@ -508,7 +508,6 @@ def solde_history_view(request):
                 history_data.append(record_dict)
         
         response_data = {
-            'currency': "DA" if country_code == "DZ" else "EUR",
             'data': history_data,
             'pagination': {
                 'current_page': history_page.number,
