@@ -497,6 +497,7 @@ def solde_history_view(request):
         if history_page is not None:
             for record in history_page:
                 record_dict = {
+                    'currency': currency,
                     'label': record.reservation.name,
                     'label_en': record.reservation.name,
                     'label_ar': record.reservation.name,
