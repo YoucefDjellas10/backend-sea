@@ -498,7 +498,7 @@ def solde_history_view(request):
                     'label': record.reservation.name,
                     'label_en': record.reservation.name,
                     'label_ar': record.reservation.name,
-                    'montant': record.montant * taux,
+                    'point': record.montant * taux,
                     'status':"paiement",
                     'reservation': record.reservation.name
                 }
