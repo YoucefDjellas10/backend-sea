@@ -484,8 +484,10 @@ def solde_history_view(request):
             history_page = paginator.page(paginator.num_pages)
         
         taux = 1
+        currency = "EUR"
 
         if country_code =="DZ" :
+            currency = "DA"
             taux_change = TauxChange.objects.get(id=2)
             taux = taux_change.montant
         else : 
