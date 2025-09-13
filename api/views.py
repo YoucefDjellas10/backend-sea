@@ -486,6 +486,8 @@ def solde_history_view(request):
         taux = 1
         currency = "EUR"
 
+        total_consome = client.solde_consomer
+
         if country_code =="DZ" :
             currency = "DA"
             taux_change = TauxChange.objects.get(id=2)
@@ -510,6 +512,7 @@ def solde_history_view(request):
         response_data = {
             'data': history_data,
             'pagination': {
+                'total':total_consome,
                 'current_page': history_page.number,
                 'total_pages': paginator.num_pages,
                 'total_records': paginator.count,
