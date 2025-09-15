@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reçu SAFAR EL AMIR</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none; }
+            .receipt { box-shadow: none; margin: 0; }
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .receipt-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .receipt {
+            width: 58mm;
+            max-width: 220px;
+            background: white;
+            color: black;
+            font-size: 11px;
+            line-height: 1.3;
+            margin: 0 auto;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .logo {
+            text-align: center;
+          
+        }
+
+        .logo img {
+            max-width: 157px;
+            height: auto; 
+            filter: grayscale(100%) contrast(300%);
+        }
+
+        .company-name {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 4px 0;
+            text-transform: uppercase;
+        }
+
+        .contact-info {
+            text-align: center;
+            font-size: 10px;
+            margin: 4px 0;
+        }
+
+        .separator {
+            border-top: 1px dashed #333;
+            margin: 6px 0;
+        }
+
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin: 4px 0;
+        }
+
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 10px;
+            margin: 6px 0 3px 0;
+        }
+
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+            font-size: 10px;
+        }
+
+        .vehicle-details {
+           
+            padding: 4px;
+            margin: 4px 0;
+            border-radius: 6px;
+            border: 1px solid #bebebe;
+        }
+
+        .total-section {
+            background: #ffffff;
+            color: rgb(0, 0, 0);
+            padding: 4px;
+            margin: 6px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status-paid {
+            background: #000;
+            color: white;
+            padding: 2px 6px;
+            display: inline-block;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin: 8px 0;
+        }
+
+        .qr-section img {
+            max-width: 120px;
+            height: auto;
+        }
+
+        .qr-text {
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .thank-you {
+            text-align: center;
+            font-weight: bold;
+            margin: 6px 0;
+            font-size: 11px;
+            border-radius: 50px;
+            border: 1px double #333;
+            padding: 4px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn-print {
+            background: #28a745;
+        }
+
+        .btn-print:hover {
+            background: #1e7e34;
+        }
+
+        .size-selector {
+            margin: 10px 0;
+        }
+
+        .size-selector button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 2px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .size-selector button.active {
+            background: #007bff;
+        }
+
+        /* Style pour 80mm */
+        .receipt.width-80mm {
+            width: 80mm;
+            max-width: 300px;
+            font-size: 12px;
+        }
+
+        .receipt.width-80mm .company-name {
+            font-size: 14px;
+        }
+
+        .receipt.width-80mm .logo img {
+            max-width: 155px;
+        }
+
+        .receipt.width-80mm .qr-section img {
+            max-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="controls no-print">
+            <div class="size-selector">
+                <button onclick="setWidth('58mm')" class="active" id="btn-58mm">58mm</button>
+                <button onclick="setWidth('80mm')" id="btn-80mm">80mm</button>
+            </div>
+            <button class="btn btn-print" onclick="printReceipt()">🖨️ Imprimer</button>
+            <button class="btn" onclick="downloadPDF()">📄 Télécharger PDF</button>
+             
+        </div>
+
+        <div class="receipt" id="receipt">
+            <!-- Logo -->
+            <div class="logo">
+                <img src="https://i.ibb.co/vvX36NKW/logo-safar-el-amir-badge.jpg" alt="Logo SAFAR EL AMIR">
+            </div>
+
+             <!-- Nom entreprise --> <!--
+            <div class="company-name">SAFAR EL AMIR</div>
+            <div style="text-align: center; font-size: 10px; margin: 2px 0;">Location de voitures</div>
+             -->
+            <!-- Contact -->
+            <div class="contact-info" style="margin: 0;line-height: 1;">WhatsApp: +213560659309</div>
+
+            <div class="separator"></div>
+
+            <!-- En-tête reçu -->
+            <div class="receipt-header">
+                <span>Reçu N°: <span id="receipt-number">REC-2024-001</span></span>
+            </div>
+            <div style="text-align: center; font-size: 10px;" id="receipt-date">11/09/2025 - 14:30</div>
+
+            <div class="separator"></div>
+
+            <!-- Informations client -->
+            <div class="section-title">CLIENT:</div>
+            <div class="info-line">
+                <span>Nom:</span>
+                <span id="client-name">BENALI Ahmed</span>
+            </div>
+            
+            <div class="info-line">
+                <span>Réservation:</span>
+                <span id="reservation-number">RSV-2024-156</span>
+            </div>
+
+            <div class="separator"></div>
+<div class="info-line">
+                <span>Motif de frais:</span>
+                <span id="Motif">Annulation de reservation</span>
+            </div>
+
+             
+            <!-- Détails location -->
+            <div class="section-title">DÉTAILS LOCATION:</div>
+            <div class="vehicle-details">
+               
+                <div class="info-line">
+                    <span>Réservation N°:</span>
+                    <span id="vehicle-plate">45616</span>
+                </div>
+                <div class="separator"></div>
+                 <div class="info-line">
+                    <span>Véhicule:</span>
+                    <span id="vehicle-model">Clio IV</span>
+                </div>
+                <div class="info-line">
+                    <span>Durée:</span>
+                    <span id="rental-duration">3 jours</span>
+                </div>
+                <div class="info-line">
+                    <span>les frais de retour </span>
+                    <span id="daily-price">4,500 DA</span>
+                </div>
+            </div>
+
+             
+
+            <!-- Montant total -->
+            <div class="total-section">
+                <div>total encaissé: <span id="total-amount">4,500 DA</span></div>
+                <div style="margin-top: 4px;">
+                    <span class="status-paid" id="payment-status">PAYÉ</span>
+                </div>
+            </div>
+ <div class="separator"></div>
+            <!-- QR Code -->
+            <div class="qr-section">
+                <img src="https://i.ibb.co/ksB5hjBb/qr-code.png" alt="QR Code">
+                <div class="qr-text">Conditions de location</div>
+            </div>
+
+        
+
+            <!-- Message final -->
+            <div class="thank-you">
+                Merci pour votre confiance<br>
+                SAFAR EL AMIR  
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setWidth(width) {
+            const receipt = document.getElementById('receipt');
+            const btn58 = document.getElementById('btn-58mm');
+            const btn80 = document.getElementById('btn-80mm');
+            
+            if (width === '58mm') {
+                receipt.classList.remove('width-80mm');
+                btn58.classList.add('active');
+                btn80.classList.remove('active');
+            } else {
+                receipt.classList.add('width-80mm');
+                btn80.classList.add('active');
+                btn58.classList.remove('active');
+            }
+        }
+
+        function printReceipt() {
+            window.print();
+        }
+
+        function downloadPDF() {
+            // Simulation du téléchargement PDF
+            const receiptContent = document.getElementById('receipt').outerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Reçu SAFAR EL AMIR</title>
+                    <style>
+                        ${document.querySelector('style').innerHTML}
+                        body { margin: 0; padding: 20px; background: white; }
+                        .receipt { box-shadow: none; border: 1px solid #000; }
+                    </style>
+                </head>
+                <body>${receiptContent}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function editReceipt() {
+            // Fonction pour éditer le reçu
+            const clientName = prompt('Nom du client:', document.getElementById('client-name').textContent);
+            if (clientName) document.getElementById('client-name').textContent = clientName;
+
+            const reservationNumber = prompt('Numéro de réservation:', document.getElementById('reservation-number').textContent);
+            if (reservationNumber) document.getElementById('reservation-number').textContent = reservationNumber;
+
+            const vehicleModel = prompt('Modèle du véhicule:', document.getElementById('vehicle-model').textContent);
+            if (vehicleModel) document.getElementById('vehicle-model').textContent = vehicleModel;
+
+            const vehiclePlate = prompt('Immatriculation:', document.getElementById('vehicle-plate').textContent);
+            if (vehiclePlate) document.getElementById('vehicle-plate').textContent = vehiclePlate;
+
+            const duration = prompt('Durée de location:', document.getElementById('rental-duration').textContent);
+            if (duration) document.getElementById('rental-duration').textContent = duration;
+
+            const dailyPrice = prompt('Prix par jour (en DA):', document.getElementById('daily-price').textContent);
+            if (dailyPrice) document.getElementById('daily-price').textContent = dailyPrice;
+
+            const totalAmount = prompt('Montant total (en DA):', document.getElementById('total-amount').textContent);
+            if (totalAmount) document.getElementById('total-amount').textContent = totalAmount;
+
+            const paymentStatus = confirm('Le paiement est-il effectué ?');
+            document.getElementById('payment-status').textContent = paymentStatus ? 'PAYÉ' : 'À PAYER';
+
+            // Mettre à jour la date/heure
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR') + ' - ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('receipt-date').textContent = dateStr;
+        }
+
+        // Générer un numéro de reçu aléatoire au chargement
+        window.onload = function() {
+            const receiptNumber = 'REC-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 9999) + 1).padStart(3, '0');
+            document.getElementById('receipt-number').textContent = receiptNumber;
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR') + ' - ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('receipt-date').textContent = dateStr;
+        }
+    </script>
+</body>
+</html>

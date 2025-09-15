@@ -33,6 +33,47 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+
+def reciept_download(request):
+    livraison_id = request.GET.get("livraison_id")
+
+    if not livraison_id : 
+        return HttpResponse("Livraison non disponible", status=404)
+
+    livraison = Livraison.objects.get(id=livraison_id)
+
+    context = {
+        "REF": livraison.reservation.name,
+    }
+
+    html_string = render_to_string("payment_reciept_template.html", context)
+
+    css_no_margins = CSS(string='''
+        @page {
+            margin: 4px 12px 4px 12px;
+            padding: 0;
+        }
+        
+        body {
+            margin:  4px 12px 4px 12px;
+            padding: 0;
+        }
+        
+        html {
+            margin:  4px 12px 4px 12px;
+            padding: 0;
+        }
+    ''')
+
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+
+    file_name = f"Reçu_{livraison.reservation.name}.pdf"
+
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
+    return response
+
 def update_category_email_view(request):
     try:
         client_id = request.GET.get("client_id")
