@@ -1293,6 +1293,20 @@ class Livraison(models.Model):
         blank=True,
         verbose_name=_("Écart à payer")
     )
+    montant_dz_pay = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Total  (DA)")
+    )
+    montant_euro_pay = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Total (EUR)")
+    )
 
     class Meta:
         db_table = 'livraison'

@@ -43,6 +43,8 @@ def reciept_download(request):
     livraison = Livraison.objects.get(id=livraison_id)
 
     today = datetime.today()
+    taux_change = TauxChange.objects.get(id=2)
+    taux = taux_change.montant
 
     context = {
         "ref": livraison.reservation.name,
@@ -52,7 +54,7 @@ def reciept_download(request):
         "motif": "Frais des dégradations",
         "model":livraison.modele.name,
         "duration":livraison.duree_dereservation,
-        "price":livraison.total_da
+        "price":(Decimal(livraison.montant_euro_pay) * Decimal(taux)) + Decimal(livraison.montant_dz_pay)
 
     }
 
