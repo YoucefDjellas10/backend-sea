@@ -152,7 +152,8 @@ def restitution_email_view(request):
                 html_message = render_to_string('email/restitution_email.html', {
                     "clien_name" : livraison.client.name,
                     "reviews": review,
-                    "reviews_link" : reviews_link
+                    "reviews_link" : reviews_link,
+                    "reciept_link":f"https://api.safarelamir.com/reciept-download/?livraison_id={livraison_id}"
                     
                 })
                 
