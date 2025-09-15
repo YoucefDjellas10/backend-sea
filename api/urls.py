@@ -75,4 +75,5 @@ urlpatterns += [
     path("success-pickup-email/", pick_up_mail_view, name="pick_up_mail_view"),
     path("restitution-email/", restitution_email_view, name="restitution_email_view"),
     path("reciept-download/", reciept_download, name="reciept_download"),
+    path("update-category-email/", update_category_email_view, name="update_category_email_view"),
 ]
