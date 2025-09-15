@@ -48,6 +48,11 @@ def reciept_download(request):
         "ref": livraison.reservation.name,
         "client": livraison.client.name,
         "date": today, 
+        "motif": "Frais des dégradations",
+        "model":livraison.modele.name,
+        "duration":livraison.duree_dereservation,
+        "price":livraison.total_da
+
     }
 
     html_string = render_to_string("payment_reciept_template.html", context)

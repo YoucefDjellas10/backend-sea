@@ -253,13 +253,13 @@
             
             <div class="info-line">
                 <span>Réservation:</span>
-                <span id="reservation-number">RSV-2024-156</span>
+                <span id="reservation-number">{{ ref }}</span>
             </div>
 
             <div class="separator"></div>
 <div class="info-line">
                 <span>Motif de frais:</span>
-                <span id="Motif">Annulation de reservation</span>
+                <span id="Motif">{{ motif }}</span>
             </div>
 
              
@@ -269,20 +269,20 @@
                
                 <div class="info-line">
                     <span>Réservation N°:</span>
-                    <span id="vehicle-plate">45616</span>
+                    <span id="vehicle-plate">{{ ref }}</span>
                 </div>
                 <div class="separator"></div>
                  <div class="info-line">
                     <span>Véhicule:</span>
-                    <span id="vehicle-model">Clio IV</span>
+                    <span id="vehicle-model">{{ model }}</span>
                 </div>
                 <div class="info-line">
                     <span>Durée:</span>
-                    <span id="rental-duration">3 jours</span>
+                    <span id="rental-duration">{{ duration }}</span>
                 </div>
                 <div class="info-line">
                     <span>les frais de retour </span>
-                    <span id="daily-price">4,500 DA</span>
+                    <span id="daily-price">{{ price }} DA</span>
                 </div>
             </div>
 
