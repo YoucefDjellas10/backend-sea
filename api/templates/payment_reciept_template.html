@@ -238,9 +238,9 @@
 
             <!-- En-tête reçu -->
             <div class="receipt-header">
-                <span>Reçu N°: <span id="receipt-number">REC-2024-001</span></span>
+                <span>Reçu N°: <span id="receipt-number">{{ ref }}</span></span>
             </div>
-            <div style="text-align: center; font-size: 10px;" id="receipt-date">11/09/2025 - 14:30</div>
+            <div style="text-align: center; font-size: 10px;" id="receipt-date">{{ date }}</div>
 
             <div class="separator"></div>
 
@@ -248,7 +248,7 @@
             <div class="section-title">CLIENT:</div>
             <div class="info-line">
                 <span>Nom:</span>
-                <span id="client-name">BENALI Ahmed</span>
+                <span id="client-name">{{ client }}</span>
             </div>
             
             <div class="info-line">

@@ -50,17 +50,18 @@ def reciept_download(request):
 
     css_no_margins = CSS(string='''
         @page {
-            margin: 4px 12px 4px 12px;
-            padding: 0;
+            size: 50mm auto;   /* largeur 50mm, hauteur auto selon le contenu */
+            margin: 0;         /* pas de marges inutiles */
         }
-        
+
         body {
-            margin:  4px 12px 4px 12px;
-            padding: 0;
+            font-size: 10px;   /* police plus petite pour tickets */
+            margin: 0;
+            padding: 2mm;
         }
-        
+
         html {
-            margin:  4px 12px 4px 12px;
+            margin: 0;
             padding: 0;
         }
     ''')
