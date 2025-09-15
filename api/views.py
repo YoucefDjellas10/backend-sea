@@ -46,6 +46,7 @@ def reciept_download(request):
 
     context = {
         "ref": livraison.reservation.name,
+        "reciept_number":f"Rec-1-{livraison.reservation.name}",
         "client": livraison.client.name,
         "date": today, 
         "motif": "Frais des dégradations",
