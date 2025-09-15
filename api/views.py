@@ -79,8 +79,9 @@ def restitution_email_view(request):
         livraison_id = request.GET.get("livraison_id")
         review = request.GET.get("review")
 
+        reviews_link = None
+
         livraison = Livraison.objects.get(id=livraison_id)
-        print("review : ",review)
 
         if not livraison or livraison is None : 
             return JsonResponse({'error': "there are not livraison with this ref"}, status=status.HTTP_400_BAD_REQUEST)
@@ -90,16 +91,13 @@ def restitution_email_view(request):
             try:
                 sujet = f"Réstitution réussite N = {livraison.reservation.name}"
                 expediteur = settings.EMAIL_HOST_USER
-                if review == "yes": 
-                    html_message = render_to_string('email/restitution_email.html', {
-                        "clien_name" : livraison.client.name,
-                        
-                    })
-                else :
-                    html_message = render_to_string('email/restitution_email_without_reviw.html', {
-                        "clien_name" : livraison.client.name,
-                        
-                    })
+            
+                html_message = render_to_string('email/restitution_email.html', {
+                    "clien_name" : livraison.client.name,
+                    "reviews": review,
+                    "reviews_link" : reviews_link
+                    
+                })
                 
                 send_mail(
                     sujet,
