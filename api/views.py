@@ -42,8 +42,12 @@ def reciept_download(request):
 
     livraison = Livraison.objects.get(id=livraison_id)
 
+    today = datetime.today()
+
     context = {
-        "REF": livraison.reservation.name,
+        "ref": livraison.reservation.name,
+        "client": livraison.client.name,
+        "date": today, 
     }
 
     html_string = render_to_string("payment_reciept_template.html", context)
