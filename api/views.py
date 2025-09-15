@@ -33,6 +33,137 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def update_category_email_view(request):
+    try:
+        client_id = request.GET.get("client_id")
+        category = request.GET.get("category")
+
+        client = ListeClient.objects.get(id=client_id)
+
+        if not client_id or not client or not category :
+            return HttpResponse("veillez remplir tous les parametres", status=404)
+
+        elif category == "DRIVER":
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    sujet = f"Mis à jours des point pour {client.name}"
+                    expediteur = settings.EMAIL_HOST_USER
+                    html_message = render_to_string('email/update_driver_email.html', {
+                        "clien_name" : client.name,
+                        "points": client.total_points,
+                        "category_name": client.category_client_name
+                        
+                    })
+                    
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [client.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    ) 
+
+                    return JsonResponse({'message': "Opération réussie"}, status=200)      
+                    
+                except Exception as mail_error:
+                    if attempt == max_retries - 1:  
+                        print(f"Erreur envoi email: {mail_error}")
+                    else:
+                        time.sleep(2) 
+        elif category == "ESSENTIEL":
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    sujet = f"Mis à jours des point pour {client.name}"
+                    expediteur = settings.EMAIL_HOST_USER
+                    html_message = render_to_string('email/update_esssentiel_email.html', {
+                        "clien_name" : client.name,
+                        "points": client.total_points,
+                        "category_name": client.category_client_name
+                        
+                    })
+                    
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [client.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    ) 
+
+                    return JsonResponse({'message': "Opération réussie"}, status=200)      
+                    
+                except Exception as mail_error:
+                    if attempt == max_retries - 1:  
+                        print(f"Erreur envoi email: {mail_error}")
+                    else:
+                        time.sleep(2)
+        elif category == "EXELLENT":
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    sujet = f"Mis à jours des point pour {client.name}"
+                    expediteur = settings.EMAIL_HOST_USER
+                    html_message = render_to_string('email/update_exellent_email.html', {
+                        "clien_name" : client.name,
+                        "points": client.total_points,
+                        "category_name": client.category_client_name
+                        
+                    })
+                    
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [client.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    ) 
+
+                    return JsonResponse({'message': "Opération réussie"}, status=200)      
+                    
+                except Exception as mail_error:
+                    if attempt == max_retries - 1:  
+                        print(f"Erreur envoi email: {mail_error}")
+                    else:
+                        time.sleep(2)
+        elif category == "VIP":
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    sujet = f"Mis à jours des point pour {client.name}"
+                    expediteur = settings.EMAIL_HOST_USER
+                    html_message = render_to_string('email/update_vip_email.html', {
+                        "clien_name" : client.name,
+                        "points": client.total_points,
+                        "category_name": client.category_client_name
+                        
+                    })
+                    
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [client.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    ) 
+
+                    return JsonResponse({'message': "Opération réussie"}, status=200)      
+                    
+                except Exception as mail_error:
+                    if attempt == max_retries - 1:  
+                        print(f"Erreur envoi email: {mail_error}")
+                    else:
+                        time.sleep(2)
+        else : 
+            return JsonResponse({'message': "Opération échoué"}, status=400)
+
+    except Exception as e:
+        return HttpResponse(f"Erreur: {e}", status=500)
 
 def reciept_download(request):
     livraison_id = request.GET.get("livraison_id")
@@ -57,6 +188,10 @@ def reciept_download(request):
         "motif": "Frais des dégradations",
         "model":livraison.modele.name,
         "duration":livraison.duree_dereservation,
+        "degradation":livraison.total_da,
+        "kilometrage":livraison.penalit_klm_dinar,
+        "carburant":livraison.penalit_carburant,
+        "reste_paye":Decimal(livraison.total_reduit_euro) * Decimal(taux),
         "price":price
 
     }
@@ -89,47 +224,6 @@ def reciept_download(request):
     response = HttpResponse(pdf_file, content_type="application/pdf")
     response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
     return response
-
-def update_category_email_view(request):
-    try:
-        client_id = request.GET.get("client_id")
-
-        client = ListeClient.objects.get(id=client_id)
-
-        client_category = client.categorie_client
-
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                sujet = f"Mis à jours des point pour {client.name}"
-                expediteur = settings.EMAIL_HOST_USER
-                html_message = render_to_string('email/restitution_email.html', {
-                    "clien_name" : client.name,
-                    "points": client.total_points,
-                    "category_name": client.category_client_name
-                    
-                })
-                
-                send_mail(
-                    sujet,
-                    strip_tags(html_message),
-                    expediteur,
-                    [client.email],
-                    html_message=html_message,
-                    fail_silently=False,
-                ) 
-
-                return JsonResponse({'message': "Opération réussie"}, status=200)      
-                
-            except Exception as mail_error:
-                if attempt == max_retries - 1:  
-                    print(f"Erreur envoi email: {mail_error}")
-                else:
-                    time.sleep(2) 
-
-
-    except Exception as e:
-        return HttpResponse(f"Erreur: {e}", status=500)
 
 def restitution_email_view(request):
     try:

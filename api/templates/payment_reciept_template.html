@@ -67,8 +67,8 @@
         }
 
         .separator {
-            border-top: 1px dashed #333;
-            margin: 6px 0;
+            border-top: 1px dashed #939393;
+            margin: 4px 1px;
         }
 
         .receipt-header {
@@ -88,15 +88,18 @@
         .info-line {
             display: flex;
             justify-content: space-between;
-            margin: 2px 0;
-            font-size: 10px;
+            margin: 0;
+            font-size: 9px;
         }
 
         .vehicle-details {
            
-            padding: 4px;
-            margin: 4px 0;
-            border-radius: 6px;
+            padding-top: 8px;
+            padding-bottom: 4px;
+            padding-left: 2px;
+            padding-right: 2px;
+            margin:1px;
+            border-radius: 4px;
             border: 1px solid #bebebe;
         }
 
@@ -106,16 +109,18 @@
             padding: 4px;
             margin: 6px 0;
             text-align: center;
-            font-weight: bold;
+            font-weight: bolder;
+           
         }
 
         .status-paid {
             background: #000;
             color: white;
-            padding: 2px 6px;
+            padding: 4px 12px;
             display: inline-block;
             font-size: 10px;
             font-weight: bold;
+            border-radius: 25px;
         }
 
         .qr-section {
@@ -138,7 +143,7 @@
             font-weight: bold;
             margin: 6px 0;
             font-size: 11px;
-            border-radius: 50px;
+            border-radius: 20px;
             border: 1px double #333;
             padding: 4px;
         }
@@ -231,11 +236,8 @@
             <div class="company-name">SAFAR EL AMIR</div>
             <div style="text-align: center; font-size: 10px; margin: 2px 0;">Location de voitures</div>
              -->
-            <!-- Contact -->
-            <div class="contact-info" style="margin: 0;line-height: 1;">WhatsApp: +213560659309</div>
-
-            <div class="separator"></div>
-
+         
+ 
             <!-- En-tête reçu -->
             <div class="receipt-header">
                 <span>Reçu N°: <span id="receipt-number">{{ reciept_number }}</span></span>
@@ -243,11 +245,14 @@
             <div style="text-align: center; font-size: 10px;" id="receipt-date">{{ date }}</div>
 
             <div class="separator"></div>
-
+<div class="info-line">
+                    <span>Réservation N°:</span>
+                    <span id="vehicle-plate">{{ ref }}</span>
+                </div>
             <!-- Informations client -->
-            <div class="section-title">CLIENT:</div>
+           
             <div class="info-line">
-                <span>Nom:</span>
+                <span class="section-title">CLIENT:</span>
                 <span id="client-name">{{ client }}</span>
             </div>
             
@@ -255,38 +260,57 @@
                 <span>Réservation:</span>
                 <span id="reservation-number">{{ ref }}</span>
             </div>
-
-            <div class="separator"></div>
-<div class="info-line">
+ 
+<!-- <div class="info-line">
                 <span>Motif de frais:</span>
                 <span id="Motif">{{ motif }}</span>
             </div>
-
-             
-            <!-- Détails location -->
-            <div class="section-title">DÉTAILS LOCATION:</div>
-            <div class="vehicle-details">
-               
-                <div class="info-line">
-                    <span>Réservation N°:</span>
-                    <span id="vehicle-plate">{{ ref }}</span>
-                </div>
-                <div class="separator"></div>
-                 <div class="info-line">
+ -->
+               <div class="info-line">
                     <span>Véhicule:</span>
                     <span id="vehicle-model">{{ model }}</span>
                 </div>
-                <div class="info-line">
-                    <span>Durée:</span>
-                    <span id="rental-duration">{{ duration }}</span>
-                </div>
-                <div class="info-line">
-                    <span>les frais de retour </span>
-                    <span id="daily-price">{{ price }} DA</span>
-                </div>
-            </div>
+               
 
-             
+    <div class="separator"></div>
+
+            <div class="section-title">Détail des frais encaissés</div>
+            <div class="vehicle-details">
+               
+                {% if reste_paye %}
+               <div class="info-line">
+                    <span>Prolongation</span>
+                    <span id="rental-duration">{{ reste_paye }} DA</span>
+                </div>
+                {% endif %}
+
+                {% if degradation %}
+                <div class="info-line">
+                    <span>Dégradation</span>
+                    <span id="rental-duration">{{ degradation }} DA</span>
+                </div>
+                {% endif %}
+
+                {% if kilometrage %}
+                <div class="info-line">
+                    <span>Kilométrage</span>
+                    <span id="rental-duration">{{ kilometrage }} Da</span>
+                </div>
+                {% endif %}
+
+                {% if carburant %}
+                <div class="info-line">
+                    <span>carburant</span>
+                    <span id="rental-duration">{{ carburant }} Da</span>
+                </div>
+                {% endif %}
+           
+
+
+
+  
+
+ </div>
 
             <!-- Montant total -->
             <div class="total-section">
@@ -295,19 +319,21 @@
                     <span class="status-paid" id="payment-status">PAYÉ</span>
                 </div>
             </div>
- <div class="separator"></div>
+
+
+        
+<hr style="border: 1px solid #000000;">
+            <!-- Message final -->
+            <div class="thank-you" style="line-height: 1;">  Merci pour votre confiance<br>
+                SAFAR EL AMIR  
             <!-- QR Code -->
             <div class="qr-section">
                 <img src="https://i.ibb.co/ksB5hjBb/qr-code.png" alt="QR Code">
                 <div class="qr-text">Conditions de location</div>
             </div>
-
-        
-
-            <!-- Message final -->
-            <div class="thank-you">
-                Merci pour votre confiance<br>
-                SAFAR EL AMIR  
+<div class="separator"> </div>
+               <!-- Contact --> WhatsApp: +213560659309 <br>   
+               
             </div>
         </div>
     </div>

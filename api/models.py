@@ -1308,6 +1308,22 @@ class Livraison(models.Model):
         verbose_name=_("Total (EUR)")
     )
 
+    penalit_klm_dinar = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("penalite klm (DA)")
+    )
+
+    penalit_carburant = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("penalite carburant (DA)")
+    )
+
     class Meta:
         db_table = 'livraison'
         managed = False
