@@ -72,6 +72,7 @@ def update_category_email_view(request):
                         print(f"Erreur envoi email: {mail_error}")
                     else:
                         time.sleep(2) 
+
         elif category == "ESSENTIEL":
             max_retries = 3
             for attempt in range(max_retries):
@@ -101,6 +102,7 @@ def update_category_email_view(request):
                         print(f"Erreur envoi email: {mail_error}")
                     else:
                         time.sleep(2)
+
         elif category == "EXELLENT":
             max_retries = 3
             for attempt in range(max_retries):
@@ -130,6 +132,7 @@ def update_category_email_view(request):
                         print(f"Erreur envoi email: {mail_error}")
                     else:
                         time.sleep(2)
+
         elif category == "VIP":
             max_retries = 3
             for attempt in range(max_retries):
@@ -159,6 +162,7 @@ def update_category_email_view(request):
                         print(f"Erreur envoi email: {mail_error}")
                     else:
                         time.sleep(2)
+                        
         else : 
             return JsonResponse({'message': "Opération échoué"}, status=400)
 
