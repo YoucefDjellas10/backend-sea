@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - Points de Rendez-vous | Location de Voitures</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ==================== Variables CSS ==================== */
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b;
+    --accent-color: #10b981;
+    --background-color: #f8fafc;
+    --surface-color: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ==================== Reset et base ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: #ededfa;
+}
+
+/* ==================== Header fixe ==================== */
+/* Bandeau supérieur */
+.top-header {
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.5rem 0;
+}
+
+.top-header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-header .nav-link {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.whatsapp-link {
+    color: #25D366; /* Vert officiel WhatsApp */
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.whatsapp-link i {
+    font-size: 1.2rem;
+}
+
+.whatsapp-link:hover {
+    background-color: rgba(37, 211, 102, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(37, 211, 102, 0.2);
+}
+
+/* Header fixe */
+.bottom-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    background: var(--surface-color);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.3rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--primary-color);
+}
+
+/* Navigation */
+.main-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-item a {
+    text-decoration: none;
+    color: var(--text-primary); /* Corrigé: utilise --text-primary au lieu de --text-color */
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-item a:hover {
+    color: var(--primary-color);
+}
+
+/* Menu mobile */
+.nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.nav-toggle:hover {
+    background-color: var(--background-color);
+}
+
+@media (max-width: 768px) {
+    .main-nav {
+        display: none;
+    }
+    .nav-toggle {
+        display: block;
+    }
+}
+
+/* ==================== Navigation principale ==================== */
+.nav-item {
+    position: relative;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background-color: var(--background-color);
+    color: var(--primary-color);
+}
+
+/* ==================== Contenu principal ==================== */
+.main-content {
+    margin-top: 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 2rem 1rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ==================== Sections aéroports ==================== */
+.airports-container {
+    display: grid;
+    gap: 2rem;
+}
+
+.airport-section {
+    background: var(--surface-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.airport-section:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.airport-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #141b34, #667f9d); /* Corrigé: ajouté virgule manquante */
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.airport-icon {
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+.airport-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.airport-content {
+    padding: 0;
+}
+
+/* ==================== Points de rendez-vous ==================== */
+.meeting-points {
+    display: grid;
+    gap: 0;
+}
+
+.meeting-point {
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.meeting-point:last-child {
+    border-bottom: none;
+}
+
+/* Checkbox caché pour l'accordéon */
+.point-toggle {
+    display: none;
+}
+
+/* Header cliquable */
+.point-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    background: var(--surface-color);
+    transition: var(--transition);
+    user-select: none;
+    position: relative;
+}
+
+.point-header:hover {
+    background-color: var(--background-color);
+}
+
+.point-icon {
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.point-details {
+    flex-grow: 1;
+}
+
+.point-details h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.point-status {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+/* Icône d'état (chevron) */
+.toggle-icon {
+    flex-shrink: 0;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+}
+
+/* Contenu accordéon */
+.point-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    background: var(--background-color);
+}
+
+.point-description {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+}
+
+.point-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* État ouvert */
+.point-toggle:checked + .point-header .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.point-toggle:checked + .point-header + .point-content {
+    max-height: 500px;
+    padding: 1.5rem;
+}
+
+.point-toggle:checked + .point-header {
+    background-color: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.action-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.action-link:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.action-link.whatsapp {
+    background: #25d366;
+}
+
+.action-link.whatsapp:hover {
+    background: #22c55e;
+}
+
+.action-link.maps {
+    background: var(--accent-color);
+}
+
+.action-link.maps:hover {
+    background: #059669;
+}
+
+/* ==================== Images ==================== */
+.point-image {
+    margin: 1rem 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.point-image img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    display: block;
+}
+
+/* Corrigé: classe manquante */
+.adapt-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--border-radius);
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 768px) {
+    .nav-toggle {
+        display: block;
+    }
+
+    .main-nav {
+        display: none;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+    }
+
+    .main-content {
+        margin-top: 4rem;
+        padding: 1rem;
+    }
+
+    .point-header {
+        padding: 1rem;
+    }
+
+    .point-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+
+    .point-details h3 {
+        font-size: 1.1rem;
+    }
+
+    .point-actions {
+        flex-direction: column;
+    }
+
+    .action-link {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .airport-header {
+        padding: 1rem;
+    }
+
+    .airport-title {
+        font-size: 1.25rem;
+    }
+
+    .point-toggle:checked + .point-header + .point-content {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-content {
+        padding: 0 0.75rem;
+    }
+
+    .logo {
+        font-size: 1.25rem;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+    }
+
+    .main-content {
+        padding: 0.75rem;
+    }
+}
+
+/* ==================== Animations et micro-interactions ==================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.airport-section {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.airport-section:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.airport-section:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.airport-section:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+/* ==================== États focus pour l'accessibilité ==================== */
+.nav-link:focus,
+.action-link:focus,
+.nav-toggle:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* ==================== Styles pour les liens spéciaux ==================== */
+.contact-info {
+    background: #f0f9ff;
+    border-left: 4px solid var(--primary-color);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.contact-info strong {
+    color: var(--primary-color);
+}
+
+/* ==================== Classes utilitaires ==================== */
+.text-center {
+    text-align: center;
+}
+
+.mb-1 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-2 {
+    margin-bottom: 1rem;
+}
+
+.mt-2 {
+    margin-top: 1rem;
+}
+
+/* ==================== Media queries spécifiques ==================== */
+@media (max-width: 1200px) {
+    #point-rdv {
+        display: none;
+    }
+}
+    </style>
+</head>
+<body>
+
+<header class="header-safar-el-amir">
+    <!-- Bandeau supérieur -->
+    <div class="top-header">
+        <div class="top-header-content">
+            <div class="logo-safarelamir">
+                <img src="https://i.ibb.co/7NjthXBW/carte-de-visite-new.png" alt="Logo Safar El Amir" height="50">
+            </div>
+            <nav class="main-nav">
+               <div class="nav-item">
+                    <a href="https://wa.me/213560659309" style="color: #25d366;" class="nav-link whatsapp-link" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                        WhatsApp - 7j/7 jusqu'à 20h
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+ 
+</header>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <!-- En-tête de page -->
+        <header class="page-header"> 
+            <h1 class="page-title">Points de Rendez-vous</h1>
+            <p class="page-subtitle"> 
+                Nos agents sont disponibles pour vous accompagner dans votre location de véhicule.
+            </p>
+        </header>
+
+        <!-- Sections des aéroports -->
+        <div class="airports-container">
+            
+            <!-- Aéroport d'Alger -->
+            <section id="alger" class="airport-section">
+                <header class="airport-header">
+                    <i class="fas fa-plane airport-icon"></i>
+                    <h2 class="airport-title">Aéroport d'Alger</h2>
+                </header>
+                
+                <div class="airport-content">
+                    <div class="meeting-points">
+                      
+                        <!-- Agence Les Bananiers -->
+                        <div class="meeting-point">
+                            <input type="checkbox" id="alger-bananiers" class="point-toggle">
+                            <label for="alger-bananiers" class="point-header">
+                                <div class="point-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div class="point-details">
+                                    <h3>Agence SAFAR EL AMIR  </h3>
+                                    <div class="point-status">Cliquez pour voir les détails</div>
+                                </div>
+                                <div class="toggle-icon">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </label>
+                            
+                            <div class="point-content">
+                                <div class="point-description">
+                                    <p>Adresse: Entrée du centre commercial Carrefour : City Center - Les Bananiers - ALGER.</p>
+                                </div>
+                                <div class="contact-info">
+                                    <strong>Astuce :</strong> Nos agents disponibles via WhatsApp peuvent vous guider en direct si besoin !
+                                </div>
+                                <div class="point-actions">
+                                    <a href="https://api.whatsapp.com/send?phone=213561611898" class="action-link whatsapp" target="_blank">
+                                        <i class="fab fa-whatsapp"></i>
+                                        Contact WhatsApp
+                                    </a>
+
+                                    <a href="https://maps.app.goo.gl/uRvbuFNDHDYQn27N9" class="action-link maps" target="_blank">
+                                        <i class="fas fa-location-dot"></i>
+                                        Position GPS -Maps
+                                    </a>
+
+                                    <a href="https://maps.app.goo.gl/SAt3jTbbjL1vjAom7" class="action-link photo" target="_blank">
+                                        <i class="fas fa-image"></i>
+                                        Photo de l'agence
+                                    </a>
+
+                                    <a href="https://maps.app.goo.gl/YZJjJc3GpPMBBo2W8" class="action-link fuel" style="background-color: #ede01f; color: #263368" target="_blank">
+                                        <i class="fas fa-gas-pump"></i>
+                                        <span style="font-style: italic; font-weight: bolder;">NAFTAL</span> | Station de service FUEL
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+           
+        </div>
+    </main>
+
+     
+</body>
+</html>

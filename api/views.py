@@ -33,6 +33,39 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+
+def lieu_rendez_vous_view(request):
+    try:
+        lieu_id = request.GET.get("lieu_id")        
+        if not lieu_id:
+            return JsonResponse({'error': 'livraison_id is required'}, status=404)
+        if lieu_id == 1 :
+            context = {}
+            return render(request, 'lieu_oran_airport.html', context)
+        elif lieu_id == 2 :
+            context = {}
+            return render(request, 'lieu_tlemcen.html', context)
+        elif lieu_id == 3 :
+            context = {}
+            return render(request, 'lieu_alger_airport.html', context)
+        elif lieu_id == 4 :
+            context = {}
+            return render(request, 'lieu_constantine.html', context)
+        elif lieu_id == 5 or lieu_id == 6 or lieu_id == 9 or lieu_id == 6 or lieu_id == 14 or lieu_id == 15:
+            context = {}
+            return render(request, 'lieu_other.html', context)
+        elif lieu_id == 16 :
+            context = {}
+            return render(request, 'lieu_alger_agence.html', context)
+        elif lieu_id == 17 :
+            context = {}
+            return render(request, 'lieu_oran_agence.html', context)
+        else :
+            return JsonResponse({'error': 'lieu non trouvé'}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 def update_category_email_view(request):
     try:
         client_id = request.GET.get("client_id")
