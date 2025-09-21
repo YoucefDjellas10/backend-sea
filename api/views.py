@@ -39,25 +39,25 @@ def lieu_rendez_vous_view(request):
         lieu_id = request.GET.get("lieu_id")        
         if not lieu_id:
             return JsonResponse({'error': 'livraison_id is required'}, status=404)
-        if lieu_id == 1 :
+        if lieu_id == "1" :
             context = {}
             return render(request, 'lieu_oran_airport.html', context)
-        elif lieu_id == 2 :
+        elif lieu_id == "2" :
             context = {}
             return render(request, 'lieu_tlemcen.html', context)
-        elif lieu_id == 3 :
+        elif lieu_id == "3" :
             context = {}
             return render(request, 'lieu_alger_airport.html', context)
-        elif lieu_id == 4 :
+        elif lieu_id == "4" :
             context = {}
             return render(request, 'lieu_constantine.html', context)
-        elif lieu_id == 5 or lieu_id == 6 or lieu_id == 9 or lieu_id == 6 or lieu_id == 14 or lieu_id == 15:
+        elif lieu_id == "5" or lieu_id == "6" or lieu_id == "9" or lieu_id == "6" or lieu_id == "14" or lieu_id == "15":
             context = {}
             return render(request, 'lieu_other.html', context)
-        elif lieu_id == 16 :
+        elif lieu_id == "16" :
             context = {}
             return render(request, 'lieu_alger_agence.html', context)
-        elif lieu_id == 17 :
+        elif lieu_id == "17" :
             context = {}
             return render(request, 'lieu_oran_agence.html', context)
         else :
