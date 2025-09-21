@@ -2557,7 +2557,6 @@ def stripe_webhook_reservation(request):
 
             })
 
-
             send_mail(
                 sujet,
                 strip_tags(html_message),  
