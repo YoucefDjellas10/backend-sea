@@ -1765,13 +1765,13 @@ N°:{{ referance }}
                                       "
                                       class="p_option_s"
                                     > 
-                                      - Point de rendez-vous :<a href="#"> <span 
-  style="color:#0000ee; text-decoration:none; transition:all 0.15s linear;" 
-  onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
-  onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
->
- <u> {{ adresse_one }}</u>
-</span></a>
+                                      - Point de rendez-vous :<a href="{{ lieu_depart_id }}"> 
+                                    <span style="color:#0000ee; text-decoration:none; transition:all 0.15s linear;" 
+                                      onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
+                                      onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
+                                    >
+                                    <u> {{ adresse_one }}</u>
+                                    </span></a>
 
                                     </p>
 
@@ -2122,7 +2122,7 @@ N°:{{ referance }}
                                       "
                                       class="p_option_s"
                                     > 
-                                      - Point de rendez-vous :<a href="#"> <span 
+                                      - Point de rendez-vous :<a href="{{ lieu_retour_id }}"> <span 
   style="color:#0000ee; text-decoration:none; transition:all 0.15s linear;" 
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"

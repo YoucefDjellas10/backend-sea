@@ -2551,7 +2551,9 @@ def stripe_webhook_reservation(request):
                 'date_retoure':date_fin,
                 'haure_retour':heure_fin,
                 'lieu_depart':reservation.lieu_depart.name,
-                'lieu_retour':reservation.lieu_retour.name
+                'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+                'lieu_retour':reservation.lieu_retour.name,
+                'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
 
             })
 
