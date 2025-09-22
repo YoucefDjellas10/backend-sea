@@ -610,10 +610,12 @@ def coming_soon_email_view(request):
                     "date_depart":date_debut,
                     "heur_depart":heure_debut,
                     "lieu_depart":reservation.lieu_depart.name,
+                    "lieu_depart_mobile":reservation.lieu_depart.mobile,
                     "address_one":reservation.lieu_depart.address,
                     "date_retour":date_fin,
                     "heure_fin":heure_fin,
                     "lieu_retour":reservation.lieu_retour.name,
+                    "lieu_retour_mobile":reservation.lieu_retour.mobile,
                     "address_two":reservation.lieu_retour.address
                 })
                 
