@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>ul {
+  list-style: none; 
+  padding-left: 1em; 
+}
+
+ul li::before {
+  content: "‣"; 
+  margin-right: 0.5em; 
+  color: #092b6b; 
+}
+
+        @page {
+  margin: 1px 14px; 
+}
+    </style>
+</head>
+<body style="box-sizing: 0; margin: 0;font-family: Arial, Helvetica, sans-serif;letter-spacing: 0.2px;background-image: url(https://i.ibb.co/JWXhXwHm/filigran0identit-2.jpg);background-repeat: no-repeat;background-color: #ffffff;background-size: contain;color: #1f1f1f; ">
+   
+  
+   <table style="width: 100%; border-color:#ffffff ; margin: 0;">
+                                <tr>
+                                    <th>
+                                        <img src="https://i.ibb.co/fd5zQ5m4/cartedevisitenew.png"
+                                          style="width: 150px; margin: 0;display: block;align-items: end;"
+                                          alt="Logo"/>
+
+                                    </th>
+                                    <th><h6 style="text-align: right">  <t t-esc="o.lieu_depart.address"/> - Algérie
+                                            <br/> Service Livraison : {{ SERVICE }}</h6>
+                                    </th>
+                                    </tr>
+                            </table>
+ 
+                            <h1 style="color: #092b6b; font-size:x-large; text-align: center;line-height: 1;">CONFIRMATION DE
+                                RESERVATION
+                                <br/>
+                                <t t-esc="o.name"/>
+
+                            </h1>
+
+                            <h3 style="font-size: 18px; color: #092b6b;line-height:0.6; margin: 8px 0;">Informations Conducteur:</h3>
+
+
+                            <table class="tftable" border="1" style="border-collapse: collapse;font-size: 12px;">
+                                <tr>
+                                    <th style="background-color: rgb(203,230,255);  ;padding: 6px 10px  ; border-left:4px solid rgb(203,230,255) ;border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
+                                        <span style="font-weight: 600;font-size: larger;">
+                                            Conducteur Principal: {{ NOM }} {{ PRÉNOM }}
+
+                                        </span>
+                                    </th>
+                                    <th style="color:#ffffff">-</th>
+                                    <th style="background-color: rgb(255,173,173);   ;padding:6px 10px  ; border-left:2px solid rgb(255,173,173); border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
+                                        <span style="font-weight: 600;font-size: larger;">
+                                            2ème conducteur: {{ NOM_2EME_CONDUCTEUR }}
+
+
+                                        </span>
+                                    </th>
+                                </tr>
+
+                                <tr>
+                                    <td style="padding: 2px 0px 4px 15px;; border-left:2px solid #74b0ff ;    ">
+                                        <h8> Date de naissance: {{ DATE_DE_NAISSANCE }} 
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style=" border-left: 2px solid #ff7474;padding: 2px 0px 4px 15px;">
+                                        <h8>Date de naissance : {{ DATE_DE_NAISSANCE }}
+                                            
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=" padding-left: 15px  ; border-left:2px solid #74b0ff ;  ">
+                                        <h8>Date permis:{{ DATE_PERMIS }}
+
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style=" padding-left: 15px;border-left: 2px solid #ff7474;">
+                                        <h8>Date permis:{{ DATE_PERMIS_2EME }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=" padding: 2px 0px 4px 15px; border-left:2px solid #74b0ff ;    ">
+                                        <h8>N° de vol :{{ NUM_VOL }}
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style="  padding: 2px 0px 4px 15px;border-left: 2px solid #ff7474;"></td>
+                                </tr>
+
+
+                            </table>
+
+                        
+                               <hr style="border: 0.5px solid #a8adb7;margin: 12px;"/>
+
+                            <h3 style="font-size: 18px; color: #092b6b; line-height:0.6; margin: 8px 0;">Informations Location :</h3>
+
+                            <style type="text/css">
+                                .tftable {font-size:12px;color:#313131;width:100%;border-width: 1px;border-color:
+                                #ffffffb0;border-collapse: collapse;}
+                                .tftable th {font-size:12px;background-color:rgba(0,0,0,0);border-width: 1px;
+                                border-style: solid;border-color: rgba(0,0,0,0);text-align:left;}
+                                .tftable tr {background-color:rgba(0,0,0,0); }
+                                .tftable td {font-size:12px;border-width: 1px;border-style:
+                                solid;border-color: rgba(0,0,0,0);}
+                                .tftable tr:hover {background-color: rgba(0,0,0,0);}
+                            </style>
+
+                            <table class="tftable" border="1" >
+                                <tr>
+                                    <td>
+                                        <h8 style="margin-bottom: 0px;">‣ Montant total : {{ TOTAL }}€
+                                        </h8>
+                                    </td>                   
+                                    <td>
+                                        <h8 style="margin-bottom: 0px;">‣ Période de location : de {{ DATE_DEPART }} {{ HEURE_DEPART }} au {{ DATE_RETOUR }} {{ HEUERE_RETOUR }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Frais de dossier : 20 € (payés, non remboursables).</h8>
+                                    </td>                   
+                                    <td>
+                                        <h8 style="margin-bottom: 0px;">‣ Modèle : {{ NOM_VEHICULE }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Acompte versé : {{ VERSER }} €</h8>
+                                    </td>                   
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Durée :  {{ DUREE_RESERVATION }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Reste à payer à votre arrivée : {{ RESTE_PAYE }} € Espèce</h8>
+                                    </td>                      
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Lieu heure de prise : {{ LIEU_DEPART }}  
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Mode de paiement : Espèce à la prise</h8>
+                                    </td>                                   
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Lieu heure de retour : {{ LIEU_RETOIUR }}
+                                      
+                                    </td> </tr>
+                                </table>
+
+                            
+                            <p style="font-size:12px;margin: 8px 0; background-color: #f3f3f83a;padding: 8px;line-height: 1.3;">
+                                <span style="margin: 2px;text-align: center;font-weight: 600;font-size: 16px; color: #092b6b;font-style: italic;">
+                                    ‣ Caution : {{ CAUTION }} € en espèce   </span>
+                                <br/>
+                             <strong style="color: #e5561a;font-size: 15px;line-height:1;"> Vous préférez déposer la caution par empreinte bancaire ?</strong> <br/>
+                             C’est simple : Un lien sécurisé vous attend dans l’e-mail de <strong style="color: #e5561a;">checklist finale  </strong> avant la prise du véhicule. Le montant est bloqué sur votre carte (non débité) et automatiquement libéré sous 5 jours après restitution conforme du véhicule. (carburant, état, délais, kilométrage).
+                            </p>
+                            
+<p style="color: #e5561a;text-align: right;margin: 2px;font-size:12px;text-shadow: -3px 0px 34px rgba(255,255,255,1);"> - Veuillez noter que les prix affichés en euros sont donnés à titre indicatif</p>
+                            
+ 
+
+                            <h3 style="font-size: 18px; color: #092b6b;margin: 0;line-height: 0.4;">Inclus / options:</h3>
+                        <table style="margin: 0;">
+                            <tr>
+                            <td style="width: 390px;"> 
+                                <ul style=" padding-left: 10px; margin: 0;font-size: 12px;">
+                                <li style="margin-bottom: 0px;">Le tarif comprend {{ klm_limit }} km <span style="font-size: 11px;">(0,4 €/km supplémentaire)</span>.</li>
+                                
+                                <li style="margin-bottom: 0px;">Protection {{ protection }} .</li>
+                                </ul>
+                            </td>
+ 
+                            <td >
+                               <!-- <ul style="border-left: 1px solid #092b6b;font-size: 12px; padding-left: 20px; margin: 0;">
+                                <li style="margin-bottom: 0px;">Kilométrage illimité.</li>
+                                <li style="margin-bottom: 0px;">Siège enfant (9–18 kg).</li>
+                                <li style="margin-bottom: 0px;">Assistance 24h/24 – 7j/7 incluse.</li>
+                                <li style="margin-bottom: 0px;">Restitution dans 14 agences au choix.</li>
+                                </ul>-->
+                            </td>
+                            </tr>
+                        </table>
+
+                            <h3 style="font-size: 17px; color: #092b6b;line-height:0.6; margin: 8px 0;">Important :</h3>
+                            <span style="font-size: 15px; color: #092b6b;"> Pour la prise du véhicule, merci de préparer les éléments
+                                suivants :</span> 
+                                
+                                <ul style="margin: 4px;font-size: 12px; margin: 0;">
+                           
+                          
+                                <li style=" margin-bottom: 4px ; ">Permis de conduire original valide (de tous les
+                                    conducteurs mentionnés sur la
+                                    réservation)
+                                </li>
+                                <li style=" margin-bottom: 4px ; ">Dépôt d'une pièce d’identité originale valide de
+                                    votre lieu de résidence.
+                                </li>
+                                <li style=" margin-bottom: 4px ; ">La caution à déposer et le reste à payer en espèces
+                                    uniquement.
+                                </li>
+                             </ul>
+                                <p style="font-size:12px;margin-top:5px ;
+                                background-color:#fffde640 ;border: 1px dashed #e5561a;padding: 6px;border-radius: 12px;">Remarque :<br/> Si toutes ces conditions ne seront pas
+                                    réunies, votre location pourrait être annulée avec des frais. Si le client ne se manifeste pas au bout d'une heure après le   rendez-vous et sans  nous en avertir du retard, la réservation serait
+                                    automatiquement annulée avec des frais.
+                               </p>
+                      
+
+                            
+                                <h3 style="font-size: 18px; color: #092b6b;line-height:0.6;margin: 15px 0px 0px 0px;">Clause :</h3>
+                            <p style="font-size:12px;">Je soussigné
+                                <span style="background-color: yellow;">
+                                    <t t-esc="o.nom"/>
+                                    <t></t>
+                                    <t t-esc="o.prenom"/>
+                                </span>
+                                , en ma qualité de client, autorise
+                                pleinement Safar El Amir à
+                                me débiter les frais d'annulation.
+
+                            </p>
+
+                            <h3 style="font-size: 17px; color: #092b6b;line-height:0.4 ; margin: 0px ">Annulation Gratuite : Conditions par
+                                Saisons
+                            </h3>
+                        <table class="tftable" style="margin: 5px 0;font-size: 12px;">
+  <tr>
+    <td class="basse-saison" style="margin: 0px;line-height: 1.3;">
+      <strong><u>Basse saison : du 1er Septembre au 30 Juin</u></strong><br/>
+      – Annulation gratuite <mark>jusqu’à 7 jours avant la prise en charge</mark>, avec remboursement intégral (hors frais bancaires).  
+      <br/>Passé ce délai, un jour de location sera facturé.
+    </td>
+
+    <td rowspan="2" class="qr-container" style="margin: 0px;line-height: 1.1;">
+        
+        <img src="https://i.ibb.co/ksB5hjBb/qr-code.png
+" style="width: 85px; height: 85px; background-color: rgb(182, 182, 182); border-radius: 8px; padding: 2px;" />
+      
+    </td>
+  </tr>
+
+  <tr>
+    <td class="haute-saison" style="margin: 0px;line-height: 1.1;">
+      <strong><u>Haute saison : du 1er Juillet au 31 Août</u></strong><br/>
+      – Annulation gratuite <mark>jusqu’à 14 jours avant la prise en charge</mark>, avec remboursement intégral (hors frais bancaires).  
+      <br/>Passé ce délai, un jour de location sera facturé.
+    </td>
+  </tr>
+</table>
+
+
+                                 <p style="font-size:12px;margin: 0;background-color:#fffde640 ;border: 1px dashed #e5561a;padding: 4px 8px;border-radius: 12px;">
+Remarque : Le remboursement s'effectue dans un délai maximum de 30 jours. Pour plus de détails concernant nos
+                                            conditions de location et d’annulation, veuillez visiter ce lien : 
+                                        <a href="url_conditions_annulation" target="_blank" style="color:#6da9cf;">
+                                                Conditions d'annulation
+                                            </a>
+                                        
+                                           </p>
+                                           
+                           <hr style="border: 0.5px solid #a8adb7;margin: 12px;"/>
+                            <h3 style="font-size: 18px; color: #092b6b;line-height:0.6; margin: 8px 0;">Votre contact :</h3>
+                            <p style="font-size:12px;
+                            margin: 0; background-color: rgb(234, 247, 236);padding: 8px; border: 1px dashed #06470c; border-radius: 12px;">
+                                {{ address }}
+                            </p>
+             
+ 
+</body>
+</html>

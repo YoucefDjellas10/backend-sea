@@ -34,6 +34,121 @@ from weasyprint import HTML, CSS
 logger = logging.getLogger(__name__)
 
 
+def confirmation_download(request):
+    resrevation_id = request.GET.get("resrevation_id")
+
+    if not resrevation_id : 
+        return HttpResponse("Reservation non disponible", status=404)
+
+    livraison = Reservation.objects.get(id=resrevation_id)
+    date_heure_depart = livraison.date_heure_debut
+    date_heure_retour = livraison.date_heure_fin
+
+    date_debut = date_heure_depart.strftime("%d %B %Y") 
+    heure_debut = date_heure_depart.strftime("%H:%M")  
+
+    date_fin = date_heure_retour.strftime("%d %B %Y")
+    heure_fin = date_heure_retour.strftime("%H:%M")
+
+    birthday_date = livraison.client.date_de_naissance
+    birthday = birthday_date.strftime("%d %B %Y")
+
+    permis = livraison.client.date_de_permis
+    permit_date = permis.strftime("%B/%Y")
+
+    taux_change = TauxChange.objects.get(id=2)
+    taux = taux_change.montant
+
+    protection = livraison.reservation.opt_protection 
+
+    protection_name = " "
+    protection_dercription = " "
+
+    if protection and "MAX" in protection.option_code :
+        protection_name = " ✔      Assurance Protection :  Maximale:"
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes , ainsi le bris de glace involontaire. Elle permet également de bénéficier d’une caution réduite par rapport à la protection standard."
+    elif protection and "STANDART" in protection.option_code :
+        protection_name = "✔      Assurance Protection :  Standard:"
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d’une caution réduite par rapport à la protection Basique."
+    else :
+        protection_name = " "
+        protection_dercription = " "
+
+    reservation = livraison.reservation
+    nd_clinet = None
+    if reservation.nd_client_id:  
+        nd_clinet = reservation.nd_client
+    nd_client_name = " "
+    permi_desc = " "
+    nd_client_name_ = nd_clinet.name if nd_clinet else " "
+    permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else " "
+    if nd_clinet :
+        nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
+        permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
+    else : 
+        nd_client_name = " "
+        permi_desc = " "
+    
+    context = {
+        "REF": livraison.reservation.name,
+        "SERVICE":livraison.lieu_depart.mobile,
+        "LIEU_DEPART":livraison.lieu_depart.name,
+        "address":livraison.lieu_depart.address,
+        "LIEU_RETOIUR":livraison.lieu_retour.name,
+        "NOM": livraison.nom,
+        "PRÉNOM": livraison.prenom,
+        "DATE_DE_NAISSANCE": birthday,
+        "DATE_PERMIS":permit_date,
+        "NOM_2EME_CONDUCTEUR":nd_client_name,
+        "DATE_PERMIS_2EME":permi_desc,
+        "DATE_DEPART": date_debut,
+        "HEURE_DEPART": heure_debut,
+        "DATE_RETOUR": date_fin,
+        "HEUERE_RETOUR": heure_fin,
+        "DUREE_RESERVATION": livraison.duree_dereservation,
+        "NOM_VEHICULE": livraison.modele.name,
+        "MATRICULE": livraison.vehicule.matricule,
+        "CAUTION": livraison.opt_protection_caution,
+        "TOTAL": livraison.total_reduit_euro ,
+        "PROTECTION_NAME" : protection_name,
+        "DESCRIPTION_PROTECTION": protection_dercription,
+        "NUM_VOL": livraison.num_vol,
+        "RESTE_PAYE":livraison.reste_payer,
+        "VERSER": livraison.total_reduit_euro - livraison.reste_payer,
+        "klm_limit": livraison.nbr_jour_reservation * 250,
+        "protection":livraison.opt_protection.name
+
+    }
+
+    html_string = render_to_string("confirmation_pdf.html", context)
+
+    css_no_margins = CSS(string='''
+        @page {
+            margin: 4px 12px 4px 12px;
+            padding: 0;
+        }
+        
+        body {
+            margin:  4px 12px 4px 12px;
+            padding: 0;
+        }
+        
+        html {
+            margin:  4px 12px 4px 12px;
+            padding: 0;
+        }
+    ''')
+
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+
+    file_name = f"confirmation_{livraison.name}.pdf"
+
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
+    return response
+
 def lieu_rendez_vous_view(request):
     try:
         lieu_id = request.GET.get("lieu_id")        
