@@ -2572,7 +2572,7 @@ def stripe_webhook_reservation(request):
 
                 montant_total = Decimal(montant_total) if montant_total else Decimal("0.00")
                 montant_paye = Decimal(montant_paye) if montant_paye else Decimal("0.00")
-                taux_change = Decimal(taux.montant) if taux else Decimal("1.00")  # Taux de change par défaut
+                taux_change = Decimal(taux.montant) if taux else Decimal("1.00") 
 
                 payment = Payment.objects.create(
                     reservation=reservation,
