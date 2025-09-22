@@ -1726,12 +1726,15 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour_id).first()
             total += float(frais_livraison_one.montant + frais_livraison_two.montant) * taux_change if frais_livraison_one and frais_livraison_two else 0
 
-        supplements = Supplement.objects.filter(
-            Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
+        supplements_one = Supplement.objects.filter(
+            Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart)
+        ).first()
+        total += float(supplements_one.montant) * taux_change if supplements_one else 0
+
+        supplements_two = Supplement.objects.filter(
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
-        )
-        for supplement in supplements:
-            total += float(supplement.montant) * taux_change if supplement else 0
+        ).first()
+        total += float(supplements_two.montant) * taux_change if supplements_two else 0
 
         frais_dossier = search_option_DA("FRAIS_DOSSIER", total_days, lieu_depart)
         total += frais_dossier["total"] 

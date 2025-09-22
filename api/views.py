@@ -2653,7 +2653,6 @@ def stripe_webhook_reservation(request):
             ) 
             restitution.save()
 
-            
             print(f"Paiement réussi pour la réservation ID: {reservation_id}")
         elif type_id == "verify_calculate":
             session = event["data"]["object"]
