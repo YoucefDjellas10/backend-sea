@@ -59,7 +59,7 @@ def confirmation_download(request):
     taux_change = TauxChange.objects.get(id=2)
     taux = taux_change.montant
 
-    protection = livraison.reservation.opt_protection 
+    protection = livraison.opt_protection 
 
     protection_name = " "
     protection_dercription = " "
@@ -74,7 +74,7 @@ def confirmation_download(request):
         protection_name = " "
         protection_dercription = " "
 
-    reservation = livraison.reservation
+    reservation = livraison
     nd_clinet = None
     if reservation.nd_client_id:  
         nd_clinet = reservation.nd_client
@@ -91,7 +91,7 @@ def confirmation_download(request):
         permi_desc = " "
     
     context = {
-        "REF": livraison.reservation.name,
+        "REF": livraison.name,
         "SERVICE":livraison.lieu_depart.mobile,
         "LIEU_DEPART":livraison.lieu_depart.name,
         "address":livraison.lieu_depart.address,
