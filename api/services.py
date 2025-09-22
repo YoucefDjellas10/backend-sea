@@ -1731,6 +1731,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
         )
         for supplement in supplements:
+            print("supplement : ", supplement.montant)
             total += float(supplement.montant) * taux_change if supplement else 0
 
         frais_dossier = search_option_DA("FRAIS_DOSSIER", total_days, lieu_depart)
