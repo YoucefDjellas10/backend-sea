@@ -2538,7 +2538,9 @@ def stripe_webhook_reservation(request):
 
             html_message = render_to_string('email/confirmation_email.html', {
                 "referance":reservation.name,
+                "mobile_one":reservation.lieu_depart.mobile,
                 "adresse_one":reservation.lieu_depart.address,
+                "mobile_two":reservation.lieu_retour.mobile,
                 "adresse_two":reservation.lieu_retour.address,
                 'client': reservation.client.nom,
                 'client_prenom':reservation.client.prenom,
