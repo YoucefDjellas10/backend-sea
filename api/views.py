@@ -518,6 +518,7 @@ def contract_download(request):
         protection_dercription = " "
 
     print("protection : ",protection)
+    print("protection code : ", protection.option_code)
 
     print("protection name : ", protection_name)
     print("protection desc")
