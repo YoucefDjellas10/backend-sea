@@ -59,7 +59,7 @@ def confirmation_download(request):
     taux_change = TauxChange.objects.get(id=2)
     taux = taux_change.montant
 
-    protection = livraison.reservation.opt_protection 
+    protection = livraison.opt_protection 
 
     protection_name = " "
     protection_dercription = " "
@@ -516,6 +516,9 @@ def contract_download(request):
     else :
         protection_name = " "
         protection_dercription = " "
+
+    print("protection name : ", protection_name)
+    print("protection desc")
 
     reservation = livraison.reservation
     nd_clinet = None
