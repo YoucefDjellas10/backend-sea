@@ -34,22 +34,18 @@ from weasyprint import HTML, CSS
 logger = logging.getLogger(__name__)
 
 def combined_document_download(request):
-    # On peut utiliser soit reservation_id soit livraison_id
     reservation_id = request.GET.get("reservation_id")
     livraison_id = request.GET.get("livraison_id")
     
-    # Récupération des objets selon le paramètre fourni
     if reservation_id:
         reservation = Reservation.objects.get(id=reservation_id)
-        # Supposer qu'il y a une relation pour récupérer la livraison
-        livraison = reservation.livraison  # Ajustez selon votre modèle
+        livraison = reservation.livraison  
     elif livraison_id:
         livraison = Livraison.objects.get(id=livraison_id)
         reservation = livraison.reservation
     else:
         return HttpResponse("Aucun ID fourni", status=404)
 
-    # === PARTIE CONFIRMATION (PAGE 1) ===
     date_heure_depart = reservation.date_heure_debut
     date_heure_retour = reservation.date_heure_fin
 
@@ -77,7 +73,6 @@ def combined_document_download(request):
         protection_name = "✔      Assurance Protection :  Standard:"
         protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d'une caution réduite par rapport à la protection Basique."
 
-    # Gestion du 2ème conducteur
     nd_clinet = None
     if reservation.nd_client_id:  
         nd_clinet = reservation.nd_client
@@ -92,7 +87,6 @@ def combined_document_download(request):
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
 
-    # Context pour la confirmation
     confirmation_context = {
         "REF": reservation.name,
         "SERVICE": reservation.lieu_depart.mobile,
@@ -123,8 +117,6 @@ def combined_document_download(request):
         "protection": reservation.opt_protection.name
     }
 
-    # === PARTIE CONTRAT (PAGE 2) ===
-    # Données pour le contrat (basées sur livraison)
     birthday_date_contract = livraison.client.date_de_naissance
     birthday_contract = birthday_date_contract.strftime("%d %B %Y")
     permis_contract = livraison.client.date_de_permis
@@ -132,7 +124,6 @@ def combined_document_download(request):
 
     signature_url = f"https://api.safarelamir.com/signature/{livraison.id}/"
 
-    # Context pour le contrat
     contract_context = {
         "REF": reservation.name,
         "SERVICE": livraison.lieu_depart.mobile,
@@ -156,18 +147,15 @@ def combined_document_download(request):
         "DESCRIPTION_PROTECTION": protection_dercription,
     }
 
-    # Génération des HTML pour chaque page
     confirmation_html_string = render_to_string("confirmation_pdf.html", confirmation_context)
     contract_html_string = render_to_string("contract_pdf.html", contract_context)
 
-    # Combinaison des deux HTML avec un saut de page
     combined_html_string = f"""
     {confirmation_html_string}
     <div style="page-break-after: always;"></div>
     {contract_html_string}
     """
 
-    # CSS avec marges
     css_no_margins = CSS(string='''
         @page {
             margin: 4px 12px 4px 12px;
@@ -185,11 +173,9 @@ def combined_document_download(request):
         }
     ''')
 
-    # Génération du PDF combiné
     html = HTML(string=combined_html_string)
     pdf_file = html.write_pdf(stylesheets=[css_no_margins])
 
-    # Nom du fichier selon votre demande
     file_name = f"document_{reservation.name}.pdf"
 
     response = HttpResponse(pdf_file, content_type="application/pdf")

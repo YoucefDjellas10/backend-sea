@@ -1123,7 +1123,11 @@ class Reservation(models.Model):
     du_au_modifier = models.CharField(null=True, blank=True)
     ancien_lieu = models.CharField(null=True, blank=True)
     reste_payer = models.FloatField()
-
+    
+    date_depart_char = models.CharField(null=True, blank=True)
+    date_retour_char = models.CharField(null=True, blank=True)
+    heure_depart_char = models.CharField(null=True, blank=True)
+    heure_retour_char = models.CharField(null=True, blank=True)
 
     class Meta:
         db_table = 'reservation'
