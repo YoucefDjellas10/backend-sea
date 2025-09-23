@@ -74,6 +74,9 @@ def confirmation_download(request):
         protection_name = " "
         protection_dercription = " "
 
+    print("protection name : ", protection_name)
+    print("protection desc")
+
     reservation = livraison
     nd_clinet = None
     if reservation.nd_client_id:  
