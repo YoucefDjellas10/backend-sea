@@ -17,6 +17,7 @@ from django.template.loader import render_to_string
 import re
 from django.utils.timezone import now
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 
 def vip_reduction(country_code):
@@ -926,7 +927,7 @@ def ma_reservation_detail(ref, email, country_code):
         can_modify_return = "yes" if (retour - today).days >= 1 else "no"
         address = ma_reservation.lieu_depart.address
         frais_livraison = ma_reservation.frais_de_dossier
-        lieu_rdv = ma_reservation.lieu_depart.rendez_vous
+        lieu_rdv = ma_reservation.lieu_depart.rendez_vous      
         
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
@@ -951,6 +952,10 @@ def ma_reservation_detail(ref, email, country_code):
                     'frais_livraison':frais_livraison,
                     'date_depart': ma_reservation.date_heure_debut,
                     'date_retour': ma_reservation.date_heure_fin,
+                    'date_depart_char' : ma_reservation.date_depart_char,
+                    'date_retour_char' : ma_reservation.date_retour_char,
+                    'heure_depart_char' : ma_reservation.heure_depart_char,
+                    'heure_retour_char' : ma_reservation.heure_retour_char,
                     'mobile': ma_reservation.numero_lieu,
                     'status': ma_reservation.status,
                     'opt_payment': ma_reservation.opt_payment_name,
@@ -1019,6 +1024,10 @@ def ma_reservation_detail(ref, email, country_code):
                     'frais_livraison':frais_livraison,
                     'date_depart': ma_reservation.date_heure_debut,
                     'date_retour': ma_reservation.date_heure_fin,
+                    'date_depart_char' : ma_reservation.date_depart_char,
+                    'date_retour_char' : ma_reservation.date_retour_char,
+                    'heure_depart_char' : ma_reservation.heure_depart_char,
+                    'heure_retour_char' : ma_reservation.heure_retour_char,
                     'mobile': ma_reservation.numero_lieu,
                     'status': ma_reservation.status,
                     'opt_payment': ma_reservation.opt_payment_name,
