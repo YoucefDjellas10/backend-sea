@@ -2019,6 +2019,10 @@ def add_reservation_post_view(request):
         if date_heure_debut and date_heure_fin:
             date_heure_debut_formate = date_heure_debut.strftime("%d/%m/%Y %H:%M")
             date_heure_fin_formate = date_heure_fin.strftime("%d/%m/%Y %H:%M")
+            date_debut_char = date_heure_debut.strftime("%d/%m/%Y")
+            date_fin_char = date_heure_fin.strftime("%d/%m/%Y")
+            heure_debut_char = date_heure_debut.strftime("%H:%M")
+            heure_fi_char = date_heure_fin.strftime("%H:%M")
             du_au_string = f"{date_heure_debut_formate} → {date_heure_fin_formate}"
         else :
             return JsonResponse({"error": "Les dates ou heures fournies sont invalides."}, status=400)
@@ -2569,13 +2573,16 @@ def add_reservation_post_view(request):
             nd_driver_opt_unit = 0
             nd_driver_opt_total = 0
         
-
         reservation = Reservation.objects.create(
             create_date=timezone.now(),
             status="en_attend",
             etat_reservation="reserve",
             date_heure_debut = date_heure_debut ,
             date_heure_fin = date_heure_fin,
+            date_depart_char = date_debut_char,
+            date_retour_char = date_fin_char,
+            heure_depart_char = heure_debut_char,
+            heure_retour_char = heure_fi_char,
             du_au = du_au_string,
             nbr_jour_reservation = total_days,
             duree_dereservation = duree,
