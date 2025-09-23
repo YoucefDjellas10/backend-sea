@@ -76,6 +76,8 @@ urlpatterns += [
     path("restitution-email/", restitution_email_view, name="restitution_email_view"),
     path("reciept-download/", reciept_download, name="reciept_download"),
     path("confirmation-download/", confirmation_download, name="confirmation_download"),
+    path("combined-document-download/", combined_document_download, name="combined_document_download"),
     path("update-category-email/", update_category_email_view, name="update_category_email_view"),
     path("location-description/", lieu_rendez_vous_view, name="lieu_rendez_vous_view"),
+    
 ]

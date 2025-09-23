@@ -33,6 +33,168 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def combined_document_download(request):
+    # On peut utiliser soit reservation_id soit livraison_id
+    reservation_id = request.GET.get("reservation_id")
+    livraison_id = request.GET.get("livraison_id")
+    
+    # Récupération des objets selon le paramètre fourni
+    if reservation_id:
+        reservation = Reservation.objects.get(id=reservation_id)
+        # Supposer qu'il y a une relation pour récupérer la livraison
+        livraison = reservation.livraison  # Ajustez selon votre modèle
+    elif livraison_id:
+        livraison = Livraison.objects.get(id=livraison_id)
+        reservation = livraison.reservation
+    else:
+        return HttpResponse("Aucun ID fourni", status=404)
+
+    # === PARTIE CONFIRMATION (PAGE 1) ===
+    date_heure_depart = reservation.date_heure_debut
+    date_heure_retour = reservation.date_heure_fin
+
+    date_debut = date_heure_depart.strftime("%d %B %Y") 
+    heure_debut = date_heure_depart.strftime("%H:%M")  
+    date_fin = date_heure_retour.strftime("%d %B %Y")
+    heure_fin = date_heure_retour.strftime("%H:%M")
+
+    birthday_date = reservation.client.date_de_naissance
+    birthday = birthday_date.strftime("%d %B %Y")
+    permis = reservation.client.date_de_permis
+    permit_date = permis.strftime("%B/%Y")
+
+    taux_change = TauxChange.objects.get(id=2)
+    taux = taux_change.montant
+
+    protection = reservation.opt_protection 
+    protection_name = " "
+    protection_dercription = " "
+
+    if protection and "MAX" in protection.option_code :
+        protection_name = " ✔      Assurance Protection :  Maximale:"
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes , ainsi le bris de glace involontaire. Elle permet également de bénéficier d'une caution réduite par rapport à la protection standard."
+    elif protection and "STANDART" in protection.option_code :
+        protection_name = "✔      Assurance Protection :  Standard:"
+        protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d'une caution réduite par rapport à la protection Basique."
+
+    # Gestion du 2ème conducteur
+    nd_clinet = None
+    if reservation.nd_client_id:  
+        nd_clinet = reservation.nd_client
+    
+    nd_client_name = " "
+    permi_desc = " "
+    nd_client_name_ = nd_clinet.name if nd_clinet else " "
+    permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else " "
+    
+    if nd_clinet :
+        nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
+        permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
+
+    # Context pour la confirmation
+    confirmation_context = {
+        "REF": reservation.name,
+        "SERVICE": reservation.lieu_depart.mobile,
+        "LIEU_DEPART": reservation.lieu_depart.name,
+        "address": reservation.lieu_depart.address,
+        "LIEU_RETOIUR": reservation.lieu_retour.name,
+        "NOM": reservation.nom,
+        "PRÉNOM": reservation.prenom,
+        "DATE_DE_NAISSANCE": birthday,
+        "DATE_PERMIS": permit_date,
+        "NOM_2EME_CONDUCTEUR": nd_client_name,
+        "DATE_PERMIS_2EME": permi_desc,
+        "DATE_DEPART": date_debut,
+        "HEURE_DEPART": heure_debut,
+        "DATE_RETOUR": date_fin,
+        "HEUERE_RETOUR": heure_fin,
+        "DUREE_RESERVATION": reservation.duree_dereservation,
+        "NOM_VEHICULE": reservation.modele.name,
+        "MATRICULE": reservation.vehicule.matricule,
+        "CAUTION": reservation.opt_protection_caution,
+        "TOTAL": reservation.total_reduit_euro,
+        "PROTECTION_NAME": protection_name,
+        "DESCRIPTION_PROTECTION": protection_dercription,
+        "NUM_VOL": reservation.num_vol,
+        "RESTE_PAYE": reservation.reste_payer,
+        "VERSER": reservation.total_reduit_euro - reservation.reste_payer,
+        "klm_limit": reservation.nbr_jour_reservation * 250,
+        "protection": reservation.opt_protection.name
+    }
+
+    # === PARTIE CONTRAT (PAGE 2) ===
+    # Données pour le contrat (basées sur livraison)
+    birthday_date_contract = livraison.client.date_de_naissance
+    birthday_contract = birthday_date_contract.strftime("%d %B %Y")
+    permis_contract = livraison.client.date_de_permis
+    permit_date_contract = permis_contract.strftime("%B/%Y")
+
+    signature_url = f"https://api.safarelamir.com/signature/{livraison.id}/"
+
+    # Context pour le contrat
+    contract_context = {
+        "REF": reservation.name,
+        "SERVICE": livraison.lieu_depart.mobile,
+        "NOM": livraison.nom,
+        "PRÉNOM": livraison.prenom,
+        "DATE_DE_NAISSANCE": birthday_contract,
+        "DATE_PERMIS": permit_date_contract,
+        "NOM_2EME_CONDUCTEUR": nd_client_name,
+        "DATE_PERMIS_2EME": f" - Permis de conduire délivré le : {permi_desc}",
+        "DATE_DEPART": date_debut,
+        "HEURE_DEPART": heure_debut,
+        "DATE_RETOUR": date_fin,
+        "HEUERE_RETOUR": heure_fin,
+        "DUREE_RESERVATION": livraison.duree_dereservation,
+        "NOM_VEHICULE": livraison.modele.name,
+        "MATRICULE": livraison.vehicule.matricule,
+        "CAUTION": reservation.opt_protection_caution * taux,
+        "TOTAL": reservation.total_reduit_euro * taux,
+        "SIGNATURE_URL": signature_url,
+        "PROTECTION_NAME": protection_name,
+        "DESCRIPTION_PROTECTION": protection_dercription,
+    }
+
+    # Génération des HTML pour chaque page
+    confirmation_html_string = render_to_string("confirmation_pdf.html", confirmation_context)
+    contract_html_string = render_to_string("contract_pdf.html", contract_context)
+
+    # Combinaison des deux HTML avec un saut de page
+    combined_html_string = f"""
+    {confirmation_html_string}
+    <div style="page-break-after: always;"></div>
+    {contract_html_string}
+    """
+
+    # CSS avec marges
+    css_no_margins = CSS(string='''
+        @page {
+            margin: 4px 12px 4px 12px;
+            padding: 0;
+        }
+        
+        body {
+            margin: 4px 12px 4px 12px;
+            padding: 0;
+        }
+        
+        html {
+            margin: 4px 12px 4px 12px;
+            padding: 0;
+        }
+    ''')
+
+    # Génération du PDF combiné
+    html = HTML(string=combined_html_string)
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+
+    # Nom du fichier selon votre demande
+    file_name = f"document_{reservation.name}.pdf"
+
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+    return response
 
 def confirmation_download(request):
     resrevation_id = request.GET.get("resrevation_id")
