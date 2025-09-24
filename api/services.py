@@ -2023,6 +2023,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                 
                 modeles_ajoutes.add(vehicle.modele.id)
 
+                print("avant premier category : !!!!!!!!!!!")
+
                 if vehicle.categorie.id == base_a_category :
 
                     result.append({
