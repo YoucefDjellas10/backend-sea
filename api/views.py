@@ -3632,7 +3632,7 @@ def search_result_view(request):
         return JsonResponse({"error": "Les paramètres 'date_depart' et 'date_retour' sont requis."}, status=400)
 
     try:
-        resultats = search_result(
+        resultats = search_result_vehicule(
             lieu_depart_id=int(lieu_depart_id),
             lieu_retour_id=int(lieu_retour_id),
             date_depart=date_depart,

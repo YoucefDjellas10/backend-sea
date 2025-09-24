@@ -1462,7 +1462,7 @@ def free_options_f(client_id):
 
     return free_options
 
-def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
+def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
     try:
         date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
         date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
@@ -1514,8 +1514,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     model_three = None
     model_four = None
     model_five = None
-
-    print("apres promotion")
 
     if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
         promotion_value = promotions.reduction
@@ -1703,8 +1701,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     
     client = None
 
-    print("avant DZ : !!!!!!!!")
-
     if country_code == "DZ":
         if client_id :
             client_status = check_client(client_id)  
@@ -1729,8 +1725,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
-
-        print("lieu depart name : : ", lieu_depart_obj)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id) 
         if frais_livraison :
@@ -1924,8 +1918,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         modeles_ajoutes = set()
         total_brut = 0
 
-        print("apres option dz : !!!!!!!!!!!!!!!!")
-
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
                 continue
@@ -2022,8 +2014,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
                 modeles_ajoutes.add(vehicle.modele.id)
-
-                print("avant premier category : !!!!!!!!!!!")
 
                 if vehicle.categorie.id == base_a_category :
 
@@ -2125,7 +2115,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
                     })
-                print("avant deuxieme category : !!!!!!!!!!!")
                 
                 if vehicle.categorie.id == base_b_category :
                     result.append({
@@ -2226,8 +2215,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
                     })
-
-                print("avant 3eme category : !!!!!!!!!!!")
 
                 if vehicle.categorie.id == base_c_category :
                     result.append({
@@ -2348,7 +2335,6 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
         prime_red = 0
         if prime_code and not client_id:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
-            print()
             if parent_client :
                 parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                 prime_red = parent_sold.parrain_solde
