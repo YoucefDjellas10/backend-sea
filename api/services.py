@@ -1514,6 +1514,9 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     model_three = None
     model_four = None
     model_five = None
+
+    print("apres promotion")
+
     if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
         promotion_value = promotions.reduction
     elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
@@ -1724,6 +1727,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
+
+        print("lieu depart name : : ", lieu_depart_obj)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id) 
         if frais_livraison :
