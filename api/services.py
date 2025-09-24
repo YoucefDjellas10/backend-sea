@@ -2125,7 +2125,7 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
                     })
-
+                print("avant deuxieme category : !!!!!!!!!!!")
                 
                 if vehicle.categorie.id == base_b_category :
                     result.append({
@@ -2226,6 +2226,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
                     })
+
+                print("avant 3eme category : !!!!!!!!!!!")
 
                 if vehicle.categorie.id == base_c_category :
                     result.append({
