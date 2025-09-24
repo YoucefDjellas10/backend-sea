@@ -1703,6 +1703,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
     
     client = None
 
+    print("avant DZ : !!!!!!!!")
+
     if country_code == "DZ":
         if client_id :
             client_status = check_client(client_id)  
@@ -1921,6 +1923,8 @@ def search_result(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, dat
 
         modeles_ajoutes = set()
         total_brut = 0
+
+        print("apres option dz : !!!!!!!!!!!!!!!!")
 
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
