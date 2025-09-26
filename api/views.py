@@ -1676,6 +1676,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         )
         if not verify_value[0].get('is_available') or verify_value[0].get('old_total') or verify_value[0].get('new_total'):
             return {"success": "no"}
+        
+
+        print("result : ",verify_value)
+        print("backoffice : ",backoffice)
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             reservation_obj = Reservation.objects.get(name=ref)
