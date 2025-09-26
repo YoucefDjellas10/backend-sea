@@ -1674,7 +1674,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour,
             country_code
         )
-        if not verify_value[0].get('is_available') or verify_value[0].get('old_total') or verify_value[0].get('new_total'):
+        if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
             return {"success": "no"}
         
 
