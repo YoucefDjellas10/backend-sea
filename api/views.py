@@ -1662,7 +1662,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     
 
-def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, country_code):
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, country_code):
     try:
         verify_value = verify_and_calculate(
             ref,
@@ -1674,6 +1674,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour,
             country_code
         )
+        if not verify_value[0].get('is_available') or verify_value[0].get('old_total') or verify_value[0].get('new_total'):
+            return {"success": "no"}
+
         if verify_value and verify_value[0].get('is_available') == "yes":
             reservation_obj = Reservation.objects.get(name=ref)
             lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
@@ -1684,8 +1687,40 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
+            diff_prix = new_total - old_total if (new_total - old_total)>0 else 0
             session_id = None
             payment_url = None
+
+            if backoffice == "yes":
+                if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                    reservation_obj.du_au_modifier = reservation_obj.du_au
+                    reservation_obj.du_au = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}"
+                    reservation_obj.date_depart_char = date_depart_obj
+                    reservation_obj.date_retour_char = date_retour_obj
+                    reservation_obj.heure_depart_char = heure_depart
+                    reservation_obj.heure_retour_char = heure_retour
+                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+
+                    Prolongation.objects.create(
+                        reservation=reservation_obj,
+                        date_heure_debut=datetime.combine(date_depart_obj, heure_depart_obj),
+                        date_heure_fin=datetime.combine(date_retour_obj, heure_retour_obj),
+                        lieu_depart=lieu_depart_obj,
+                        lieu_retour=lieu_retour_obj,
+                        total= diff_prix,
+                    )
+                    reservation_obj.total_reduit_euro = new_total
+                    reservation_obj.reste_payer += diff_prix
+
+                if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+                    reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+                    reservation_obj.depart_retour = f"{lieu_depart_obj.name} → {lieu_retour_obj.name}"
+                    reservation_obj.lieu_depart = lieu_depart_obj
+                    reservation_obj.lieu_retour = lieu_retour_obj
+                reservation_obj.save()
+
+                return {"success": "yes"}
 
             #if  date.today() > reservation_obj.date_heure_debut.date() and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                 
@@ -1896,6 +1931,7 @@ def verify_and_do_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+    backoffice = request.GET.get("backoffice")
     country_code = request.headers.get("X-Country-Code")
 
     if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
@@ -1910,7 +1946,8 @@ def verify_and_do_view(request):
             heure_depart = heure_depart,
             date_retour = date_retour,
             heure_retour = heure_retour,
-            country_code = country_code
+            country_code = country_code,
+            backoffice = backoffice
         )
         if resultats.get('success') == "yes":
             return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})

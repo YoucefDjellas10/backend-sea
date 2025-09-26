@@ -1531,3 +1531,256 @@ class RefundTable(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Prolongation(models.Model):
+    STAGE_CHOICES = [
+        ('en_attend', 'En Attend'),
+        ('confirme', 'Confirmé'),
+    ]
+    
+    name = models.CharField(
+        max_length=255, 
+        verbose_name='Name', 
+        default='New',
+        help_text='Nom de la prolongation'
+    )
+    
+    stage = models.CharField(
+        max_length=20,
+        choices=STAGE_CHOICES,
+        default='en_attend',
+        verbose_name='Status'
+    )
+    reservation = models.ForeignKey(
+        Reservation,  
+        on_delete=models.CASCADE,
+        verbose_name='Réservation',
+        related_name='prolongations'
+    )
+    
+    status = models.CharField(
+        max_length=50,
+        verbose_name='Etat de confirmation',
+        blank=True,
+        null=True
+    )
+    
+    etat_reservation = models.CharField(
+        max_length=50,
+        verbose_name='Etat de réservation',
+        blank=True,
+        null=True
+    )
+    
+    date_heure_debut = models.DateTimeField(
+        verbose_name='Date heure début',
+        null=True,
+        blank=True
+    )
+    
+    date_heure_fin = models.DateTimeField(
+        verbose_name='Date heure fin',
+        null=True,
+        blank=True
+    )
+    
+    nbr_jour_reservation = models.IntegerField(
+        verbose_name='Durée (jours)',
+        null=True,
+        blank=True
+    )
+    
+    duree_dereservation = models.CharField(
+        max_length=100,
+        verbose_name='Durée',
+        blank=True,
+        null=True
+    )
+    
+    lieu_depart = models.ForeignKey(
+        Lieux,  
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Lieu de départ',
+        related_name='prolongations_depart'
+    )
+    
+    zone = models.ForeignKey(
+        Zone,  
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Zone de départ',
+        related_name='prolongations_zone'
+    )
+    
+    lieu_retour = models.ForeignKey(
+        Lieux,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Lieu de retour',
+        related_name='prolongations_retour'
+    )
+    
+    vehicule = models.ForeignKey(
+        Vehicule,  
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Véhicule',
+        related_name='prolongations'
+    )
+    
+    modele = models.ForeignKey(
+        Modele,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Modèle',
+        related_name='prolongations'
+    )
+    
+    categorie = models.ForeignKey(
+        Categorie,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Catégorie',
+        related_name='prolongations'
+    )
+    
+    prix_jour = models.IntegerField(
+        verbose_name='Prix par jour',
+        default=0
+    )
+    
+    prix_jour_two = models.IntegerField(
+        verbose_name='Prix Jour Two',
+        default=0
+    )
+    
+    nbr_jour_two = models.IntegerField(
+        verbose_name='Nombre de Jours Two',
+        default=0
+    )
+    
+    nbr_jour_one = models.IntegerField(
+        verbose_name='Nombre de Jours One',
+        default=0
+    )
+    
+    frais_de_livraison = models.IntegerField(
+        verbose_name='Frais de livraison',
+        default=0
+    )
+    
+    options_total = models.IntegerField(
+        verbose_name='Total des options',
+        default=0
+    )
+    
+    total = models.IntegerField(
+        verbose_name='Total Général',
+        default=0
+    )
+    
+    total_afficher = models.IntegerField(
+        verbose_name='Total Afficher',
+        default=0
+    )
+    
+    prix_jour_afficher = models.FloatField(
+        verbose_name='Prix par jour Afficher',
+        default=0.0
+    )
+    
+    supplements = models.IntegerField(
+        verbose_name='Suppléments',
+        default=0
+    )
+    
+    retour_tard = models.IntegerField(
+        verbose_name='Retour tard',
+        default=0
+    )
+    
+    date_prolonge = models.DateTimeField(
+        verbose_name='Date prolongée',
+        null=True,
+        blank=True
+    )
+    
+    nb_jour_prolonge = models.IntegerField(
+        verbose_name='Jour prolongé',
+        default=0,
+        editable=False  
+    )
+    
+    heure_prolonge = models.IntegerField(
+        verbose_name='Heure prolongé',
+        default=0,
+        editable=False  
+    )
+    
+    nb_jour_prolonge_l = models.CharField(
+        max_length=50,
+        verbose_name='Jour prolongé (libellé)',
+        blank=True,
+        editable=False
+    )
+    
+    heure_prolonge_l = models.CharField(
+        max_length=50,
+        verbose_name='Heure prolongé (libellé)',
+        blank=True,
+        editable=False
+    )
+    
+    prix_prolongation = models.IntegerField(
+        verbose_name='Prix de prolongation',
+        default=0,
+        editable=False
+    )
+    
+    total_option_prolonge = models.IntegerField(
+        verbose_name='Total options prolongées',
+        default=0,
+        editable=False
+    )
+    
+    total_prolongation = models.IntegerField(
+        verbose_name='Total Prolongation',
+        default=0,
+        editable=False
+    )
+    
+    supplements_prolonge = models.IntegerField(
+        verbose_name='Suppléments Prolongés',
+        default=0,
+        editable=False
+    )
+    
+    date_fin_un = models.DateTimeField(
+        verbose_name='Ancienne date fin',
+        null=True,
+        blank=True
+    )
+    
+    prix_prolongation_devise = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Prix de prolongation (devise)',
+        default=0.00,
+        editable=False
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'prolongation'
+        managed = False  
+
+ 

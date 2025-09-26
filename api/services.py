@@ -708,8 +708,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     })
                     return result
 
-
-
                 date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
                 date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
 
@@ -730,8 +728,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 for tarif in tarifs:
                     total = 0
                     prix_unitaire = 0
-
-                    print("---------- total : ",total)
 
                     if tarif.date_depart_one and tarif.date_fin_one:
                         if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
@@ -769,12 +765,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
                     
-
-                    print("---------- total : ",total)
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
                         total += frais_dossier.prix
-                    print("---------- total 1 : ",total)
+
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
                     if frais_livraison :
                         for frais in frais_livraison:
@@ -784,7 +778,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
                         frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
                         total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
-                    print("---------- total 2 : ",total)
+
                     supplements = Supplement.objects.filter(
                         Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
                         Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
@@ -796,31 +790,22 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         Q(valeur__gt=0)
                     )
 
-                    print("---------- total 3 : ",total)
-
                     for supplement in supplements:
 
                         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
 
                         duration = end_hour - start_hour
-                        print("!!!!!!!!!!  supplement de 4 heure : ",supplement.valeur,"!!!!!!!!!")
-                        print("!!!!!!!!!!  duration : ",duration,"!!!!!!!!!")
-                        print("!!!!!!!!!!  supplement.reatrd : ",supplement.reatrd,"!!!!!!!!!")
 
                         if duration > supplement.reatrd:
                             total += (prix_unitaire * supplement.valeur) / 100
                     
-                    print("---------- total 4 : ",total)
-
                 if total > 0:
                     prix_par_jour = total / total_days if total_days > 0 else 0
                     total_ = get_options_total + total
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
-
-                print("---------- total 5 : ",total)
 
                 credit = "no"
                 credit_amount = 0
