@@ -1782,6 +1782,10 @@ class Prolongation(models.Model):
         default=0.00,
         editable=False
     )
+
+    date_du_au = models.CharField()
+    date_du_au_new = models.CharField()
+    date_prolongation = models.DateTimeField()
     
     class Meta:
         db_table = 'prolongation'

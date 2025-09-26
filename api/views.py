@@ -1676,29 +1676,24 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         )
         if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
             return {"success": "no"}
-        
-
-        print("result : ",verify_value)
-        print("backoffice : ",backoffice)
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             reservation_obj = Reservation.objects.get(name=ref)
             lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
             lieu_retour_obj = Lieux.objects.get(id=lieu_retour)
-            date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d" if '-' in date_depart else "%d/%m/%Y").date()
+            date_depart_obj = date_depart.strftime("%d/%m/%Y")
             heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
-            date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d" if '-' in date_retour else "%d/%m/%Y").date()
+            date_retour_obj = date_retour.strftime("%d/%m/%Y")
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
             diff_prix = float(new_total) - float(old_total) if (float(new_total) - float(old_total))>0 else 0
             session_id = None
             payment_url = None
+            anciennes_dates = reservation_obj.du_au
 
             if backoffice == "yes":
-                print("test a")
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    print("test b")
                     reservation_obj.du_au_modifier = reservation_obj.du_au
                     reservation_obj.du_au = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}"
                     reservation_obj.date_depart_char = date_depart_obj
@@ -1707,7 +1702,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.heure_retour_char = heure_retour
                     reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                     reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                    print("test c")
 
                     Prolongation.objects.create(
                         reservation=reservation_obj,
@@ -1715,13 +1709,13 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         date_heure_fin=datetime.combine(date_retour_obj, heure_retour_obj),
                         lieu_depart=lieu_depart_obj,
                         lieu_retour=lieu_retour_obj,
-                        total= diff_prix,
+                        total_prolongation= diff_prix,
+                        date_du_au = anciennes_dates,
+                        date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
+                        date_prolongation = datetime.now()
                     )
-                    print("test d")
                     reservation_obj.total_reduit_euro = new_total
                     reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else reservation_obj.reste_payer + diff_prix
-
-                    print("test e")
 
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
                     reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
