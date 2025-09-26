@@ -1691,7 +1691,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
-            diff_prix = new_total - old_total if (new_total - old_total)>0 else 0
+            diff_prix = float(new_total) - float(old_total) if (float(new_total) - float(old_total))>0 else 0
             session_id = None
             payment_url = None
 
