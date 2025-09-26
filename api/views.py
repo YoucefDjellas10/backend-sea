@@ -1716,9 +1716,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         date_prolongation = datetime.now()
                     )
                     prolongation_id = prolongation_obj.id
-                    reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else reservation_obj.total_prolone + diff_prix
+                    reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else float(reservation_obj.total_prolone) + float(diff_prix)
                     reservation_obj.total_reduit_euro = new_total
-                    reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else reservation_obj.reste_payer + diff_prix
+                    reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
 
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
                     reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
