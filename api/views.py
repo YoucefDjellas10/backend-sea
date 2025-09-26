@@ -1719,7 +1719,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     )
                     print("test d")
                     reservation_obj.total_reduit_euro = new_total
-                    reservation_obj.reste_payer += diff_prix
+                    reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else reservation_obj.reste_payer + diff_prix
 
                     print("test e")
 
