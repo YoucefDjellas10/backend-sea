@@ -1703,17 +1703,20 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                     reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
 
-                    Prolongation.objects.create(
+                    prolongation_obj = Prolongation.objects.create(
                         reservation=reservation_obj,
                         date_heure_debut=datetime.combine(date_depart_obj, heure_depart_obj),
                         date_heure_fin=datetime.combine(date_retour_obj, heure_retour_obj),
                         lieu_depart=lieu_depart_obj,
                         lieu_retour=lieu_retour_obj,
                         total_prolongation= diff_prix,
+                        prix_prolongation_devise = diff_prix,
                         date_du_au = anciennes_dates,
                         date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
                         date_prolongation = datetime.now()
                     )
+                    prolongation_id = prolongation_obj.id
+                    reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else reservation_obj.total_prolone + diff_prix
                     reservation_obj.total_reduit_euro = new_total
                     reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else reservation_obj.reste_payer + diff_prix
 
@@ -1724,7 +1727,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.lieu_retour = lieu_retour_obj
                 reservation_obj.save()
 
-                return {"success": "yes"}
+                return {"success": "yes" , "prolongation_id": prolongation_id, "reservation":reservation_obj.id}
 
             #if  date.today() > reservation_obj.date_heure_debut.date() and (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                 
