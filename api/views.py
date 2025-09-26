@@ -1956,7 +1956,6 @@ def verify_and_do_view(request):
             heure_depart = heure_depart,
             date_retour = date_retour,
             heure_retour = heure_retour,
-            country_code = country_code,
             backoffice = backoffice
         )
         if resultats.get('success') == "yes":
