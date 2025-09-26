@@ -1662,7 +1662,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     
 
-def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, country_code):
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice):
     try:
         verify_value = verify_and_calculate(
             ref,
@@ -1672,7 +1672,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_depart,
             date_retour,
             heure_retour,
-            country_code
+            None
         )
         if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
             return {"success": "no"}
