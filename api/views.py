@@ -1692,9 +1692,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             payment_url = None
             anciennes_dates = reservation_obj.du_au
 
-            date_depart_obj = date_depart_obj.strftime("%d/%m/%Y")
-            date_retour_obj = date_retour_obj.strftime("%d/%m/%Y")
-
             if backoffice == "yes":
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     reservation_obj.du_au_modifier = reservation_obj.du_au
