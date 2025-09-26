@@ -1555,6 +1555,7 @@ class Prolongation(models.Model):
         Reservation,  
         on_delete=models.CASCADE,
         verbose_name='Réservation',
+        db_column='reservation',
         related_name='prolongations'
     )
     
@@ -1603,6 +1604,7 @@ class Prolongation(models.Model):
         null=True,
         blank=True,
         verbose_name='Lieu de départ',
+        db_column='lieu_depart',
         related_name='prolongations_depart'
     )
     
@@ -1612,6 +1614,7 @@ class Prolongation(models.Model):
         null=True,
         blank=True,
         verbose_name='Zone de départ',
+        db_column='zone',
         related_name='prolongations_zone'
     )
     
@@ -1621,6 +1624,7 @@ class Prolongation(models.Model):
         null=True,
         blank=True,
         verbose_name='Lieu de retour',
+        db_column='lieu_retour',
         related_name='prolongations_retour'
     )
     
@@ -1630,6 +1634,7 @@ class Prolongation(models.Model):
         null=True,
         blank=True,
         verbose_name='Véhicule',
+        db_column='vehicule',
         related_name='prolongations'
     )
     
@@ -1639,6 +1644,7 @@ class Prolongation(models.Model):
         null=True,
         blank=True,
         verbose_name='Modèle',
+        db_column='modele',
         related_name='prolongations'
     )
     
@@ -1648,6 +1654,7 @@ class Prolongation(models.Model):
         null=True,
         blank=True,
         verbose_name='Catégorie',
+        db_column='categorie',
         related_name='prolongations'
     )
     
