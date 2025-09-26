@@ -804,6 +804,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
 
                         duration = end_hour - start_hour
+                        print("!!!!!!!!!!  supplement de 4 heure : ",supplements.valeur,"!!!!!!!!!")
 
                         if duration > supplement.reatrd:
                             total += (prix_unitaire * supplement.valeur) / 100
