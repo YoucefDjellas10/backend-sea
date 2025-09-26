@@ -1681,9 +1681,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             reservation_obj = Reservation.objects.get(name=ref)
             lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
             lieu_retour_obj = Lieux.objects.get(id=lieu_retour)
-            date_depart_obj = date_depart.strftime("%d/%m/%Y")
+            date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d" if '-' in date_depart else "%d/%m/%Y").date()
             heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
-            date_retour_obj = date_retour.strftime("%d/%m/%Y")
+            date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d" if '-' in date_retour else "%d/%m/%Y").date()
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
@@ -1691,6 +1691,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             session_id = None
             payment_url = None
             anciennes_dates = reservation_obj.du_au
+
+            date_depart_obj = date_depart_obj.strftime("%d/%m/%Y")
+            date_retour_obj = date_retour_obj.strftime("%d/%m/%Y")
 
             if backoffice == "yes":
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
