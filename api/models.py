@@ -1791,4 +1791,60 @@ class Prolongation(models.Model):
         db_table = 'prolongation'
         managed = False  
 
- 
+class RetourAvance(models.Model):
+    
+    name = models.CharField(max_length=255, verbose_name='Nom', null=True, blank=True)
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, db_column='reservation', verbose_name='Reservation')
+    lieu_depart = models.ForeignKey(Lieux, on_delete=models.CASCADE, db_column='lieu_depart', verbose_name='lieu_depart')
+    zone = models.ForeignKey(Zone, on_delete=models.CASCADE, db_column='zone', verbose_name='zone')
+    lieu_retour = models.ForeignKey(Lieux, on_delete=models.CASCADE, db_column='lieu_retour', verbose_name='lieu_retour')
+    
+    date_retour_avance = models.DateTimeField(
+        verbose_name='Date de retour avance', 
+        null=True, 
+        blank=True,
+        help_text='Date prévue pour le retour anticipé'
+    )
+    
+    differance_heure = models.IntegerField(
+        verbose_name='Différence Heure',
+        default=0,
+        help_text='Différence en heures par rapport à la date de fin prévue'
+    )
+    
+    differance_jour = models.IntegerField(
+        verbose_name='Différence jour',
+        default=0,
+        help_text='Différence en jours par rapport à la date de fin prévue'
+    )
+    
+    date_du_au = models.CharField(
+        max_length=255,
+        verbose_name='Anciennes dates',
+        blank=True,
+        null=True,
+        help_text='Dates originales de la réservation'
+    )
+    
+    date_du_au_new = models.CharField(
+        max_length=255,
+        verbose_name='Nouvelles dates',
+        blank=True,
+        null=True,
+        help_text='Nouvelles dates après modification'
+    )
+    
+    date_retour_avance = models.DateTimeField(
+        verbose_name='Date de prolongation',
+        null=True,
+        blank=True,
+        help_text='Date à laquelle la modification a été effectuée'
+    )
+    prix_retour_avance = models.FloatField()
+
+    class Meta:
+        verbose_name = 'Retour Avancé'
+        db_table = 'retour_avance'
+
+    def __str__(self):
+        return f"- {self.name or f'Réservation {self.reservation.name}'}"
