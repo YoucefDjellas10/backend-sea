@@ -813,6 +813,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     credit = "yes"
                     credit_amount = float(get_total) - float(total_)
                 
+                if float(total_) < float(get_total):
+                    total_ = get_total
+                
                 result.append({
                     'is_available':"yes",
                     'old_total': float(get_total) * float(taux_change) if country_code == "DZ" else get_total,
