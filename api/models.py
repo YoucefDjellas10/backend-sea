@@ -1812,12 +1812,6 @@ class RetourAvance(models.Model):
         help_text='Différence en heures par rapport à la date de fin prévue'
     )
     
-    differance_jour = models.IntegerField(
-        verbose_name='Différence jour',
-        default=0,
-        help_text='Différence en jours par rapport à la date de fin prévue'
-    )
-    
     date_du_au = models.CharField(
         max_length=255,
         verbose_name='Anciennes dates',
