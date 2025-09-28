@@ -37,6 +37,12 @@ def confirme_reservation_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
         reservation = Reservation.objects.get(id=reservation_id)
+        
+        if not reservation :
+            return JsonResponse({'operation': "reservation non trouvé"}, status=404)
+
+        if reservation.status == "confirmee":
+            return JsonResponse({'operation': "operation non autoriser"}, status=400)
 
         reservation.status = 'confirmee'
         reservation.save()
