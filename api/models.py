@@ -1095,7 +1095,14 @@ class Reservation(models.Model):
     opt_protection_caution = models.IntegerField(null=True, blank=True)
     opt_protection_price = models.IntegerField(null=True, blank=True)
     opt_protection_total = models.IntegerField(null=True, blank=True)
-    opt_nd_driver = models.ForeignKey('Options', on_delete=models.CASCADE,db_column='opt_nd_driver', related_name='opt_nd_driver')
+    opt_nd_driver = models.ForeignKey(
+        'Options',
+        on_delete=models.CASCADE,
+        db_column='opt_nd_driver',
+        related_name='opt_nd_driver',
+        null=True,
+        blank=True
+    )
     opt_nd_driver_name = models.CharField(max_length=255, null=True, blank=True)
     opt_nd_driver_price = models.IntegerField(null=True, blank=True)
     opt_nd_driver_total = models.IntegerField(null=True, blank=True)

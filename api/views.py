@@ -3103,7 +3103,7 @@ def stripe_webhook_reservation(request):
                     opt_carburant_check = True if reservation.opt_plein_carburant else False,
                     opt_klm = reservation.opt_klm if reservation.opt_klm else None,
                     opt_klm_check = True if reservation.opt_klm else False,
-                    opt_nd_driver = reservation.opt_nd_driver if reservation.opt_nd_driver else None,
+                    opt_nd_driver = reservation.opt_nd_driver ,
                     opt_nd_driver_check = True if reservation.opt_nd_driver else False,
                     opt_sb_a = reservation.opt_siege_a if reservation.opt_siege_a else None,
                     opt_sb_a_check = True if reservation.opt_siege_a else False,
