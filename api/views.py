@@ -33,6 +33,117 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def confirme_reservation_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        reservation = Reservation.objects.get(id=reservation_id)
+
+        reservation.status = 'confirmee'
+        reservation.save()
+
+        livraison = Livraison.objects.create(
+            reservation = reservation,
+            name = reservation.name,
+            caution_classic = reservation.opt_protection.caution,
+            caution_red = reservation.opt_protection.caution,
+            caution_classic_eur = reservation.opt_protection.caution,
+            status = reservation.status,
+            date_heure_debut = reservation.date_heure_debut,
+            date_heure_fin = reservation.date_heure_fin,
+            date_de_reservation = reservation.create_date,
+            nbr_jour_reservation = reservation.nbr_jour_reservation,
+            duree_dereservation = reservation.duree_dereservation,
+            lieu_depart = reservation.lieu_depart,
+            zone = reservation.zone,
+            lieu_retour = reservation.lieu_retour,
+            vehicule = reservation.vehicule,
+            modele = reservation.modele,
+            carburant = reservation.carburant,
+            client = reservation.client,
+            nom = reservation.nom,
+            prenom = reservation.prenom,
+            email = reservation.email,
+            mobile = reservation.mobile,
+            total_reduit_euro = reservation.reste_payer,
+            stage = 'reserve',
+            lv_type = "livraison",
+            action_lieu=reservation.lieu_depart.name,
+            action_date=reservation.date_heure_debut,
+
+        ) 
+        livraison.save()
+
+        restitution = Livraison.objects.create(
+            reservation = reservation,
+            name = reservation.name,
+            caution_classic = reservation.opt_protection.caution,
+            caution_red = reservation.opt_protection.caution,
+            caution_classic_eur = reservation.opt_protection.caution,
+            status = reservation.status,
+            date_heure_debut = reservation.date_heure_debut,
+            date_heure_fin = reservation.date_heure_fin,
+            date_de_reservation = reservation.create_date,
+            nbr_jour_reservation = reservation.nbr_jour_reservation,
+            duree_dereservation = reservation.duree_dereservation,
+            lieu_depart = reservation.lieu_depart,
+            zone = reservation.zone,
+            lieu_retour = reservation.lieu_retour,
+            vehicule = reservation.vehicule,
+            modele = reservation.modele,
+            carburant = reservation.carburant,
+            client = reservation.client,
+            nom = reservation.nom,
+            prenom = reservation.prenom,
+            email = reservation.email,
+            mobile = reservation.mobile,
+            total_reduit_euro = reservation.reste_payer,
+            stage = 'reserve',
+            lv_type = "restitution",
+            action_lieu=reservation.lieu_retour.name,
+            action_date=reservation.date_heure_fin,
+        ) 
+        restitution.save()
+
+        sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+        expediteur = settings.EMAIL_HOST_USER
+
+        html_message = render_to_string('email/confirmation_email.html', {
+            "referance":reservation.name,
+            "mobile_one":reservation.lieu_depart.mobile,
+            "adresse_one":reservation.lieu_depart.address,
+            "mobile_two":reservation.lieu_retour.mobile,
+            "adresse_two":reservation.lieu_retour.address,
+            'client': reservation.client.nom,
+            'client_prenom':reservation.client.prenom,
+            'durrée':reservation.duree_dereservation,
+            'model_name':reservation.model_name,
+            'reste_paye':reservation.reste_payer,
+            'caution':reservation.opt_protection_caution,
+            'date_depart':reservation.date_depart_char,
+            'heure_depart':reservation.heure_depart_char,
+            'date_retoure':reservation.date_retour_char,
+            'haure_retour':reservation.heure_retour_char,
+            'lieu_depart':reservation.lieu_depart.name,
+            'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+            'lieu_retour':reservation.lieu_retour.name,
+            'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
+
+        })
+
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return JsonResponse({'operation': "operation terminé"}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 def combined_document_download(request):
     reservation_id = request.GET.get("reservation_id")
     livraison_id = request.GET.get("livraison_id")
@@ -1744,6 +1855,43 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.lieu_depart = lieu_depart_obj
                     reservation_obj.lieu_retour = lieu_retour_obj
                 reservation_obj.save()
+
+                sujet = f"Confirmation de votre reservation N°= {reservation_obj.name}"
+                expediteur = settings.EMAIL_HOST_USER
+
+                html_message = render_to_string('email/confirmation_email.html', {
+                    "referance":reservation_obj.name,
+                    "mobile_one":reservation_obj.lieu_depart.mobile,
+                    "adresse_one":reservation_obj.lieu_depart.address,
+                    "mobile_two":reservation_obj.lieu_retour.mobile,
+                    "adresse_two":reservation_obj.lieu_retour.address,
+                    'client': reservation_obj.client.nom,
+                    'client_prenom':reservation_obj.client.prenom,
+                    'durrée':reservation_obj.duree_dereservation,
+                    'model_name':reservation_obj.model_name,
+                    'reste_paye':reservation_obj.reste_payer,
+                    'caution':reservation_obj.opt_protection_caution,
+                    'date_depart':date_depart,
+                    'heure_depart':heure_depart,
+                    'date_retoure':date_retour,
+                    'haure_retour':heure_retour,
+                    'lieu_depart':reservation_obj.lieu_depart.name,
+                    'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
+                    'lieu_retour':reservation_obj.lieu_retour.name,
+                    'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
+
+                })
+
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),  
+                    expediteur,
+                    [reservation_obj.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+
+
 
                 return {"success": "yes" , 
                         "prolongation_id": prolongation_id,

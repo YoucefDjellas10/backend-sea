@@ -79,5 +79,6 @@ urlpatterns += [
     path("combined-document-download/", combined_document_download, name="combined_document_download"),
     path("update-category-email/", update_category_email_view, name="update_category_email_view"),
     path("location-description/", lieu_rendez_vous_view, name="lieu_rendez_vous_view"),
+    path("confirmer-resrevation/", confirme_reservation_view, name="confirme_reservation_view"),
     
 ]
