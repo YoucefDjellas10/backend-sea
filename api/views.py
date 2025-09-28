@@ -37,7 +37,7 @@ def confirme_reservation_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
         reservation = Reservation.objects.get(id=reservation_id)
-        
+
         if not reservation :
             return JsonResponse({'operation': "reservation non trouvé"}, status=404)
 
@@ -3015,7 +3015,7 @@ def stripe_webhook_reservation(request):
             montant_paye_dec = Decimal(montant_paye) if montant_paye else Decimal("0.00")
 
             reservation = Reservation.objects.filter(id=reservation_id).first()
-            if reservation != "confirmee" :
+            if reservation.status != "confirmee" :
                 reservation.status ="confirmee"
                 reservation.montant_paye = montant_paye_dec
                 reservation.save()
