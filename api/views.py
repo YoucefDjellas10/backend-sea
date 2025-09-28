@@ -3018,6 +3018,7 @@ def stripe_webhook_reservation(request):
             if reservation.status != "confirmee" :
                 reservation.status ="confirmee"
                 reservation.montant_paye = montant_paye_dec
+                reservation.reste_payer = float(reservation.total_reduit_euro) - float(montant_paye_dec)
                 reservation.save()
                 
 
