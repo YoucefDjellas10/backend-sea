@@ -1327,6 +1327,20 @@ class Livraison(models.Model):
         blank=True,
         verbose_name=_("penalite carburant (DA)")
     )
+    opt_protection =  models.CharField()
+
+    opt_carburant = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_carburant', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_carburant_check = models.BooleanField()
+    opt_klm = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_klm', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_klm_check = models.BooleanField()
+    opt_nd_driver = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_nd_driver', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_nd_driver_check = models.BooleanField()
+    opt_sb_a = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_a', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_sb_a_check = models.BooleanField()
+    opt_sb_b = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_b', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_sb_b_check = models.BooleanField()
+    opt_sb_c = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_c', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_sb_c_check = models.BooleanField()
 
     class Meta:
         db_table = 'livraison'
