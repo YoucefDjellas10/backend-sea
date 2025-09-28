@@ -3092,12 +3092,12 @@ def stripe_webhook_reservation(request):
                 )
                 payment.save()
 
+                print("La caution : ",reservation.opt_protection.caution)
+
                 livraison = Livraison.objects.create(
                     reservation = reservation,
                     name = reservation.name,
-                    caution_classic = reservation.opt_protection.caution,
-                    caution_red = reservation.opt_protection.caution,
-                    caution_classic_eur = reservation.opt_protection.caution,
+                    opt_protection_caution = reservation.opt_protection.caution,
                     opt_protection = reservation.opt_protection.name,
                     opt_carburant = reservation.opt_plein_carburant,
                     opt_carburant_check = True if reservation.opt_plein_carburant else False,
@@ -3140,9 +3140,7 @@ def stripe_webhook_reservation(request):
                 restitution = Livraison.objects.create(
                     reservation = reservation,
                     name = reservation.name,
-                    caution_classic = reservation.opt_protection.caution,
-                    caution_red = reservation.opt_protection.caution,
-                    caution_classic_eur = reservation.opt_protection.caution,
+                    opt_protection_caution = reservation.opt_protection.caution,
                     status = reservation.status,
                     date_heure_debut = reservation.date_heure_debut,
                     date_heure_fin = reservation.date_heure_fin,
