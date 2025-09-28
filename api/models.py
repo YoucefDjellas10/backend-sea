@@ -1369,6 +1369,8 @@ class Livraison(models.Model):
     opt_sb_c = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_c', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_sb_c_check = models.BooleanField()
 
+    opt_protection_caution = models.IntegerField(null=True, blank=True)
+
     class Meta:
         db_table = 'livraison'
         managed = False
