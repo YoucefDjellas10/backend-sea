@@ -1094,7 +1094,7 @@ class Reservation(models.Model):
     opt_klm_price = models.IntegerField(null=True, blank=True)
     opt_klm_total = models.IntegerField(null=True, blank=True)
     opt_kilometrage = models.IntegerField(null=True, blank=True)
-    opt_protection = models.ForeignKey('Options', on_delete=models.CASCADE,db_column='opt_protection', related_name='opt_protection')
+    opt_protection = models.ForeignKey('Options', on_delete=models.CASCADE,db_column='opt_protection', related_name='opt_protection', null=True, blank=True)
     opt_protection_name = models.CharField(max_length=255, null=True, blank=True)
     opt_protection_caution = models.IntegerField(null=True, blank=True)
     opt_protection_price = models.IntegerField(null=True, blank=True)
