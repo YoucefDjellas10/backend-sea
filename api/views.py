@@ -740,7 +740,7 @@ def pick_up_mail_view(request):
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
 
-def contract_download(request):
+def contract_download_(request):
     livraison_id = request.GET.get("livraison_id")
 
     if not livraison_id : 
@@ -2987,7 +2987,7 @@ def create_payment_session_reservation(request):
 
 
 @csrf_exempt
-def stripe_webhook_reservation(request):
+def stripe_webhook_reservation_(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET  
