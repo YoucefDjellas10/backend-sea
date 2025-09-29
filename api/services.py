@@ -1354,11 +1354,17 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
         etat_reservation__in=["reserve", "loue"],status="confirmee"  
     ).values_list("vehicule_id", flat=True)
 
+    blocked_vehicles = BlockCar.objects.filter(
+        Q(date_from__lte=date_heure_fin.date(), date_to__gte=date_heure_debut.date())
+    ).values_list("vehicule_id", flat=True)
+
     available_vehicles = Vehicule.objects.filter(
         active_test=True,  
         date_debut_service__lte=date_heure_debut.date(),
         zone_id=int(zone) 
-    ).exclude(id__in=reserved_vehicles)  
+    ).exclude(
+        id__in=list(reserved_vehicles) + list(blocked_vehicles)
+    )  
 
     return available_vehicles
 

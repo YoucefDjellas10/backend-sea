@@ -1885,3 +1885,17 @@ class RetourAvance(models.Model):
 
     def __str__(self):
         return f"- {self.name or f'Réservation {self.reservation.name}'}"
+    
+class BlockCar(models.Model):
+    vehicule = models.ForeignKey(
+        Vehicule,
+        on_delete=models.CASCADE,
+        verbose_name="Véhicule à bloquer",
+        related_name="blocks"
+    )
+    date_from = models.DateField(verbose_name="Du")
+    date_to = models.DateField(verbose_name="Au")
+    reason = models.TextField(verbose_name="Raison du blocage")
+    class Meta:
+        verbose_name = 'Blocker un vehicule'
+        db_table = 'block_car'
