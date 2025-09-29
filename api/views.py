@@ -2990,7 +2990,8 @@ def create_payment_session_reservation(request):
 def stripe_webhook_reservation_(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET  
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET 
+ 
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -3005,6 +3006,7 @@ def stripe_webhook_reservation_(request):
         session = event["data"]["object"]
         type_id = session.get("metadata", {}).get("type")
         if type_id == "reservation":
+            print("!!!!!!!! type == reservation !!!!!!!!")
             reservation_id = session.get("metadata", {}).get("reservation_id")
             montant_total = session.get("metadata", {}).get("montant_total")
             montant_paye = session.get("metadata", {}).get("montant_paye")
@@ -3016,6 +3018,7 @@ def stripe_webhook_reservation_(request):
 
             reservation = Reservation.objects.filter(id=reservation_id).first()
             if reservation.status != "confirmee" :
+                print("!!!!!!!! status != confirmee !!!!!!!!")
                 reservation.status ="confirmee"
                 reservation.montant_paye = montant_paye_dec
                 reservation.reste_payer = float(reservation.total_reduit_euro) - float(montant_paye_dec)
@@ -3068,6 +3071,7 @@ def stripe_webhook_reservation_(request):
                     html_message=html_message,
                     fail_silently=False,
                 )
+                print("!!!!!!!! Mail sent !!!!!!!!")
 
 
                 montant_total = Decimal(montant_total) if montant_total else Decimal("0.00")
@@ -3092,8 +3096,7 @@ def stripe_webhook_reservation_(request):
                     total_encaisse=montant_paye,  
                 )
                 payment.save()
-
-                print("La caution : ",reservation.opt_protection.caution)
+                print("!!!!!!!! payment created !!!!!!!!")
 
                 livraison = Livraison.objects.create(
                     reservation = reservation,
@@ -3137,6 +3140,7 @@ def stripe_webhook_reservation_(request):
 
                 ) 
                 livraison.save()
+                print("!!!!!!!! livraison created !!!!!!!!")
 
                 restitution = Livraison.objects.create(
                     reservation = reservation,
@@ -3166,6 +3170,8 @@ def stripe_webhook_reservation_(request):
                     action_date=reservation.date_heure_fin,
                 ) 
                 restitution.save()
+
+                print("!!!!!!!! restitution created !!!!!!!!")
 
                 print(f"Paiement réussi pour la réservation ID: {reservation_id}")
         elif type_id == "verify_calculate":
