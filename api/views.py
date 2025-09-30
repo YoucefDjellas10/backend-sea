@@ -41,15 +41,26 @@ def poncarte_download_(request):
     
     livraison = get_object_or_404(Livraison, id=livraison_id)
     
-    image_path = os.path.join(settings.STATIC_ROOT, 'images', 'nom(1).jpg')
-    with open(image_path, 'rb') as img_file:
-        image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+    # Chemin correct de l'image (notez l'espace dans le nom)
+    image_path = os.path.join(settings.BASE_DIR, 'api', 'static', 'images', 'nom (1).jpg')
     
-    context = {
-        "Nom": livraison.nom,
-        "Prenom": livraison.prenom,
-        "background_image": f"data:image/jpeg;base64,{image_base64}",
-    }
+    try:
+        # Lire l'image et la convertir en base64
+        with open(image_path, 'rb') as img_file:
+            image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+        
+        context = {
+            "Nom": livraison.nom,
+            "Prenom": livraison.prenom,
+            "background_image": f"data:image/jpeg;base64,{image_base64}",
+        }
+    except FileNotFoundError:
+        # Si l'image n'est pas trouvée, continuer sans fond
+        context = {
+            "Nom": livraison.nom,
+            "Prenom": livraison.prenom,
+            "background_image": "",
+        }
     
     html_string = render_to_string("poncarte.html", context)
     html = HTML(string=html_string)
