@@ -72,6 +72,7 @@ urlpatterns += [
     path('inspection-report/', success_pick_up_view, name='inspection_report'),
     path('signature/<int:livraison_id>/', get_signature_by_id, name='signature_by_id'),
     path("contract-download/", contract_download_, name="contract_download"),
+    path("poncarte-download/", poncarte_download_, name="poncarte_download_"),
     path("success-pickup-email/", pick_up_mail_view, name="pick_up_mail_view"),
     path("restitution-email/", restitution_email_view, name="restitution_email_view"),
     path("reciept-download/", reciept_download, name="reciept_download"),

@@ -33,6 +33,35 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+
+def poncarte_download_(request):
+    livraison_id = request.GET.get("livraison_id")
+
+    if not livraison_id : 
+        return HttpResponse("Livraison non disponible", status=404)
+
+    livraison = Livraison.objects.get(id=livraison_id)
+    
+    context = {
+        "Nom": livraison.nom,
+        "Prenom": livraison.prenom,
+
+    }
+
+    html_string = render_to_string("poncarte.html", context)
+
+    css_no_margins = CSS()
+
+    html = HTML(string=html_string)
+    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+
+    file_name = f"poncarte_{livraison.client.name}.pdf"
+
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
+    return response
+
+
 def confirme_reservation_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")

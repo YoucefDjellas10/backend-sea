@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Poncarte</title>
+    <style>
+        @page {
+            size: A4 landscape; /* horizontal */
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: "Arial Black", Arial, sans-serif;
+        }
+
+        .poncarte {
+            text-align: center;
+            width: 100%;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .poncarte h1 {
+            font-size: 18vw; /* s’adapte automatiquement à la largeur */
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.1;
+            text-transform: uppercase;
+            word-break: break-word; /* casse si le nom est super long */
+        }
+
+        .poncarte h2 {
+            font-size: 12vw;
+            margin: 0;
+            line-height: 1;
+            font-weight: normal;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="poncarte">
+        <h1>{{ Nom }}</h1>
+        <h2>{{ Prenom }}</h2>
+    </div>
+</body>
+</html>
