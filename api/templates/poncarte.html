@@ -5,16 +5,18 @@
     <title>Poncarte</title>
     <style>
         @page {
-            size: A4 landscape; /* page horizontale */
+            size: A4 landscape; /* Page horizontale */
             margin: 0;
         }
 
         body {
+            margin: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            font-family: "Arial Black", Arial, sans-serif;
+            font-family: 'Poppins', 'Arial Black', Arial, sans-serif;
+            background: white;
         }
 
         .poncarte {
@@ -23,20 +25,22 @@
         }
 
         .poncarte h1 {
-            font-size: 180pt;   /* énorme, ~ la moitié de la page */
-            font-weight: bold;
+            font-size: 160pt;   /* très grand mais un peu plus équilibré */
+            font-weight: 700;
             margin: 0;
             line-height: 1;
             text-transform: uppercase;
         }
 
         .poncarte h2 {
-            font-size: 120pt;   /* presque aussi grand */
+            font-size: 100pt;   /* plus petit que le nom */
+            font-weight: 400;
             margin: 0;
-            line-height: 1;
-            font-weight: normal;
+            line-height: 1.1;
         }
     </style>
+    <!-- Import d'une belle police (Poppins) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="poncarte">
