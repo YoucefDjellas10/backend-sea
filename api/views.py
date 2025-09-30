@@ -306,37 +306,42 @@ def combined_document_download(request):
         "DESCRIPTION_PROTECTION": protection_dercription,
     }
 
+    image_path = os.path.join(settings.BASE_DIR, 'api', 'static', 'images', 'nom (1).jpg')
+    try:
+        with open(image_path, 'rb') as img_file:
+            image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+        background_image = f"data:image/jpeg;base64,{image_base64}"
+    except FileNotFoundError:
+        background_image = ""
+
+    poncarte_context = {
+        "Nom": livraison.nom,
+        "Prenom": livraison.prenom,
+        "background_image": background_image,
+    }
+
+
     confirmation_html_string = render_to_string("confirmation_pdf.html", confirmation_context)
     contract_html_string = render_to_string("contract_pdf.html", contract_context)
+    poncarte_html = render_to_string("poncarte.html", poncarte_context)
 
-    combined_html_string = f"""
+    combined_html = f"""
     {confirmation_html_string}
     <div style="page-break-after: always;"></div>
     {contract_html_string}
+    <div style="page-break-after: always;"></div>
+    {poncarte_html}
     """
 
     css_no_margins = CSS(string='''
-        @page {
-            margin: 4px 12px 4px 12px;
-            padding: 0;
-        }
-        
-        body {
-            margin: 4px 12px 4px 12px;
-            padding: 0;
-        }
-        
-        html {
-            margin: 4px 12px 4px 12px;
-            padding: 0;
-        }
+        @page { margin: 4px 12px 4px 12px; padding: 0; }
+        body, html { margin: 4px 12px 4px 12px; padding: 0; }
     ''')
 
-    html = HTML(string=combined_html_string)
+    html = HTML(string=combined_html)
     pdf_file = html.write_pdf(stylesheets=[css_no_margins])
 
     file_name = f"document_{reservation.name}.pdf"
-
     response = HttpResponse(pdf_file, content_type="application/pdf")
     response['Content-Disposition'] = f'attachment; filename="{file_name}"'
     return response
