@@ -41,15 +41,14 @@ def poncarte_download_(request):
     
     livraison = get_object_or_404(Livraison, id=livraison_id)
     
-    # Chemin absolu de l'image
     image_path = os.path.join(settings.STATIC_ROOT, 'images', 'nom(1).jpg')
-    # OU si l'image est dans MEDIA_ROOT :
-    # image_path = os.path.join(settings.MEDIA_ROOT, 'images', 'nom(1).jpg')
+    with open(image_path, 'rb') as img_file:
+        image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
     
     context = {
         "Nom": livraison.nom,
         "Prenom": livraison.prenom,
-        "background_image": image_path,
+        "background_image": f"data:image/jpeg;base64,{image_base64}",
     }
     
     html_string = render_to_string("poncarte.html", context)
