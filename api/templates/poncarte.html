@@ -5,44 +5,64 @@
     <title>Poncarte</title>
     <style>
         @page {
-            size: A4 landscape; /* Page horizontale */
+            size: A4 landscape;
             margin: 0;
         }
 
         body {
             margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Poppins', 'Arial Black', Arial, sans-serif;
-            background: white;
+            height: 297mm;
+            width: 210mm;
+            position: relative;
+            font-family: Arial, 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Image de fond */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/static/images/nom(1).jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1;
         }
 
         .poncarte {
+            position: relative;
+            z-index: 2;
             text-align: center;
             width: 100%;
+            padding-top: 180mm; /* Déplace le texte vers le bas */
         }
 
         .poncarte h1 {
-            font-size: 160pt;   /* très grand mais un peu plus équilibré */
+            font-size: 140pt;
             font-weight: 700;
             margin: 0;
             line-height: 1;
             text-transform: uppercase;
+            color: #000000;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
         }
 
         .poncarte h2 {
-            font-size: 100pt;   /* plus petit que le nom */
+            font-size: 90pt;
             font-weight: 400;
             margin: 0;
             line-height: 1.1;
+            margin-top: 10px;
+            color: #000000;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
         }
     </style>
-    <!-- Import d'une belle police (Poppins) -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="background"></div>
     <div class="poncarte">
         <h1>{{ Nom }}</h1>
         <h2>{{ Prenom }}</h2>
