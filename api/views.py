@@ -33,30 +33,35 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
-
 def poncarte_download_(request):
     livraison_id = request.GET.get("livraison_id")
-
-    if not livraison_id : 
+    
+    if not livraison_id:
         return HttpResponse("Livraison non disponible", status=404)
-
-    livraison = Livraison.objects.get(id=livraison_id)
+    
+    livraison = get_object_or_404(Livraison, id=livraison_id)
+    
+    # Chemin absolu de l'image
+    image_path = os.path.join(settings.STATIC_ROOT, 'images', 'nom(1).jpg')
+    # OU si l'image est dans MEDIA_ROOT :
+    # image_path = os.path.join(settings.MEDIA_ROOT, 'images', 'nom(1).jpg')
     
     context = {
         "Nom": livraison.nom,
         "Prenom": livraison.prenom,
-
+        "background_image": image_path,
     }
-
+    
     html_string = render_to_string("poncarte.html", context)
-
     html = HTML(string=html_string)
     pdf_file = html.write_pdf()
-
-    file_name = f"poncarte_{livraison.client.name}.pdf"
-
+    
+    safe_name = "".join(c for c in livraison.client.name if c.isalnum() or c in (' ', '-', '_')).strip()
+    file_name = f"poncarte_{safe_name}.pdf"
+    
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
+    response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+    
     return response
 
 
