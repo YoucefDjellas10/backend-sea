@@ -53,7 +53,7 @@ def poncarte_download_(request):
     css_no_margins = CSS()
 
     html = HTML(string=html_string)
-    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+    pdf_file = html.write_pdf()
 
     file_name = f"poncarte_{livraison.client.name}.pdf"
 
