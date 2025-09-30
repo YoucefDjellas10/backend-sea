@@ -51,8 +51,6 @@ def poncarte_download_(request):
     html_string = render_to_string("poncarte.html", context)
     print("HTML STRING >>>", html_string)
 
-    css_no_margins = CSS()
-
     html = HTML(string=html_string)
     pdf_file = html.write_pdf()
 
