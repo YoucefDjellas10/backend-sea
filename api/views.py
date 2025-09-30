@@ -191,7 +191,6 @@ def confirme_reservation_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
 def combined_document_download(request):
     reservation_id = request.GET.get("reservation_id")
     livraison_id = request.GET.get("livraison_id")
@@ -306,6 +305,7 @@ def combined_document_download(request):
         "DESCRIPTION_PROTECTION": protection_dercription,
     }
 
+    # Charger l'image en base64
     image_path = os.path.join(settings.BASE_DIR, 'api', 'static', 'images', 'nom (1).jpg')
     try:
         with open(image_path, 'rb') as img_file:
@@ -320,29 +320,44 @@ def combined_document_download(request):
         "background_image": background_image,
     }
 
-
+    # Générer les pages séparément
     confirmation_html_string = render_to_string("confirmation_pdf.html", confirmation_context)
     contract_html_string = render_to_string("contract_pdf.html", contract_context)
     poncarte_html = render_to_string("poncarte.html", poncarte_context)
 
-    combined_html = f"""
-    {confirmation_html_string}
-    <div style="page-break-after: always;"></div>
-    {contract_html_string}
-    <div style="page-break-after: always;"></div>
-    {poncarte_html}
-    """
-
-    css_no_margins = CSS(string='''
+    # CSS pour les marges des deux premières pages
+    css_with_margins = CSS(string='''
         @page { margin: 4px 12px 4px 12px; padding: 0; }
         body, html { margin: 4px 12px 4px 12px; padding: 0; }
     ''')
 
-    html = HTML(string=combined_html)
-    pdf_file = html.write_pdf(stylesheets=[css_no_margins])
+    # CSS pour la page poncarte (sans marges)
+    css_no_margins = CSS(string='''
+        @page { margin: 0; padding: 0; }
+        body, html { margin: 0; padding: 0; }
+    ''')
+
+    # Générer les PDFs séparément
+    confirmation_pdf = HTML(string=confirmation_html_string).write_pdf(stylesheets=[css_with_margins])
+    contract_pdf = HTML(string=contract_html_string).write_pdf(stylesheets=[css_with_margins])
+    poncarte_pdf = HTML(string=poncarte_html).write_pdf(stylesheets=[css_no_margins])
+
+    # Fusionner les PDFs avec PyPDF2
+    from PyPDF2 import PdfMerger
+    import io
+
+    merger = PdfMerger()
+    merger.append(io.BytesIO(confirmation_pdf))
+    merger.append(io.BytesIO(contract_pdf))
+    merger.append(io.BytesIO(poncarte_pdf))
+
+    output = io.BytesIO()
+    merger.write(output)
+    merger.close()
+    output.seek(0)
 
     file_name = f"document_{reservation.name}.pdf"
-    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response = HttpResponse(output.read(), content_type="application/pdf")
     response['Content-Disposition'] = f'attachment; filename="{file_name}"'
     return response
 
