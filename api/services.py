@@ -731,6 +731,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_one)
                             overlap_end = min(date_retour, tarif.date_fin_one)
                             overlap_days = (overlap_end - overlap_start).days
+                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -740,6 +741,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_two)
                             overlap_end = min(date_retour, tarif.date_fin_two)
                             overlap_days = (overlap_end - overlap_start).days
+                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -749,6 +751,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_three)
                             overlap_end = min(date_retour, tarif.date_fin_three)
                             overlap_days = (overlap_end - overlap_start).days
+                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -758,6 +761,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_four)
                             overlap_end = min(date_retour, tarif.date_fin_four)
                             overlap_days = (overlap_end - overlap_start).days
+                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
