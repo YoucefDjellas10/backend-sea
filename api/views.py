@@ -1926,6 +1926,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     for lv in lvs:
                         lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                         lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                        lv.total_reduit_euro = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
                         lv.save()
 
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
