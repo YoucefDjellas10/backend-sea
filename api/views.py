@@ -1920,7 +1920,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         retour_avance_id = retour_avance_obj.id
                         reservation_obj.total_reduit_euro = new_total
                         reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
-
+                    print("nouvelle date : ",nouvelle_date_heure_fin)
+                    print("ancienne date : ",reservation_obj.date_heure_fin)
                     for lv in lvs:
                         lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
                         lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
