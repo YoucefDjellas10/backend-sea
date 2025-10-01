@@ -682,6 +682,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
+        total_ = 0
 
 
         ma_reservation = Reservation.objects.filter(name=ref)
@@ -809,7 +810,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     
                 if record.reduction > 0 :
                     pourcentage = record.reduction
-                    total = ((100-pourcentage) * total) / 100
+                    total_ = ((100-pourcentage) * total) / 100
                 
                 print("!!!!!!!!!apres pourcentage total",total,"!!!!!!!!!")
                 
