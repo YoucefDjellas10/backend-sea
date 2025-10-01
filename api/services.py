@@ -815,25 +815,25 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     total_ = get_options_total + total
 
                 if record.opt_klm:
-                    total_ += record.opt_klm.prix * (record.nbr_jour_reservation - total_days) if record.opt_klm.type_tarif == "jour" else 0
+                    total_ += record.opt_klm.prix * record.nbr_jour_reservation if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
 
                 if record.opt_protection:
-                    total_ += record.opt_protection.prix * (record.nbr_jour_reservation - total_days) if record.opt_protection.type_tarif == "jour" else 0
+                    total_ += record.opt_protection.prix * record.nbr_jour_reservation if record.opt_protection.type_tarif == "jour" else record.opt_protection.prix
 
                 if record.opt_nd_driver:
-                    total_ += record.opt_nd_driver.prix * (record.nbr_jour_reservation - total_days) if record.opt_nd_driver.type_tarif == "jour" else 0
+                    total_ += record.opt_nd_driver.prix * record.nbr_jour_reservation if record.opt_nd_driver.type_tarif == "jour" else record.opt_nd_driver.prix
 
                 if record.opt_plein_carburant:
-                    total_ += record.opt_plein_carburant.prix * (record.nbr_jour_reservation - total_days) if record.opt_plein_carburant.type_tarif == "jour" else 0
+                    total_ += record.opt_plein_carburant.prix * record.nbr_jour_reservation if record.opt_plein_carburant.type_tarif == "jour" else record.opt_plein_carburant.prix
 
                 if record.opt_siege_a:
-                    total_ += record.opt_siege_a.prix * (record.nbr_jour_reservation - total_days) if record.opt_siege_a.type_tarif == "jour" else 0
+                    total_ += record.opt_siege_a.prix * record.nbr_jour_reservation  if record.opt_siege_a.type_tarif == "jour" else record.opt_siege_a.prix
 
                 if record.opt_siege_b:
-                    total_ += record.opt_siege_b.prix * (record.nbr_jour_reservation - total_days) if record.opt_siege_b.type_tarif == "jour" else 0
+                    total_ += record.opt_siege_b.prix * record.nbr_jour_reservation if record.opt_siege_b.type_tarif == "jour" else record.opt_siege_b.prix
 
                 if record.opt_siege_c:
-                    total_ += record.opt_siege_c.prix * (record.nbr_jour_reservation - total_days) if record.opt_siege_c.type_tarif == "jour" else 0
+                    total_ += record.opt_siege_c.prix * record.nbr_jour_reservation if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
 
                 print("!!!!!!!!!aprs option total",total,"!!!!!!!!!")
                 credit = "no"
