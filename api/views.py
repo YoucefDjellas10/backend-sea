@@ -1921,11 +1921,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         reservation_obj.total_reduit_euro = new_total
                         reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
 
-                        for lv in lvs:
-                            lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                            lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                            lv.total_reduit_euro = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
-                            lv.save()
+                    for lv in lvs:
+                        lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                        lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                        lv.total_reduit_euro = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
+                        lv.save()
 
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
                     reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
@@ -1968,6 +1968,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     html_message=html_message,
                     fail_silently=False,
                 )
+                a = {"success": "yes" , 
+                    "prolongation_id": prolongation_id,
+                    "retour_avance_id":retour_avance_id, 
+                    "reservation":reservation_obj.id}
+                print("result : ",a)
 
                 return {"success": "yes" , 
                         "prolongation_id": prolongation_id,
