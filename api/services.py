@@ -683,6 +683,11 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
 
+        delta = date_retour_heure - date_depart_heure
+        nombre_jours = delta.days
+        if delta.seconds > 0: 
+            nombre_jours += 1
+
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
             get_vehicule_id = record.vehicule.numero
@@ -811,6 +816,27 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if record.reduction > 0 :
                     pourcentage = record.reduction
                     total_ = (pourcentage * total_) / 100
+
+                if record.opt_klm:
+                    total_ += record.opt_klm.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_klm.type_tarif == "jour" else 0
+
+                if record.opt_protection:
+                    total_ += record.opt_protection.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_protection.type_tarif == "jour" else 0
+
+                if record.opt_nd_driver:
+                    total_ += record.opt_nd_driver.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_nd_driver.type_tarif == "jour" else 0
+
+                if record.opt_plein_carburant:
+                    total_ += record.opt_plein_carburant.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_plein_carburant.type_tarif == "jour" else 0
+
+                if record.opt_siege_a:
+                    total_ += record.opt_siege_a.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_siege_a.type_tarif == "jour" else 0
+
+                if record.opt_siege_b:
+                    total_ += record.opt_siege_b.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_siege_b.type_tarif == "jour" else 0
+
+                if record.opt_siege_c:
+                    total_ += record.opt_siege_c.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_siege_c.type_tarif == "jour" else 0
 
                 credit = "no"
                 credit_amount = 0
