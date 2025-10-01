@@ -807,8 +807,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
 
-                if ma_reservation.reduction > 0 :
-                    pourcentage = ma_reservation.reduction
+
+                if record.reduction > 0 :
+                    pourcentage = record.reduction
                     total_ = (pourcentage * total_) / 100
 
                 credit = "no"
