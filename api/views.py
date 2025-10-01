@@ -1881,7 +1881,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     lvs = Livraison.objects.filter(name=reservation_obj.name)
                     print("lv  :",lvs)
 
-                    if nouvelle_date_heure_fin < reservation_obj.date_heure_fin:
+                    if nouvelle_date_heure_fin > reservation_obj.date_heure_fin:
                         prolongation_obj = Prolongation.objects.create(
                             reservation=reservation_obj,
                             date_heure_debut=datetime.combine(date_depart_obj, heure_depart_obj),
@@ -1899,7 +1899,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         reservation_obj.total_reduit_euro = new_total
                         reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
 
-                    elif nouvelle_date_heure_fin > reservation_obj.date_heure_fin:
+                    elif nouvelle_date_heure_fin < reservation_obj.date_heure_fin:
                         retour_avance_obj = RetourAvance.objects.create(
                             reservation=reservation_obj,
                             lieu_depart=lieu_depart_obj,
