@@ -689,6 +689,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             vehicule = Vehicule.objects.get(numero=get_vehicule_id)
             vehicle_reservations = Reservation.objects.filter(vehicule=vehicule)
+            client_id = record.client.id
             is_available = True
 
             for reservation in vehicle_reservations:
@@ -732,7 +733,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_one)
                             overlap_end = min(date_retour, tarif.date_fin_one)
                             overlap_days = (overlap_end - overlap_start).days
-                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -742,7 +742,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_two)
                             overlap_end = min(date_retour, tarif.date_fin_two)
                             overlap_days = (overlap_end - overlap_start).days
-                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -752,7 +751,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_three)
                             overlap_end = min(date_retour, tarif.date_fin_three)
                             overlap_days = (overlap_end - overlap_start).days
-                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -762,7 +760,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_start = max(date_depart, tarif.date_depart_four)
                             overlap_end = min(date_retour, tarif.date_fin_four)
                             overlap_days = (overlap_end - overlap_start).days
-                            print("???? days : ",overlap_days)
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
@@ -806,32 +803,42 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     pourcentage = record.reduction
                     total = ((100-pourcentage) * total) / 100  
 
-                print("!!!!!!!!!! avant options : ",total)              
+                free_options = free_options_f(client_id)
+                if free_options:
+                    free_options = free_options[0]  
 
                 if record.opt_klm:
-                    total += record.opt_klm.prix * total_days if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
-                    print("!!!!!! opt_klm : ",total)
+                    if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
+                        total += record.opt_klm.prix * total_days if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
 
                 if record.opt_protection:
-                    total += record.opt_protection.prix * total_days if record.opt_protection.type_tarif == "jour" else record.opt_protection.prix
-                    print("!!!!!! opt_protection : ",total)
-                if record.opt_nd_driver:
-                    total += record.opt_nd_driver.prix * total_days if record.opt_nd_driver.type_tarif == "jour" else record.opt_nd_driver.prix
-                    print("!!!!!! opt_nd_driver : ",total)
-                if record.opt_plein_carburant:
-                    total += record.opt_plein_carburant.prix * total_days if record.opt_plein_carburant.type_tarif == "jour" else record.opt_plein_carburant.prix
-                    print("!!!!!! opt_plein_carburant : ",total)
-                if record.opt_siege_a:
-                    total += record.opt_siege_a.prix * total_days  if record.opt_siege_a.type_tarif == "jour" else record.opt_siege_a.prix
-                    print("!!!!!! opt_siege_a : ",total)
-                if record.opt_siege_b:
-                    total += record.opt_siege_b.prix * total_days if record.opt_siege_b.type_tarif == "jour" else record.opt_siege_b.prix
-                    print("!!!!!! opt_siege_b : ",total)
-                if record.opt_siege_c:
-                    total += record.opt_siege_c.prix * total_days if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
-                    print("!!!!!! opt_siege_c : ",total)
-                print("!!!!!!!!!! apres options : ",total) 
+                    if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
+                        total += record.opt_protection.prix * total_days if record.opt_protection.type_tarif == "jour" else record.opt_protection.prix
 
+                if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
+                    if not (free_options.get("option_three") and "MAX" in record.opt_protection.opt.option_code):
+                        total += record.opt_protection.opt.prix * total_days if record.opt_protection.opt.type_tarif == "jour" else record.opt_protection.opt.prix
+
+                if record.opt_nd_driver:
+                    if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
+                        total += record.opt_nd_driver.prix * total_days if record.opt_nd_driver.type_tarif == "jour" else record.opt_nd_driver.prix
+
+                if record.opt_plein_carburant:
+                    if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
+                        total += record.opt_plein_carburant.prix * total_days if record.opt_plein_carburant.type_tarif == "jour" else record.opt_plein_carburant.prix
+
+                if record.opt_siege_a:
+                    if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
+                        total += record.opt_siege_a.prix * total_days if record.opt_siege_a.type_tarif == "jour" else record.opt_siege_a.prix
+
+                if record.opt_siege_b:
+                    if not (free_options.get("option_four") and "S_BEBE_13" in record.opt_siege_b.option_code):
+                        total += record.opt_siege_b.prix * total_days if record.opt_siege_b.type_tarif == "jour" else record.opt_siege_b.prix
+
+                if record.opt_siege_c:
+                    if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
+                        total += record.opt_siege_c.prix * total_days if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
+                
                 credit = "no"
                 credit_amount = 0
                 if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
