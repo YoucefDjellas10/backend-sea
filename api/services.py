@@ -718,57 +718,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 total_days = (date_retour - date_depart).days
 
-                
-
-                tarifs = Tarifs.objects.filter(
-                    Q(modele = record.modele)&
-                    Q(zone = lieu_depart_obj.zone)&
-                    Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
-                        Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                        Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                        Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                        Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
-                    )
-                )
-                for tarif in tarifs:
-                    total = 0
-                    prix_unitaire = 0
-
-                    if tarif.date_depart_one and tarif.date_fin_one:
-                        if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
-                            overlap_start = max(date_depart, tarif.date_depart_one)
-                            overlap_end = min(date_retour, tarif.date_fin_one)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                total += overlap_days * tarif.prix
-                                prix_unitaire = tarif.prix
-
-                    if tarif.date_depart_two and tarif.date_fin_two:
-                        if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
-                            overlap_start = max(date_depart, tarif.date_depart_two)
-                            overlap_end = min(date_retour, tarif.date_fin_two)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                total += overlap_days * tarif.prix
-                                prix_unitaire = tarif.prix
-
-                    if tarif.date_depart_three and tarif.date_fin_three:
-                        if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
-                            overlap_start = max(date_depart, tarif.date_depart_three)
-                            overlap_end = min(date_retour, tarif.date_fin_three)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                total += overlap_days * tarif.prix
-                                prix_unitaire = tarif.prix
-
-                    if tarif.date_depart_four and tarif.date_fin_four:
-                        if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
-                            overlap_start = max(date_depart, tarif.date_depart_four)
-                            overlap_end = min(date_retour, tarif.date_fin_four)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                total += overlap_days * tarif.prix
-                                prix_unitaire = tarif.prix
+                prix_unitaire = record.prix_jour
+                total = prix_unitaire * total_days
                     
                 frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                 if frais_dossier:
