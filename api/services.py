@@ -808,7 +808,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 print("!!!!!!!!!! avant options : ",total)  
 
-                if get_options_total > 0 :            
+                if get_options_total and get_options_total > 0 :            
 
                     if record.opt_klm:
                         total += record.opt_klm.prix * total_days if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
