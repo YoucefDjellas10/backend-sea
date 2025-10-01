@@ -1873,6 +1873,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             prolongation_id = None
             retour_avance_id = None
 
+            taux_change = TauxChange.objects.get(id=2)
+            taux = taux_change.montant
+
             if backoffice == "yes":
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     
@@ -1926,7 +1929,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
                         lv.total_reduit_euro = diff_prix if not lv.total_reduit_euro else float(lv.total_reduit_euro) + float(diff_prix)
                         lv.total_payer = diff_prix if not lv.total_payer else float(lv.total_payer) + float(diff_prix)
-                        lv.total_payer_dz = diff_prix if not lv.total_payer_dz else float(lv.total_payer_dz) + float(diff_prix)
+                        lv.total_payer_dz = float(diff_prix) * float(taux) if not lv.total_payer_dz else (float(lv.total_payer_dz) + float(diff_prix)) * float(taux)
                         lv.save()
 
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
