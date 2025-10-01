@@ -715,7 +715,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 total_days = (date_retour - date_depart).days
 
 
-
+                print("!!!!!!!!!avant tout",total,"!!!!!!!!!")
                 
 
                 tarifs = Tarifs.objects.filter(
@@ -768,7 +768,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
 
-                    print("!!!!!!!!!apres supplement total",total,"!!!!!!!!!")
+                    print("!!!!!!!!!apres tarif total",total,"!!!!!!!!!")
                                         
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
