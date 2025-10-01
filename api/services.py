@@ -718,44 +718,93 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 total_days = (date_retour - date_depart).days
 
-                prix_unitaire = record.prix_jour
-                total = prix_unitaire * total_days
-                    
-                frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
-                if frais_dossier:
-                    total += frais_dossier.prix
-
-                frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
-                if frais_livraison :
-                    for frais in frais_livraison:
-                        total += frais.montant if frais else 0
-                else :
-                    transit_lieu = lieu_depart_obj.zone.transmission_point
-                    frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
-                    frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
-                    total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
-
-                supplements = Supplement.objects.filter(
-                    Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
-                    Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
-                )
-                for supplement in supplements:
-                    total += supplement.montant if supplement else 0
-
-                supplements = Supplement.objects.filter(
-                    Q(valeur__gt=0)
-                )
-
-                for supplement in supplements:
-
-                    start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
-                    end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
-
-                    duration = end_hour - start_hour
-
-                    if duration > supplement.reatrd:
-                        total += (prix_unitaire * supplement.valeur) / 100
                 
+
+                tarifs = Tarifs.objects.filter(
+                    Q(modele = record.modele)&
+                    Q(zone = lieu_depart_obj.zone)&
+                    Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
+                        Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
+                        Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
+                        Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
+                        Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
+                    )
+                )
+                for tarif in tarifs:
+                    total = 0
+                    prix_unitaire = 0
+
+                    if tarif.date_depart_one and tarif.date_fin_one:
+                        if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
+                            overlap_start = max(date_depart, tarif.date_depart_one)
+                            overlap_end = min(date_retour, tarif.date_fin_one)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+
+                    if tarif.date_depart_two and tarif.date_fin_two:
+                        if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
+                            overlap_start = max(date_depart, tarif.date_depart_two)
+                            overlap_end = min(date_retour, tarif.date_fin_two)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+
+                    if tarif.date_depart_three and tarif.date_fin_three:
+                        if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
+                            overlap_start = max(date_depart, tarif.date_depart_three)
+                            overlap_end = min(date_retour, tarif.date_fin_three)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+
+                    if tarif.date_depart_four and tarif.date_fin_four:
+                        if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
+                            overlap_start = max(date_depart, tarif.date_depart_four)
+                            overlap_end = min(date_retour, tarif.date_fin_four)
+                            overlap_days = (overlap_end - overlap_start).days
+                            if overlap_days > 0:
+                                total += overlap_days * tarif.prix
+                                prix_unitaire = tarif.prix
+                    
+                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
+                    if frais_dossier:
+                        total += frais_dossier.prix
+
+                    frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
+                    if frais_livraison :
+                        for frais in frais_livraison:
+                            total += frais.montant if frais else 0
+                    else :
+                        transit_lieu = lieu_depart_obj.zone.transmission_point
+                        frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
+                        frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
+                        total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
+
+                    supplements = Supplement.objects.filter(
+                        Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
+                        Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
+                    )
+                    for supplement in supplements:
+                        total += supplement.montant if supplement else 0
+
+                    supplements = Supplement.objects.filter(
+                        Q(valeur__gt=0)
+                    )
+
+                    for supplement in supplements:
+
+                        start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+                        end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+
+                        duration = end_hour - start_hour
+
+                        if duration > supplement.reatrd:
+                            total += (prix_unitaire * supplement.valeur) / 100
+                    
                 if total > 0:
                     prix_par_jour = total / total_days if total_days > 0 else 0
                     total_ = get_options_total + total
