@@ -683,7 +683,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
 
-        print("!!!!!!!!!avant tout total",total,"!!!!!!!!!")
 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -766,9 +765,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
-                    
-                    print("!!!!!!!!!apres tarif total",total,"!!!!!!!!!")
-                    
+                                        
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
                         total += frais_dossier.prix
@@ -808,7 +805,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     
                 if record.reduction > 0 :
                     pourcentage = record.reduction
-                    total = (pourcentage * total) / 100
+                    total = ((100-pourcentage) * total) / 100
                 
                 if total > 0:
                     total_ = get_options_total + total
