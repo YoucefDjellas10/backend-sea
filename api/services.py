@@ -810,41 +810,41 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     
                 if record.reduction > 0 :
                     pourcentage = record.reduction
-                    total_ = ((100-pourcentage) * total) / 100
+                    total = ((100-pourcentage) * total) / 100
                 
                 print("!!!!!!!!!apres pourcentage total",total,"!!!!!!!!!")
                 
 
                 if record.opt_klm:
-                    total_ += record.opt_klm.prix * record.nbr_jour_reservation if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
+                    total += record.opt_klm.prix * record.nbr_jour_reservation if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
 
                 if record.opt_protection:
-                    total_ += record.opt_protection.prix * record.nbr_jour_reservation if record.opt_protection.type_tarif == "jour" else record.opt_protection.prix
+                    total += record.opt_protection.prix * record.nbr_jour_reservation if record.opt_protection.type_tarif == "jour" else record.opt_protection.prix
 
                 if record.opt_nd_driver:
-                    total_ += record.opt_nd_driver.prix * record.nbr_jour_reservation if record.opt_nd_driver.type_tarif == "jour" else record.opt_nd_driver.prix
+                    total += record.opt_nd_driver.prix * record.nbr_jour_reservation if record.opt_nd_driver.type_tarif == "jour" else record.opt_nd_driver.prix
 
                 if record.opt_plein_carburant:
-                    total_ += record.opt_plein_carburant.prix * record.nbr_jour_reservation if record.opt_plein_carburant.type_tarif == "jour" else record.opt_plein_carburant.prix
+                    total += record.opt_plein_carburant.prix * record.nbr_jour_reservation if record.opt_plein_carburant.type_tarif == "jour" else record.opt_plein_carburant.prix
 
                 if record.opt_siege_a:
-                    total_ += record.opt_siege_a.prix * record.nbr_jour_reservation  if record.opt_siege_a.type_tarif == "jour" else record.opt_siege_a.prix
+                    total += record.opt_siege_a.prix * record.nbr_jour_reservation  if record.opt_siege_a.type_tarif == "jour" else record.opt_siege_a.prix
 
                 if record.opt_siege_b:
-                    total_ += record.opt_siege_b.prix * record.nbr_jour_reservation if record.opt_siege_b.type_tarif == "jour" else record.opt_siege_b.prix
+                    total += record.opt_siege_b.prix * record.nbr_jour_reservation if record.opt_siege_b.type_tarif == "jour" else record.opt_siege_b.prix
 
                 if record.opt_siege_c:
-                    total_ += record.opt_siege_c.prix * record.nbr_jour_reservation if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
+                    total += record.opt_siege_c.prix * record.nbr_jour_reservation if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
 
-                print("!!!!!!!!!aprs option total",total_,"!!!!!!!!!")
+                print("!!!!!!!!!aprs option total",total,"!!!!!!!!!")
                 credit = "no"
                 credit_amount = 0
-                if float(get_total) > float(total_) and ( float(get_total) - float(total_))>150: 
+                if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
                     credit = "yes"
-                    credit_amount = float(get_total) - float(total_)
+                    credit_amount = float(get_total) - float(total)
                 
-                if float(total_) < float(get_total):
-                    total_ = get_total
+                if float(total) < float(get_total):
+                    total = get_total
 
                 print("!!!!!!!!!au finale total",total,"!!!!!!!!!")
                 print("!!!!!!!!! Old total",get_total,"!!!!!!!!!")
@@ -855,7 +855,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 result.append({
                     'is_available':"yes",
                     'old_total': float(get_total) * float(taux_change) if country_code == "DZ" else get_total,
-                    'new_total':float(total_) * float(taux_change) if country_code == "DZ" else total_,
+                    'new_total':float(total) * float(taux_change) if country_code == "DZ" else total,
                     "credit":credit,
                     "credit_amount": credit_amount
                 })
