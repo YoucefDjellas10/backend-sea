@@ -846,6 +846,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     total_ = get_total
 
                 print("!!!!!!!!!au finale total",total,"!!!!!!!!!")
+                print("!!!!!!!!! Old total",get_total,"!!!!!!!!!")
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
