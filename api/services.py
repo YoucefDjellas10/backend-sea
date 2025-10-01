@@ -805,17 +805,12 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         if duration > supplement.reatrd:
                             total += (prix_unitaire * supplement.valeur) / 100
                     
-                if total > 0:
-                    prix_par_jour = total / total_days if total_days > 0 else 0
-                    total_ = get_options_total + total
-                
-                taux = TauxChange.objects.filter(id=2).first()
-                taux_change = taux.montant
-
-
                 if record.reduction > 0 :
                     pourcentage = record.reduction
-                    total_ = (pourcentage * total_) / 100
+                    total = (pourcentage * total) / 100
+                
+                if total > 0:
+                    total_ = get_options_total + total
 
                 if record.opt_klm:
                     total_ += record.opt_klm.prix * (record.nbr_jour_reservation - nombre_jours) if record.opt_klm.type_tarif == "jour" else 0
@@ -846,6 +841,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 
                 if float(total_) < float(get_total):
                     total_ = get_total
+                
+                taux = TauxChange.objects.filter(id=2).first()
+                taux_change = taux.montant
                 
                 result.append({
                     'is_available':"yes",
