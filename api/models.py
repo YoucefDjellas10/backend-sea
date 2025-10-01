@@ -1371,6 +1371,9 @@ class Livraison(models.Model):
 
     opt_protection_caution = models.IntegerField(null=True, blank=True)
 
+    total_payer = models.FloatField(null=True, blank=True)
+    total_payer_dz = models.FloatField(null=True, blank=True)
+
     class Meta:
         db_table = 'livraison'
         managed = False
