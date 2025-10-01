@@ -1875,14 +1875,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
             if backoffice == "yes":
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    reservation_obj.du_au_modifier = reservation_obj.du_au
-                    reservation_obj.du_au = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}"
-                    reservation_obj.date_depart_char = date_depart_obj
-                    reservation_obj.date_retour_char = date_retour_obj
-                    reservation_obj.heure_depart_char = heure_depart
-                    reservation_obj.heure_retour_char = heure_retour
-                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                    
                     nouvelle_date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
 
                     lvs = Livraison.objects.filter(name=reservation_obj.name)
@@ -1920,6 +1913,14 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         retour_avance_id = retour_avance_obj.id
                         reservation_obj.total_reduit_euro = new_total
                         reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
+                    reservation_obj.du_au_modifier = reservation_obj.du_au
+                    reservation_obj.du_au = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}"
+                    reservation_obj.date_depart_char = date_depart_obj
+                    reservation_obj.date_retour_char = date_retour_obj
+                    reservation_obj.heure_depart_char = heure_depart
+                    reservation_obj.heure_retour_char = heure_retour
+                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
                     print("nouvelle date : ",nouvelle_date_heure_fin)
                     print("ancienne date : ",reservation_obj.date_heure_fin)
                     for lv in lvs:
