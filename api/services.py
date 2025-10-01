@@ -839,8 +839,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     credit = "yes"
                     credit_amount = float(get_total) - float(total_)
                 
-                if float(total_) < float(get_total):
-                    total_ = get_total
+                #if float(total_) < float(get_total):
+                  #  total_ = get_total
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
