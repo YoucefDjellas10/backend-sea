@@ -682,8 +682,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
-        total_ = 0
-
 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -700,7 +698,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             if is_available == True :
                 get_total = record.total_reduit_euro
-                get_options_total = record.options_total
                 get_status = record.status
                 get_reservation_satus = record.etat_reservation
                 if get_status != "confirmee" or get_reservation_satus != 'reserve' :
@@ -713,11 +710,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
                 date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
 
-                total_days = (date_retour - date_depart).days
-
-
-                print("!!!!!!!!!avant tout",total,"!!!!!!!!!")
-                
+                total_days = (date_retour - date_depart).days                
 
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
@@ -768,8 +761,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             if overlap_days > 0:
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
-
-                    print("!!!!!!!!!apres tarif total",total,"!!!!!!!!!")
                                         
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
@@ -805,15 +796,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                         if duration > supplement.reatrd:
                             total += (prix_unitaire * supplement.valeur) / 100
-                
-                print("!!!!!!!!!apres supplement total",total,"!!!!!!!!!")
-                    
+                                    
                 if record.reduction > 0 :
                     pourcentage = record.reduction
-                    total = ((100-pourcentage) * total) / 100
-                
-                print("!!!!!!!!!apres pourcentage total",total,"!!!!!!!!!")
-                
+                    total = ((100-pourcentage) * total) / 100                
 
                 if record.opt_klm:
                     total += record.opt_klm.prix * record.nbr_jour_reservation if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
@@ -836,7 +822,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if record.opt_siege_c:
                     total += record.opt_siege_c.prix * record.nbr_jour_reservation if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
 
-                print("!!!!!!!!!aprs option total",total,"!!!!!!!!!")
                 credit = "no"
                 credit_amount = 0
                 if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
@@ -845,9 +830,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 
                 if float(total) < float(get_total):
                     total = get_total
-
-                print("!!!!!!!!!au finale total",total,"!!!!!!!!!")
-                print("!!!!!!!!! Old total",get_total,"!!!!!!!!!")
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
