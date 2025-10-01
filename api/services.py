@@ -683,6 +683,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
 
+        print("!!!!!!!!!avant tout total",total,"!!!!!!!!!")
+
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
             get_vehicule_id = record.vehicule.numero
@@ -765,6 +767,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += overlap_days * tarif.prix
                                 prix_unitaire = tarif.prix
                     
+                    print("!!!!!!!!!apres tarif total",total,"!!!!!!!!!")
+                    
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
                         total += frais_dossier.prix
@@ -799,6 +803,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                         if duration > supplement.reatrd:
                             total += (prix_unitaire * supplement.valeur) / 100
+                
+                print("!!!!!!!!!apres supplement total",total,"!!!!!!!!!")
                     
                 if record.reduction > 0 :
                     pourcentage = record.reduction
@@ -828,14 +834,17 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if record.opt_siege_c:
                     total_ += record.opt_siege_c.prix * (record.nbr_jour_reservation - total_days) if record.opt_siege_c.type_tarif == "jour" else 0
 
+                print("!!!!!!!!!aprs option total",total,"!!!!!!!!!")
                 credit = "no"
                 credit_amount = 0
                 if float(get_total) > float(total_) and ( float(get_total) - float(total_))>150: 
                     credit = "yes"
                     credit_amount = float(get_total) - float(total_)
                 
-                #if float(total_) < float(get_total):
-                  #  total_ = get_total
+                if float(total_) < float(get_total):
+                    total_ = get_total
+
+                print("!!!!!!!!!au finale total",total,"!!!!!!!!!")
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
