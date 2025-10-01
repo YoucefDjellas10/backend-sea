@@ -1886,6 +1886,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     nouvelle_date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
 
                     lvs = Livraison.objects.filter(name=reservation_obj.name)
+                    print("lv  :",lvs)
 
                     if nouvelle_date_heure_fin < reservation_obj.date_heure_fin:
                         prolongation_obj = Prolongation.objects.create(
