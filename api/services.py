@@ -811,8 +811,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     pourcentage = record.reduction
                     total = ((100-pourcentage) * total) / 100
                 
-                if total > 0:
-                    total_ = get_options_total + total
+                print("!!!!!!!!!apres pourcentage total",total,"!!!!!!!!!")
+                
 
                 if record.opt_klm:
                     total_ += record.opt_klm.prix * record.nbr_jour_reservation if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
@@ -835,7 +835,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if record.opt_siege_c:
                     total_ += record.opt_siege_c.prix * record.nbr_jour_reservation if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
 
-                print("!!!!!!!!!aprs option total",total,"!!!!!!!!!")
+                print("!!!!!!!!!aprs option total",total_,"!!!!!!!!!")
                 credit = "no"
                 credit_amount = 0
                 if float(get_total) > float(total_) and ( float(get_total) - float(total_))>150: 
