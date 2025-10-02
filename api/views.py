@@ -33,6 +33,39 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def ajouter_ecart(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        montant = request.GET.get("montant")
+
+        reservation = Reservation.objects.get(id=reservation_id)
+        
+        old_total = reservation.total_reduit_euro
+        old_reste = reservation.reste_payer
+
+        reservation.total_reduit_euro = old_total + montant
+        reservation.reste_payer = old_reste + montant
+
+        livs = Livraison.objects.filter(name=reservation.name)
+        taux_change = TauxChange.objects.get(id=2)
+        taux = taux_change.montant
+
+        for liv in livs:
+            reste_payer_liv = liv.total_reduit_euro
+            total_payer_liv = liv.total_payer
+            total_payer_liv_da = liv.total_payer_dz
+
+            liv.total_reduit_euro = reste_payer_liv + montant if (reste_payer_liv + montant) > 0 else 0
+            liv.total_payer = total_payer_liv + montant if (total_payer_liv + montant) > 0 else 0
+            liv.save()
+
+        reservation.save()
+
+        return HttpResponse({"status":"operation"}, status=200)    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 def poncarte_download_(request):
     livraison_id = request.GET.get("livraison_id")
     
