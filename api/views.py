@@ -3117,7 +3117,6 @@ def stripe_webhook_reservation_(request):
         session = event["data"]["object"]
         type_id = session.get("metadata", {}).get("type")
         if type_id == "reservation":
-            print("!!!!!!!! type == reservation !!!!!!!!")
             reservation_id = session.get("metadata", {}).get("reservation_id")
             montant_total = session.get("metadata", {}).get("montant_total")
             montant_paye = session.get("metadata", {}).get("montant_paye")
