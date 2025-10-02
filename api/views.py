@@ -43,8 +43,8 @@ def ajouter_ecart(request):
         old_total = reservation.total_reduit_euro
         old_reste = reservation.reste_payer
 
-        reservation.total_reduit_euro = old_total + montant
-        reservation.reste_payer = old_reste + montant if (old_reste + montant)>0 else 0
+        reservation.total_reduit_euro = float(old_total) + float(montant)
+        reservation.reste_payer = float(old_reste) + float(montant) if (float(old_reste) + float(montant))>0 else 0
 
         livs = Livraison.objects.filter(name=reservation.name)
         taux_change = TauxChange.objects.get(id=2)
@@ -55,8 +55,8 @@ def ajouter_ecart(request):
             total_payer_liv = liv.total_payer
             total_payer_liv_da = liv.total_payer_dz
 
-            liv.total_reduit_euro = reste_payer_liv + montant if (reste_payer_liv + montant) > 0 else 0
-            liv.total_payer = total_payer_liv + montant if (total_payer_liv + montant) > 0 else 0
+            liv.total_reduit_euro = float(reste_payer_liv) + float(montant) if (float(reste_payer_liv) + float(montant)) > 0 else 0
+            liv.total_payer = float(total_payer_liv) + float(montant) if (float(total_payer_liv) + float(montant)) > 0 else 0
             liv.save()
 
         reservation.save()
