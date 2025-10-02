@@ -44,7 +44,7 @@ def ajouter_ecart(request):
         old_reste = reservation.reste_payer
 
         reservation.total_reduit_euro = old_total + montant
-        reservation.reste_payer = old_reste + montant
+        reservation.reste_payer = old_reste + montant if (old_reste + montant)>0 else 0
 
         livs = Livraison.objects.filter(name=reservation.name)
         taux_change = TauxChange.objects.get(id=2)
