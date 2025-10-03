@@ -122,9 +122,20 @@ def confirme_reservation_view(request):
         livraison = Livraison.objects.create(
             reservation = reservation,
             name = reservation.name,
-            caution_classic = reservation.opt_protection.caution,
-            caution_red = reservation.opt_protection.caution,
-            caution_classic_eur = reservation.opt_protection.caution,
+            opt_protection_caution = reservation.opt_protection.caution,
+            opt_protection = reservation.opt_protection.name,
+            opt_carburant = reservation.opt_plein_carburant,
+            opt_carburant_check = True if reservation.opt_plein_carburant else False,
+            opt_klm = reservation.opt_klm,
+            opt_klm_check = True if reservation.opt_klm else False,
+            opt_nd_driver = reservation.opt_nd_driver ,
+            opt_nd_driver_check = True if reservation.opt_nd_driver else False,
+            opt_sb_a = reservation.opt_siege_a,
+            opt_sb_a_check = True if reservation.opt_siege_a else False,
+            opt_sb_b = reservation.opt_siege_b,
+            opt_sb_b_check = True if reservation.opt_siege_b else False,
+            opt_sb_c = reservation.opt_siege_c,
+            opt_sb_c_check = True if reservation.opt_siege_c else False,
             status = reservation.status,
             date_heure_debut = reservation.date_heure_debut,
             date_heure_fin = reservation.date_heure_fin,
@@ -143,6 +154,7 @@ def confirme_reservation_view(request):
             email = reservation.email,
             mobile = reservation.mobile,
             total_reduit_euro = reservation.reste_payer,
+            total_payer = reservation.reste_payer,
             stage = 'reserve',
             lv_type = "livraison",
             action_lieu=reservation.lieu_depart.name,
@@ -154,9 +166,7 @@ def confirme_reservation_view(request):
         restitution = Livraison.objects.create(
             reservation = reservation,
             name = reservation.name,
-            caution_classic = reservation.opt_protection.caution,
-            caution_red = reservation.opt_protection.caution,
-            caution_classic_eur = reservation.opt_protection.caution,
+            opt_protection_caution = reservation.opt_protection.caution,
             status = reservation.status,
             date_heure_debut = reservation.date_heure_debut,
             date_heure_fin = reservation.date_heure_fin,
@@ -175,12 +185,14 @@ def confirme_reservation_view(request):
             email = reservation.email,
             mobile = reservation.mobile,
             total_reduit_euro = reservation.reste_payer,
+            total_payer = reservation.reste_payer,
             stage = 'reserve',
             lv_type = "restitution",
             action_lieu=reservation.lieu_retour.name,
             action_date=reservation.date_heure_fin,
         ) 
         restitution.save()
+
 
         sujet = f"Confirmation de votre reservation N°= {reservation.name}"
         expediteur = settings.EMAIL_HOST_USER
