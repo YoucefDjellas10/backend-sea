@@ -123,7 +123,8 @@ def confirme_reservation_view(request):
             date_heure_fin__gt=reservation.date_heure_debut
         )
 
-        print("reservation existe : ",reservations_existantes)
+        for exit in reservations_existantes:
+            print(" !!!!!!!! reservation existe : ",exit.name,"!!!!!!!!")
 
         if reservations_existantes.exists():
             return JsonResponse({"operation": "Le véhicule n'est pas disponible."}, status=400)
