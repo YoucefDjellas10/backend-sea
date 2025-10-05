@@ -2358,7 +2358,7 @@ def add_reservation_post_view(request):
         date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
 
         total_days = (date_retour_obj - date_depart_obj).days + 1
-        print("total days : ",total_days)
+        print("!!!!!!!!!!!!! total days : ",total_days)
 
         duree = f"{total_days} jours"
 
