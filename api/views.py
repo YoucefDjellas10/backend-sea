@@ -216,40 +216,40 @@ def confirme_reservation_view(request):
         restitution.save()
 
 
-        sujet = f"Confirmation de votre reservation N°= {reservation.name}"
-        expediteur = settings.EMAIL_HOST_USER
+        #sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+        #expediteur = settings.EMAIL_HOST_USER
 
-        html_message = render_to_string('email/confirmation_email.html', {
-            "referance":reservation.name,
-            "mobile_one":reservation.lieu_depart.mobile,
-            "adresse_one":reservation.lieu_depart.address,
-            "mobile_two":reservation.lieu_retour.mobile,
-            "adresse_two":reservation.lieu_retour.address,
-            'client': reservation.client.nom,
-            'client_prenom':reservation.client.prenom,
-            'durrée':reservation.duree_dereservation,
-            'model_name':reservation.model_name,
-            'reste_paye':reservation.reste_payer,
-            'caution':reservation.opt_protection_caution,
-            'date_depart':reservation.date_depart_char,
-            'heure_depart':reservation.heure_depart_char,
-            'date_retoure':reservation.date_retour_char,
-            'haure_retour':reservation.heure_retour_char,
-            'lieu_depart':reservation.lieu_depart.name,
-            'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
-            'lieu_retour':reservation.lieu_retour.name,
-            'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
+        #html_message = render_to_string('email/confirmation_email.html', {
+        #   "referance":reservation.name,
+        #    "mobile_one":reservation.lieu_depart.mobile,
+        #    "adresse_one":reservation.lieu_depart.address,
+        #    "mobile_two":reservation.lieu_retour.mobile,
+        #   "adresse_two":reservation.lieu_retour.address,
+        #  'client': reservation.client.nom,
+        # 'client_prenom':reservation.client.prenom,
+        #    'durrée':reservation.duree_dereservation,
+        #    'model_name':reservation.model_name,
+        #    'reste_paye':reservation.reste_payer,
+        #    'caution':reservation.opt_protection_caution,
+        #    'date_depart':reservation.date_depart_char,
+        #    'heure_depart':reservation.heure_depart_char,
+        #    'date_retoure':reservation.date_retour_char,
+        #    'haure_retour':reservation.heure_retour_char,
+        #    'lieu_depart':reservation.lieu_depart.name,
+        #    'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+        #    'lieu_retour':reservation.lieu_retour.name,
+        #    'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
 
-        })
+        #})
 
-        send_mail(
-            sujet,
-            strip_tags(html_message),  
-            expediteur,
-            [reservation.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+        #send_mail(
+        #    sujet,
+        #    strip_tags(html_message),  
+        #    expediteur,
+        #    [reservation.email],
+        #    html_message=html_message,
+        #    fail_silently=False,
+        #)
         return JsonResponse({'operation': "operation terminé"}, status=200)
 
     except Exception as e:
