@@ -116,22 +116,20 @@ def confirme_reservation_view(request):
         if reservation.status == "confirmee":
             return JsonResponse({'operation': "operation non autoriser"}, status=400)
 
-        vehicule = Vehicule.objects.filter(id=reservation.vehicule.id).first()
-
         reservations_existantes = Reservation.objects.filter(
-            vehicule=vehicule,
-            date_heure_debut__lt=reservation.date_heure_debut, 
-            date_heure_fin__gt=reservation.date_heure_fin,
-            status="confirmee" 
+            vehicule=reservation.vehicule,
+            status="confirmee",
+            date_heure_debut__lt=reservation.date_heure_fin,
+            date_heure_fin__gt=reservation.date_heure_debut
         )
 
         print("reservation existe : ",reservations_existantes)
 
-        if reservations_existantes:
-            return JsonResponse({"operation": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
+        if reservations_existantes.exists():
+            return JsonResponse({"operation": "Le véhicule n'est pas disponible."}, status=400)
         
         blockage_existe = BlockCar.objects.filter(
-            vehicule=vehicule,
+            vehicule=reservation.vehicule,
             date_from__lte=reservation.date_heure_fin.date(),
             date_to__gte=reservation.date_heure_debut.date()
         )
