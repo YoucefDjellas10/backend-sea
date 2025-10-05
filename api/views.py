@@ -125,6 +125,8 @@ def confirme_reservation_view(request):
             status="confirmee" 
         )
 
+        print("reservation existe : ",reservations_existantes)
+
         if reservations_existantes:
             return JsonResponse({"operation": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
         
