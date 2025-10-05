@@ -126,7 +126,7 @@ def confirme_reservation_view(request):
         )
 
         if reservations_existantes:
-            return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
+            return JsonResponse({"operation": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
         
         blockage_existe = BlockCar.objects.filter(
             vehicule=vehicule,
@@ -134,7 +134,7 @@ def confirme_reservation_view(request):
             date_to__gte=reservation.date_heure_debut.date()
         )
         if blockage_existe:
-            return JsonResponse({"error": "Le véhicule est blocker."}, status=400)
+            return JsonResponse({"operation": "Le véhicule est blocker."}, status=400)
         
         reservation.status = 'confirmee'
         reservation.save()
