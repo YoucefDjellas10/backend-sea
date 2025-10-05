@@ -2916,7 +2916,8 @@ def add_reservation_post_view(request):
             nd_driver_opt_unit = 0
             nd_driver_opt_total = 0
 
-        print("!!!!!! totalm days : ",total_days)
+        print("!!!!!! total days : ",total_days)
+        print("!!!!!! duree : ",duree)
         
         reservation = Reservation.objects.create(
             create_date=timezone.now(),
