@@ -2356,7 +2356,9 @@ def add_reservation_post_view(request):
         date_heure_fin = parse_datetime(f"{date_retour}T{heure_retour}")
         date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
         date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
-        total_days = (date_retour_obj - date_depart_obj).days
+
+        total_days = (date_retour_obj - date_depart_obj).days + 1
+
         duree = f"{total_days} jours"
 
         if date_heure_debut and date_heure_fin:
