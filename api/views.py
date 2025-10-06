@@ -33,6 +33,67 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def cancel__button_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        motif_id = request.GET.get("motif")
+
+        reservation = get_object_or_404(Reservation, id=reservation_id)
+
+        if reservation.status in ["annule", "rejete"] or reservation.etat_reservation == "loue":
+            return JsonResponse({"message": "La réservation ne peut pas être annulée"}, status=400)
+
+        reservation.status = "annule"
+        reservation.etat_reservation = "annule"
+        reservation.save()
+
+        Livraison.objects.filter(reservation=reservation).delete()
+
+        days = (reservation.date_heure_debut.date() - date.today()).days
+
+        periode = Periode.objects.filter(
+            date_debut__lt=reservation.date_heure_debut.date(),
+            date_fin__gt=reservation.date_heure_fin.date()
+        ).first()
+
+        if not periode:
+            return JsonResponse({"message": "Période introuvable"}, status=400)
+
+        condition = ConditionAnnulation.objects.get(id=1)
+
+        montant_ref = None
+        if periode.saison == condition.basse_saison:
+            seuil = condition.basse_montant
+        elif periode.saison == condition.haute_saison:
+            seuil = condition.haute_montant
+        else:
+            return JsonResponse({"message": "Saison non reconnue"}, status=400)
+
+        if days >= seuil:
+            if reservation.montant_paye > reservation.prix_jour:
+                montant_ref = reservation.montant_paye - reservation.prix_jour
+        else:
+            if reservation.montant_paye >= reservation.prix_jour:
+                montant_ref = reservation.montant_paye - 15
+
+        if montant_ref:
+            remboursement = RefundTable.objects.create(
+                name=reservation.name,
+                reservation=reservation,
+                amount=float(montant_ref),
+                status='en_attente',
+                date=datetime.now()
+            )
+            return JsonResponse({
+                "message": "Réservation annulée avec succès, remboursement en attente",
+                "remboursement_id": remboursement.id
+            }, status=200)
+
+        return JsonResponse({"message": "Réservation annulée avec succès, pas de remboursement"}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 def ajouter_ecart(request):
     try:
         reservation_id = request.GET.get("reservation_id")

@@ -82,5 +82,6 @@ urlpatterns += [
     path("location-description/", lieu_rendez_vous_view, name="lieu_rendez_vous_view"),
     path("confirmer-resrevation/", confirme_reservation_view, name="confirme_reservation_view"),
     path("ajouter-ecart/", ajouter_ecart, name="ajouter_ecart"),
+    path("cancel-from-system/", cancel__button_view, name="cancel__button_view"),
     
 ]
