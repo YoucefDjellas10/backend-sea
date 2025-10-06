@@ -122,20 +122,41 @@ def confirme_reservation_view(request):
             date_heure_debut__lt=reservation.date_heure_fin,
             date_heure_fin__gt=reservation.date_heure_debut
         )
-
-        for exit in reservations_existantes:
-            print(" !!!!!!!! reservation existe : ",exit.name,"!!!!!!!!")
-
-        if reservations_existantes.exists():
-            return JsonResponse({"operation": "Le véhicule n'est pas disponible."}, status=400)
-        
         blockage_existe = BlockCar.objects.filter(
             vehicule=reservation.vehicule,
             date_from__lte=reservation.date_heure_fin.date(),
             date_to__gte=reservation.date_heure_debut.date()
         )
-        if blockage_existe:
-            return JsonResponse({"operation": "Le véhicule est blocker."}, status=400)
+
+        if reservations_existantes.exists() or blockage_existe:
+            vehicule_alternatif_trouve = False
+
+            vehicules_meme_modele = Vehicule.objects.filter(modele=reservation.modele).exclude(id=reservation.vehicule.id)
+            
+            for vehicule in vehicules_meme_modele:
+
+                reservations_sur_vehicule = Reservation.objects.filter(
+                    vehicule=vehicule,
+                    status="confirmee",
+                    date_heure_debut__lt=reservation.date_heure_fin,
+                    date_heure_fin__gt=reservation.date_heure_debut
+                )
+
+                blockage_sur_vehicule = BlockCar.objects.filter(
+                    vehicule=vehicule,
+                    date_from__lte=reservation.date_heure_fin.date(),
+                    date_to__gte=reservation.date_heure_debut.date()
+                )
+
+                if not reservations_sur_vehicule.exists() and not blockage_sur_vehicule.exists():
+                    vehicule_final = vehicule
+                    vehicule_alternatif_trouve = True
+                    break
+
+            if not vehicule_alternatif_trouve:
+                return JsonResponse({"operation": "Le véhicule n'est pas disponible."}, status=400)
+        
+        reservation.vehicule = vehicule_final
         
         reservation.status = 'confirmee'
         reservation.save()
