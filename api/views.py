@@ -177,7 +177,7 @@ def confirme_reservation_view(request):
         if reservation.status == "confirmee":
             return JsonResponse({'operation': "operation non autoriser"}, status=400)
         
-        vehicule_final = False
+        vehicule_final = reservation.vehicule
 
         reservations_existantes = Reservation.objects.filter(
             vehicule=reservation.vehicule,
