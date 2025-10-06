@@ -131,7 +131,7 @@ def confirme_reservation_view(request):
         if reservations_existantes.exists() or blockage_existe:
             vehicule_alternatif_trouve = False
 
-            vehicules_meme_modele = Vehicule.objects.filter(modele=reservation.modele).exclude(id=reservation.vehicule.id)
+            vehicules_meme_modele = Vehicule.objects.filter(modele=reservation.modele,zone=reservation.zone).exclude(id=reservation.vehicule.id)
             
             for vehicule in vehicules_meme_modele:
 
