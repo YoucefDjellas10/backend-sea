@@ -1159,14 +1159,6 @@ class Reservation(models.Model):
     class Meta:
         db_table = 'reservation'
 
-    def save(self, *args, **kwargs):
-        self.nbr_jour_reservation = (self.date_heure_fin - self.date_heure_debut).days
-        self.duree_dereservation = f"{self.nbr_jour_reservation} jours" if self.nbr_jour_reservation > 0 else "0 jour"
-
-        if not self.name:
-            self.name = self._generate_unique_code_()
-        super().save(*args, **kwargs)
-
     @staticmethod
     def _generate_unique_code_():
         current_date = datetime.now()
