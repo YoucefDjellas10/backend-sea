@@ -38,6 +38,7 @@ def ajuster_les_duree(request):
         reservations = Reservation.objects.all()
 
         for reservation in reservations:
+            print("reservation number : ", reservation.name)
             date_depart_obj = datetime.strptime(reservation.date_depart_char, "%d/%m/%Y").date()
             date_retour_obj = datetime.strptime(reservation.date_retour_char, "%d/%m/%Y").date()
             total_days = (date_retour_obj - date_depart_obj).days
