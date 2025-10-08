@@ -2603,14 +2603,14 @@ def add_reservation_post_view(request):
             
         frais_livraison = FraisLivraison.objects.filter(depart=depart,retour=retour).first()
         if frais_livraison:
-            total += frais_livraison.montant
-            last_total += frais_livraison.montant
+            total += frais_livraison.montant if frais_livraison.montant else 0
+            last_total += frais_livraison.montant if frais_livraison.montant else 0
         else :
             transit_lieu = lieu_depart_obj.zone.transmission_point
             frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=transit_lieu).first()
             frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour).first()
-            total += frais_livraison_one.montant + frais_livraison_two.montant
-            last_total += frais_livraison_one.montant + frais_livraison_two.montant
+            total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one.montant and frais_livraison_two.montant else 0
+            last_total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one.montant and frais_livraison_two.montant else 0
 
         
         supplements = Supplement.objects.filter(
