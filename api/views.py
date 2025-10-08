@@ -49,7 +49,7 @@ def ajuster_les_duree(request):
             duree = f"{total_days} jours"
 
             print("reservation : ",reservation.name,"depart retour : ",reservation.du_au,"total days : ",duree)
-        return JsonResponse({"message": "Saison non reconnue"}, status=400)
+        return JsonResponse({"message": "fin"}, status=200)
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
