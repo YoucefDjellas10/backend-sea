@@ -33,6 +33,23 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def ajuster_les_duree(request):
+    try:
+        reservations = Reservation.objects.all()
+
+        for reservation in reservations:
+            date_depart_obj = datetime.strptime(reservation.date_depart_char, "%Y-%m-%d").date()
+            date_retour_obj = datetime.strptime(reservation.date_retour_char, "%Y-%m-%d").date()
+            total_days = (date_retour_obj - date_depart_obj).days
+            duree = f"{total_days} jours"
+
+            print("reservation : ",reservation.name,"depart retour : ",reservation.du_au,"total days : ",duree)
+        return JsonResponse({"message": "Saison non reconnue"}, status=400)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 def cancel__button_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
