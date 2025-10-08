@@ -48,6 +48,10 @@ def ajuster_les_duree(request):
             total_days = (date_retour_obj - date_depart_obj).days
             duree = f"{total_days} jours"
 
+            reservation.nbr_jour_reservation = total_days
+            reservation.duree_dereservation = duree
+            reservation.save()
+
             print("reservation : ",reservation.name,"depart retour : ",reservation.du_au,"total days : ",duree)
         return JsonResponse({"message": "fin"}, status=200)
     
