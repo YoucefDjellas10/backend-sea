@@ -33,6 +33,221 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+    
+@csrf_exempt
+@require_http_methods(["POST"])
+def creer_reservation(request):
+    try:
+        data = json.loads(request.body)
+        ref = data.get("ref")
+        lieu_depart = data.get("lieu_depart")
+        lieu_retour = data.get("lieu_retour")
+        date_depart = data.get("date_depart")
+        date_retour = data.get("date_retour")
+        modele = data.get("modele")
+        opt_nd_driver = data.get("opt_nd_driver")
+        opt_nd_driver_prix = data.get("opt_nd_driver_prix")
+        opt_carburant = data.get("opt_carburant")
+        opt_carburant_prix = data.get("opt_carburant_prix")
+        opt_sb_a = data.get("opt_sb_a")
+        opt_sb_a_prix = data.get("opt_sb_a_prix")
+        nom = data.get("nom")
+        prenom = data.get("prenom")
+        nd_nom = data.get("nd_nom")
+        nd_prenom = data.get("nd_prenom")
+        nd_date_permis = data.get("nd_date_permis")
+        num_vol = data.get("num_vol")
+        note_depart = data.get("note_depart")
+        note_retour = data.get("note_retour")
+        status = data.get("status")
+        total = data.get("total")
+        date_reservation = data.get("date_reservation")
+        confirmation_date = data.get("date_reservation")
+        cancel_date = data.get("cancel_date")
+        date_valid_depart = data.get("date_valid_depart")
+        date_valid_retour = data.get("date_valid_retour")
+        km_depart = data.get("km_depart")
+        km_retour = data.get("km_retour")
+        dep_note = data.get("dep_note")
+        ret_note = data.get("ret_note")
+        caution = data.get("caution")
+
+
+        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
+        if lieu_depart and lieu_retour:
+            depart = Lieux.objects.filter(id=lieu_depart).first()
+            retour = Lieux.objects.filter(id=lieu_retour).first()
+            zone = Zone.objects.filter(id=depart.zone.id).first()
+            depart_retour_string = f"{depart.name} → {retour.name}"
+            if depart.zone != retour.zone:
+                return JsonResponse({"error": "zone invalides."}, status=400) 
+            
+        fmt = "%d/%m/%Y %H:%M"
+        dt_depart = datetime.strptime(date_depart, fmt)
+        dt_retour = datetime.strptime(date_retour, fmt)
+        date_depart_date = dt_depart.strftime("%d/%m/%Y")
+        heure_depart = dt_depart.strftime("%H:%M")
+        date_retour_date = dt_retour.strftime("%d/%m/%Y")
+        heure_retour = dt_retour.strftime("%H:%M")
+        du_au = f"{date_depart_date} {heure_depart} → {date_retour_date} {heure_retour}"
+        nb_jr = (dt_retour.date() - dt_depart.date()).days
+        duree = f"{nb_jr} jours"
+
+        
+
+        nom = re.sub(r'\s+', ' ', nom.strip()).upper()
+        prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
+        client = None
+        client=ListeClient.objects.filter(nom=nom, prenom=prenom).first()
+        if not client:
+            client=ListeClient.objects.filter(nom=prenom, prenom=nom).first()
+            if not client: 
+                return JsonResponse({"error": "pas de client"}, status=400)
+
+        nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
+        nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
+        nd_client = None
+        nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
+        if not nd_client:
+            nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
+            if not nd_client: 
+                return JsonResponse({"error": "pas de client"}, status=400)
+            
+        
+        searched_model = Modele.objects.filter(name=modele).first()
+
+        if not searched_model : 
+            return JsonResponse({"error": "pas de modele"}, status=400)
+        
+        vehicules = Vehicule.objects.filter(modele=searched_model,zone=zone)
+
+        vehicule = None
+        for vehicule_ in vehicules:
+            reservations_confirmees = Reservation.objects.filter(
+                vehicule=vehicule_,
+                status="confirmee",
+                date_heure_debut__lt=dt_retour,   
+                date_heure_fin__gt=dt_depart     
+            )
+            
+            if not reservations_confirmees.exists():
+                vehicule = vehicule_
+                break 
+
+        if not vehicule:
+            return JsonResponse({"error": "Aucun véhicule disponible"}, status=400) 
+            
+        klm_a_illimite = Options.objects.filter(option_code__icontains="KLM_ILLIMITED",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
+               
+        protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
+
+        
+        if opt_carburant == "yes":
+            carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
+
+        
+        if opt_sb_a == "yes":
+            sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
+
+        
+        if opt_nd_driver == "yes":
+            nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
+
+        status_char = None
+
+        if status == "1":
+             status_char = "confirmee"
+        elif status == "2":
+            status_char = "rejete"
+        elif status == "2":
+            status_char = "annule"
+
+        etat_reser = "reserve"
+
+        if datetime.now() > date_depart :
+            etat_reser = "loue"
+
+
+        reservation = Reservation.objects.create(
+            create_date=date_reservation,
+            status=status_char,
+            etat_reservation=etat_reser,
+            date_heure_debut = date_depart ,
+            date_heure_fin = date_retour,
+            date_depart_char = date_depart_date,
+            date_retour_char = date_retour_date,
+            heure_depart_char = heure_depart,
+            heure_retour_char = heure_retour,
+            du_au = du_au,
+            nbr_jour_reservation = nb_jr,
+            duree_dereservation = duree,
+            lieu_depart = depart,
+            zone = depart.zone,
+            address_fr = depart.address,
+            address_en = depart.address_en,
+            address_ar = depart.address_ar,
+            lieu_retour = retour,
+            depart_retour = depart_retour_string,
+            vehicule = vehicule,
+            modele = vehicule.modele,
+            categorie = vehicule.categorie,
+            carburant = vehicule.carburant,
+            matricule = vehicule.matricule,
+            numero = vehicule.numero,
+            model_name = vehicule.model_name,
+            marketing_text_fr = vehicule.marketing_text_fr,
+            photo_link_nd = vehicule.photo_link_nd,
+            photo_link = vehicule.photo_link,
+            nombre_deplace = vehicule.nombre_deplace,
+            nombre_de_porte = vehicule.nombre_de_porte,
+            nombre_de_bagage = vehicule.nombre_de_bagage,
+            boite_vitesse = vehicule.boite_vitesse,
+            age_min = vehicule.age_min,
+            client = client,
+            client_create_date = client.create_date if client.create_date is not None else None,
+            nom = client.nom,
+            prenom = client.prenom,
+            email = client.email,
+            date_de_naissance = client.date_de_naissance,
+            mobile = client.mobile,
+            telephone = client.telephone,
+            risque = client.risque,
+            note = client.note,
+            categorie_client = client.categorie_client,
+            code_prime = client.code_prime,
+            solde = client.solde,
+            nom_nd_condicteur = nd_nom if nd_nom else None,
+            prenom_nd_condicteur = nd_prenom if nd_prenom else None,
+            date_de_permis=nd_date_permis if nd_date_permis else None,
+            opt_klm = klm_a_illimite ,
+            opt_klm_name = klm_a_illimite.name,
+            opt_klm_total = 0,
+            opt_protection = protection,
+            opt_protection_name = protection.name,
+            opt_protection_caution= caution,
+            opt_protection_price=0,
+            opt_protection_total=0,
+            opt_nd_driver=nd_driver_opt,
+            opt_nd_driver_name=nd_driver_opt.name,
+            opt_nd_driver_total=opt_nd_driver_prix,
+            opt_plein_carburant=carburant,
+            opt_plein_carburant_name=carburant.name,
+            opt_plein_carburant_prix= opt_carburant_prix,
+            opt_plein_carburant_total=opt_carburant_prix,
+            opt_siege_a = sb_a,
+            opt_siege_a_name=sb_a.name,
+            opt_siege_a_prix=opt_sb_a_prix,
+            opt_siege_a_total=opt_sb_a_prix,
+            num_vol=num_vol,
+            total_reduit = total,
+            total_reduit_euro = total
+        )  
+   
+        return JsonResponse({"finish":True,"message": "record creer avec succé", "reservation_name":reservation.name}, status=200)       
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)     
+    
+
 def ajuster_les_duree(request):
     try:
         reservations = Reservation.objects.all()
