@@ -32,7 +32,6 @@ from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def creer_reservation(request):
@@ -119,16 +118,15 @@ def creer_reservation(request):
             client=ListeClient.objects.filter(nom=prenom, prenom=nom).first()
             if not client: 
                 return JsonResponse({"error": "pas de client"}, status=400)
-            
-        if nd_nom and nd_prenom :
-            nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
-            nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
-            nd_client = None
-            nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
-            if not nd_client:
-                nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
-                if not nd_client: 
-                    return JsonResponse({"error": "pas de nd client"}, status=400)
+
+        nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
+        nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
+        nd_client = None
+        nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
+        if not nd_client:
+            nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
+            if not nd_client: 
+                return JsonResponse({"error": "pas de client"}, status=400)
             
         searched_model = Modele.objects.filter(name=modele).first()
 
@@ -226,7 +224,7 @@ def creer_reservation(request):
             boite_vitesse = vehicule.boite_vitesse,
             age_min = vehicule.age_min,
             client = client,
-            client_create_date = client.create_date if client.create_date is not None else None,
+            client_create_date = client_create_parsed,
             nom = client.nom,
             prenom = client.prenom,
             email = client.email,
@@ -400,7 +398,7 @@ def creer_reservation(request):
     except Exception as e:
         import traceback
         return JsonResponse({"error": str(e), "traceback": traceback.format_exc()}, status=500)
-
+    
 def ajuster_les_duree(request):
     try:
         reservations = Reservation.objects.all()
