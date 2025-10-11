@@ -83,13 +83,9 @@ def creer_reservation(request):
                 return JsonResponse({"error": "zone invalides."}, status=400) 
             
         fmt = "%d/%m/%Y %H:%M"
+
         dt_depart = datetime.strptime(date_depart, fmt)
         dt_retour = datetime.strptime(date_retour, fmt)
-        try:
-            dt_depart = datetime.fromisoformat(date_depart.replace('Z', '+00:00'))
-            dt_retour = datetime.fromisoformat(date_retour.replace('Z', '+00:00'))
-        except ValueError:
-            return JsonResponse({"error": "Format de date invalide"}, status=400)
         date_depart_date = dt_depart.strftime("%d/%m/%Y")
         heure_depart = dt_depart.strftime("%H:%M")
         date_retour_date = dt_retour.strftime("%d/%m/%Y")
