@@ -119,15 +119,16 @@ def creer_reservation(request):
             client=ListeClient.objects.filter(nom=prenom, prenom=nom).first()
             if not client: 
                 return JsonResponse({"error": "pas de client"}, status=400)
-
-        nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
-        nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
-        nd_client = None
-        nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
-        if not nd_client:
-            nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
-            if not nd_client: 
-                return JsonResponse({"error": "pas de client"}, status=400)
+            
+        if nd_nom and nd_prenom :
+            nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
+            nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
+            nd_client = None
+            nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
+            if not nd_client:
+                nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
+                if not nd_client: 
+                    return JsonResponse({"error": "pas de nd client"}, status=400)
             
         searched_model = Modele.objects.filter(name=modele).first()
 
