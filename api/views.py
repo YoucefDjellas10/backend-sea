@@ -166,7 +166,9 @@ def creer_reservation(request):
 
         etat_reser = "reserve"
 
-        if datetime.now() > date_depart :
+        
+        now = timezone.now() if dt_depart.tzinfo else datetime.now()
+        if now > dt_depart :
             etat_reser = "loue"
 
 
@@ -256,7 +258,7 @@ def creer_reservation(request):
         taux = TauxChange.objects.get(id=2)
         taux_change = taux.montant
 
-        if datetime.now()> reservation.date_heure_debut :
+        if now > dt_depart:
 
             payment = Payment.objects.create(
                 reservation=reservation,
