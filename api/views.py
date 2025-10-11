@@ -143,7 +143,9 @@ def creer_reservation(request):
                
         protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
 
-        
+        carburant = None
+        sb_a = None
+        nd_driver_opt = None
         if opt_carburant == "yes":
             carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
 
@@ -233,17 +235,17 @@ def creer_reservation(request):
             opt_protection_caution= caution,
             opt_protection_price=0,
             opt_protection_total=0,
-            opt_nd_driver=nd_driver_opt,
-            opt_nd_driver_name=nd_driver_opt.name,
-            opt_nd_driver_total=opt_nd_driver_prix,
-            opt_plein_carburant=carburant,
-            opt_plein_carburant_name=carburant.name,
-            opt_plein_carburant_prix= opt_carburant_prix,
-            opt_plein_carburant_total=opt_carburant_prix,
-            opt_siege_a = sb_a,
-            opt_siege_a_name=sb_a.name,
-            opt_siege_a_prix=opt_sb_a_prix,
-            opt_siege_a_total=opt_sb_a_prix,
+            opt_nd_driver=nd_driver_opt if nd_driver_opt else None,
+            opt_nd_driver_name=nd_driver_opt.name if nd_driver_opt else None,
+            opt_nd_driver_total=opt_nd_driver_prix if opt_nd_driver_prix else 0,
+            opt_plein_carburant=carburant if carburant else None,
+            opt_plein_carburant_name=carburant.name if carburant else None,
+            opt_plein_carburant_prix= opt_carburant_prix if carburant else 0,
+            opt_plein_carburant_total=opt_carburant_prix if carburant else 0,
+            opt_siege_a = sb_a if sb_a else None,
+            opt_siege_a_name=sb_a.name if sb_a else None,
+            opt_siege_a_prix=opt_sb_a_prix if sb_a else 0,
+            opt_siege_a_total=opt_sb_a_prix if sb_a else 0,
             num_vol=num_vol,
             total_reduit = total,
             total_reduit_euro = total,       
