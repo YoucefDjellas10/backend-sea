@@ -169,6 +169,8 @@ def creer_reservation(request):
 
 
         reservation = Reservation.objects.create(
+            note_lv_d=note_depart,
+            note_lv_r=note_retour,
             create_date=date_reservation,
             status=status_char,
             etat_reservation=etat_reser,
@@ -240,8 +242,142 @@ def creer_reservation(request):
             opt_siege_a_total=opt_sb_a_prix,
             num_vol=num_vol,
             total_reduit = total,
-            total_reduit_euro = total
+            total_reduit_euro = total,       
+            confirmation_date=confirmation_date,
+            cancelation_date=cancel_date
         )  
+        reservation.save()
+
+        reservation.name = ref
+        reservation.save()
+
+        taux = TauxChange.objects.get(id=2)
+        taux_change = taux.montant
+
+        if datetime.now()> reservation.date_heure_debut :
+
+            payment = Payment.objects.create(
+                reservation=reservation,
+                vehicule=reservation.vehicule,  
+                modele=reservation.modele,  
+                zone=reservation.lieu_depart.zone,  
+                total_reduit_euro=total,
+                montant=total,
+                montant_dzd=0,
+                montant_eur_dzd=total * taux_change,
+                montant_dzd_eur=0,  
+                note="Paiement effectué via Stripe",  
+                total_reduit_dinar=total * taux_change,
+                ecart_eur=0,
+                ecart_da=0,
+                mode_paiement="carte", 
+                total_encaisse=total,  
+            )
+            payment.save()
+        
+        else:
+            payment = Payment.objects.create(
+                create_date=timezone.now(),
+                reservation=reservation,
+                vehicule=reservation.vehicule,  
+                modele=reservation.modele,  
+                zone=reservation.lieu_depart.zone,  
+                total_reduit_euro=total,
+                montant=5,
+                montant_dzd=0,
+                montant_eur_dzd=5 * taux_change,
+                montant_dzd_eur=0,  
+                note="Paiement effectué via Stripe",  
+                total_reduit_dinar=total * taux_change,
+                ecart_eur=0,
+                ecart_da=0,
+                mode_paiement="carte", 
+                total_encaisse=5,  
+            )
+            payment.save()
+
+        if reservation.status == "confirmee":
+
+            livraison = Livraison.objects.create(
+                date_de_livraison = date_valid_depart,
+                kilomtrage = km_depart,
+                lv_note = dep_note,
+                reservation = reservation,
+                name = reservation.name,
+                opt_protection_caution = reservation.opt_protection.caution,
+                opt_protection = reservation.opt_protection.name,
+                opt_carburant = reservation.opt_plein_carburant,
+                opt_carburant_check = True if reservation.opt_plein_carburant else False,
+                opt_klm = reservation.opt_klm,
+                opt_klm_check = True if reservation.opt_klm else False,
+                opt_nd_driver = reservation.opt_nd_driver ,
+                opt_nd_driver_check = True if reservation.opt_nd_driver else False,
+                opt_sb_a = reservation.opt_siege_a,
+                opt_sb_a_check = True if reservation.opt_siege_a else False,
+                opt_sb_b = reservation.opt_siege_b,
+                opt_sb_b_check = True if reservation.opt_siege_b else False,
+                opt_sb_c = reservation.opt_siege_c,
+                opt_sb_c_check = True if reservation.opt_siege_c else False,
+                status = reservation.status,
+                date_heure_debut = reservation.date_heure_debut,
+                date_heure_fin = reservation.date_heure_fin,
+                date_de_reservation = reservation.create_date,
+                nbr_jour_reservation = reservation.nbr_jour_reservation,
+                duree_dereservation = reservation.duree_dereservation,
+                lieu_depart = reservation.lieu_depart,
+                zone = reservation.zone,
+                lieu_retour = reservation.lieu_retour,
+                vehicule = reservation.vehicule,
+                modele = reservation.modele,
+                carburant = reservation.carburant,
+                client = reservation.client,
+                nom = reservation.nom,
+                prenom = reservation.prenom,
+                email = reservation.email,
+                mobile = reservation.mobile,
+                total_reduit_euro = reservation.reste_payer,
+                total_payer = reservation.reste_payer,
+                stage = 'reserve',
+                lv_type = "livraison",
+                action_lieu=reservation.lieu_depart.name,
+                action_date=reservation.date_heure_debut,
+
+            ) 
+            livraison.save()
+
+            restitution = Livraison.objects.create(
+                date_de_livraison=date_valid_retour,
+                kilomtrage=km_retour,
+                lv_note=ret_note,
+                reservation = reservation,
+                name = reservation.name,
+                opt_protection_caution = reservation.opt_protection.caution,
+                status = reservation.status,
+                date_heure_debut = reservation.date_heure_debut,
+                date_heure_fin = reservation.date_heure_fin,
+                date_de_reservation = reservation.create_date,
+                nbr_jour_reservation = reservation.nbr_jour_reservation,
+                duree_dereservation = reservation.duree_dereservation,
+                lieu_depart = reservation.lieu_depart,
+                zone = reservation.zone,
+                lieu_retour = reservation.lieu_retour,
+                vehicule = reservation.vehicule,
+                modele = reservation.modele,
+                carburant = reservation.carburant,
+                client = reservation.client,
+                nom = reservation.nom,
+                prenom = reservation.prenom,
+                email = reservation.email,
+                mobile = reservation.mobile,
+                total_reduit_euro = reservation.reste_payer,
+                total_payer = reservation.reste_payer,
+                stage = 'reserve',
+                lv_type = "restitution",
+                action_lieu=reservation.lieu_retour.name,
+                action_date=reservation.date_heure_fin,
+            ) 
+            restitution.save()
+        
    
         return JsonResponse({"finish":True,"message": "record creer avec succé", "reservation_name":reservation.name}, status=200)       
     except Exception as e:

@@ -1155,6 +1155,10 @@ class Reservation(models.Model):
     date_retour_char = models.CharField(null=True, blank=True)
     heure_depart_char = models.CharField(null=True, blank=True)
     heure_retour_char = models.CharField(null=True, blank=True)
+    
+    confirmation_date = models.DateTimeField(null=True, blank=True)
+    cancelation_date = models.DateTimeField(null=True, blank=True)
+
 
     class Meta:
         db_table = 'reservation'
@@ -1370,6 +1374,7 @@ class Livraison(models.Model):
 
     total_payer = models.FloatField(null=True, blank=True)
     total_payer_dz = models.FloatField(null=True, blank=True)
+    date_de_livraison = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'livraison'
@@ -1509,6 +1514,7 @@ class Payment(models.Model):
     ]
     mode_paiement = models.CharField(max_length=10, choices=MODE_PAIEMENT_CHOICES)
     total_encaisse = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    create_date = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.name:
