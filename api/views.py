@@ -33,7 +33,6 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
-    
 @csrf_exempt
 @require_http_methods(["POST"])
 def creer_reservation(request):
@@ -72,7 +71,6 @@ def creer_reservation(request):
         ret_note = data.get("ret_note")
         caution = data.get("caution")
 
-
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         if lieu_depart and lieu_retour:
             depart = Lieux.objects.filter(id=lieu_depart).first()
@@ -82,10 +80,29 @@ def creer_reservation(request):
             if depart.zone != retour.zone:
                 return JsonResponse({"error": "zone invalides."}, status=400) 
             
+        # Fonction helper pour parser les dates
+        def parse_date_safe(date_str):
+            """Parse une date au format dd/mm/yyyy HH:MM"""
+            if not date_str:
+                return None
+            try:
+                return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            except (ValueError, TypeError):
+                return None
+        
+        # Parser les dates principales
         fmt = "%d/%m/%Y %H:%M"
-
         dt_depart = datetime.strptime(date_depart, fmt)
         dt_retour = datetime.strptime(date_retour, fmt)
+        
+        # Parser les autres dates
+        dt_reservation = parse_date_safe(date_reservation)
+        dt_confirmation = parse_date_safe(confirmation_date)
+        dt_cancel = parse_date_safe(cancel_date)
+        dt_valid_depart = parse_date_safe(date_valid_depart)
+        dt_valid_retour = parse_date_safe(date_valid_retour)
+        dt_nd_permis = parse_date_safe(nd_date_permis)
+        
         date_depart_date = dt_depart.strftime("%d/%m/%Y")
         heure_depart = dt_depart.strftime("%H:%M")
         date_retour_date = dt_retour.strftime("%d/%m/%Y")
@@ -93,8 +110,6 @@ def creer_reservation(request):
         du_au = f"{date_depart_date} {heure_depart} → {date_retour_date} {heure_retour}"
         nb_jr = (dt_retour.date() - dt_depart.date()).days
         duree = f"{nb_jr} jours"
-
-        
 
         nom = re.sub(r'\s+', ' ', nom.strip()).upper()
         prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
@@ -104,18 +119,16 @@ def creer_reservation(request):
             client=ListeClient.objects.filter(nom=prenom, prenom=nom).first()
             if not client: 
                 return JsonResponse({"error": "pas de client"}, status=400)
+
+        nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
+        nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
+        nd_client = None
+        nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
+        if not nd_client:
+            nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
+            if not nd_client: 
+                return JsonResponse({"error": "pas de client"}, status=400)
             
-        if nd_nom and nd_prenom :
-            nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
-            nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
-            nd_client = None
-            nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
-            if not nd_client:
-                nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
-                if not nd_client: 
-                    return JsonResponse({"error": "pas de nd client"}, status=400)
-                
-        
         searched_model = Modele.objects.filter(name=modele).first()
 
         if not searched_model : 
@@ -143,17 +156,17 @@ def creer_reservation(request):
                
         protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
 
+        # Initialiser les variables
         carburant = None
         sb_a = None
         nd_driver_opt = None
+        
         if opt_carburant == "yes":
             carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
 
-        
         if opt_sb_a == "yes":
             sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
 
-        
         if opt_nd_driver == "yes":
             nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
 
@@ -163,16 +176,16 @@ def creer_reservation(request):
              status_char = "confirmee"
         elif status == "2":
             status_char = "rejete"
-        elif status == "2":
+        elif status == "3":  # CORRECTION: c'était "2" deux fois
             status_char = "annule"
 
         etat_reser = "reserve"
 
-        
+        # CORRECTION: Utiliser dt_depart au lieu de date_depart
+        # Et rendre datetime.now() timezone-aware si nécessaire
         now = timezone.now() if dt_depart.tzinfo else datetime.now()
-        if now > dt_depart :
+        if now > dt_depart:
             etat_reser = "loue"
-
 
         reservation = Reservation.objects.create(
             note_lv_d=note_depart,
@@ -180,8 +193,8 @@ def creer_reservation(request):
             create_date=date_reservation,
             status=status_char,
             etat_reservation=etat_reser,
-            date_heure_debut = date_depart ,
-            date_heure_fin = date_retour,
+            date_heure_debut = dt_depart,  # CORRECTION: Utiliser dt_depart
+            date_heure_fin = dt_retour,     # CORRECTION: Utiliser dt_retour
             date_depart_char = date_depart_date,
             date_retour_char = date_retour_date,
             heure_depart_char = heure_depart,
@@ -226,26 +239,26 @@ def creer_reservation(request):
             solde = client.solde,
             nom_nd_condicteur = nd_nom if nd_nom else None,
             prenom_nd_condicteur = nd_prenom if nd_prenom else None,
-            date_de_permis=nd_date_permis if nd_date_permis else None,
-            opt_klm = klm_a_illimite ,
-            opt_klm_name = klm_a_illimite.name,
+            date_de_permis=dt_nd_permis,
+            opt_klm = klm_a_illimite,
+            opt_klm_name = klm_a_illimite.name if klm_a_illimite else None,
             opt_klm_total = 0,
             opt_protection = protection,
-            opt_protection_name = protection.name,
+            opt_protection_name = protection.name if protection else None,
             opt_protection_caution= caution,
             opt_protection_price=0,
             opt_protection_total=0,
-            opt_nd_driver=nd_driver_opt if nd_driver_opt else None,
+            opt_nd_driver=nd_driver_opt,
             opt_nd_driver_name=nd_driver_opt.name if nd_driver_opt else None,
             opt_nd_driver_total=opt_nd_driver_prix if opt_nd_driver_prix else 0,
-            opt_plein_carburant=carburant if carburant else None,
+            opt_plein_carburant=carburant,
             opt_plein_carburant_name=carburant.name if carburant else None,
-            opt_plein_carburant_prix= opt_carburant_prix if carburant else 0,
-            opt_plein_carburant_total=opt_carburant_prix if carburant else 0,
-            opt_siege_a = sb_a if sb_a else None,
+            opt_plein_carburant_prix= opt_carburant_prix if opt_carburant_prix else 0,
+            opt_plein_carburant_total=opt_carburant_prix if opt_carburant_prix else 0,
+            opt_siege_a = sb_a,
             opt_siege_a_name=sb_a.name if sb_a else None,
-            opt_siege_a_prix=opt_sb_a_prix if sb_a else 0,
-            opt_siege_a_total=opt_sb_a_prix if sb_a else 0,
+            opt_siege_a_prix=opt_sb_a_prix if opt_sb_a_prix else 0,
+            opt_siege_a_total=opt_sb_a_prix if opt_sb_a_prix else 0,
             num_vol=num_vol,
             total_reduit = total,
             total_reduit_euro = total,       
@@ -260,8 +273,9 @@ def creer_reservation(request):
         taux = TauxChange.objects.get(id=2)
         taux_change = taux.montant
 
+        # CORRECTION: Utiliser dt_depart et timezone-aware now
+        now = timezone.now() if dt_depart.tzinfo else datetime.now()
         if now > dt_depart:
-
             payment = Payment.objects.create(
                 reservation=reservation,
                 vehicule=reservation.vehicule,  
@@ -280,7 +294,6 @@ def creer_reservation(request):
                 total_encaisse=total,  
             )
             payment.save()
-        
         else:
             payment = Payment.objects.create(
                 create_date=timezone.now(),
@@ -303,27 +316,26 @@ def creer_reservation(request):
             payment.save()
 
         if reservation.status == "confirmee":
-
             livraison = Livraison.objects.create(
-                date_de_livraison = date_valid_depart,
+                date_de_livraison = dt_valid_depart,
                 kilomtrage = km_depart,
                 lv_note = dep_note,
                 reservation = reservation,
                 name = reservation.name,
-                opt_protection_caution = reservation.opt_protection.caution,
-                opt_protection = reservation.opt_protection.name,
+                opt_protection_caution = reservation.opt_protection.caution if reservation.opt_protection else None,
+                opt_protection = reservation.opt_protection.name if reservation.opt_protection else None,
                 opt_carburant = reservation.opt_plein_carburant,
                 opt_carburant_check = True if reservation.opt_plein_carburant else False,
                 opt_klm = reservation.opt_klm,
                 opt_klm_check = True if reservation.opt_klm else False,
-                opt_nd_driver = reservation.opt_nd_driver ,
+                opt_nd_driver = reservation.opt_nd_driver,
                 opt_nd_driver_check = True if reservation.opt_nd_driver else False,
                 opt_sb_a = reservation.opt_siege_a,
                 opt_sb_a_check = True if reservation.opt_siege_a else False,
-                opt_sb_b = reservation.opt_siege_b,
-                opt_sb_b_check = True if reservation.opt_siege_b else False,
-                opt_sb_c = reservation.opt_siege_c,
-                opt_sb_c_check = True if reservation.opt_siege_c else False,
+                opt_sb_b = reservation.opt_siege_b if hasattr(reservation, 'opt_siege_b') else None,
+                opt_sb_b_check = True if hasattr(reservation, 'opt_siege_b') and reservation.opt_siege_b else False,
+                opt_sb_c = reservation.opt_siege_c if hasattr(reservation, 'opt_siege_c') else None,
+                opt_sb_c_check = True if hasattr(reservation, 'opt_siege_c') and reservation.opt_siege_c else False,
                 status = reservation.status,
                 date_heure_debut = reservation.date_heure_debut,
                 date_heure_fin = reservation.date_heure_fin,
@@ -341,23 +353,22 @@ def creer_reservation(request):
                 prenom = reservation.prenom,
                 email = reservation.email,
                 mobile = reservation.mobile,
-                total_reduit_euro = reservation.reste_payer,
-                total_payer = reservation.reste_payer,
+                total_reduit_euro = reservation.reste_payer if hasattr(reservation, 'reste_payer') else 0,
+                total_payer = reservation.reste_payer if hasattr(reservation, 'reste_payer') else 0,
                 stage = 'reserve',
                 lv_type = "livraison",
                 action_lieu=reservation.lieu_depart.name,
                 action_date=reservation.date_heure_debut,
-
             ) 
             livraison.save()
 
             restitution = Livraison.objects.create(
-                date_de_livraison=date_valid_retour,
+                date_de_livraison=dt_valid_retour,
                 kilomtrage=km_retour,
                 lv_note=ret_note,
                 reservation = reservation,
                 name = reservation.name,
-                opt_protection_caution = reservation.opt_protection.caution,
+                opt_protection_caution = reservation.opt_protection.caution if reservation.opt_protection else None,
                 status = reservation.status,
                 date_heure_debut = reservation.date_heure_debut,
                 date_heure_fin = reservation.date_heure_fin,
@@ -375,8 +386,8 @@ def creer_reservation(request):
                 prenom = reservation.prenom,
                 email = reservation.email,
                 mobile = reservation.mobile,
-                total_reduit_euro = reservation.reste_payer,
-                total_payer = reservation.reste_payer,
+                total_reduit_euro = reservation.reste_payer if hasattr(reservation, 'reste_payer') else 0,
+                total_payer = reservation.reste_payer if hasattr(reservation, 'reste_payer') else 0,
                 stage = 'reserve',
                 lv_type = "restitution",
                 action_lieu=reservation.lieu_retour.name,
@@ -384,11 +395,10 @@ def creer_reservation(request):
             ) 
             restitution.save()
         
-   
         return JsonResponse({"finish":True,"message": "record creer avec succé", "reservation_name":reservation.name}, status=200)       
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)     
-    
+        import traceback
+        return JsonResponse({"error": str(e), "traceback": traceback.format_exc()}, status=500)
 
 def ajuster_les_duree(request):
     try:
