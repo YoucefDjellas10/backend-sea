@@ -172,6 +172,8 @@ def creer_reservation(request):
 
         status_char = None
 
+        print("Status : ",status)
+
         if status == "1":
              status_char = "confirmee"
         elif status == "2":
