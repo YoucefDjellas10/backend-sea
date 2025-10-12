@@ -32,8 +32,6 @@ from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
-
-    
 @csrf_exempt
 @require_http_methods(["POST"])
 def creer_reservation(request):
@@ -62,7 +60,7 @@ def creer_reservation(request):
         status = data.get("status")
         total = data.get("total")
         date_reservation = data.get("date_reservation")
-        confirmation_date = data.get("date_reservation")
+        confirmation_date = data.get("confirmation_date")
         cancel_date = data.get("cancel_date")
         date_valid_depart = data.get("date_valid_depart")
         date_valid_retour = data.get("date_valid_retour")
@@ -72,6 +70,15 @@ def creer_reservation(request):
         ret_note = data.get("ret_note")
         caution = data.get("caution")
 
+        # Fonction pour parser les dates au format dd/mm/yyyy HH:MM
+        def parse_date(date_str):
+            if not date_str:
+                return None
+            try:
+                # Parser au format dd/mm/yyyy HH:MM
+                return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
+            except:
+                return None
 
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         if lieu_depart and lieu_retour:
@@ -94,7 +101,13 @@ def creer_reservation(request):
         nb_jr = (dt_retour.date() - dt_depart.date()).days
         duree = f"{nb_jr} jours"
 
-        
+        # Parser les autres dates
+        dt_date_reservation = parse_date(date_reservation)
+        dt_confirmation_date = parse_date(confirmation_date)
+        dt_cancel_date = parse_date(cancel_date)
+        dt_date_valid_depart = parse_date(date_valid_depart)
+        dt_date_valid_retour = parse_date(date_valid_retour)
+        dt_nd_date_permis = parse_date(nd_date_permis)
 
         nom = re.sub(r'\s+', ' ', nom.strip()).upper()
         prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
@@ -163,13 +176,13 @@ def creer_reservation(request):
              status_char = "confirmee"
         elif status == "2":
             status_char = "rejete"
-        elif status == "2":
+        elif status == "3":
             status_char = "annule"
 
         etat_reser = "reserve"
 
         
-        now = timezone.now() if dt_depart.tzinfo else datetime.now()
+        now = datetime.now()
         if now > dt_depart :
             etat_reser = "loue"
 
@@ -177,11 +190,11 @@ def creer_reservation(request):
         reservation = Reservation.objects.create(
             note_lv_d=note_depart,
             note_lv_r=note_retour,
-            create_date=date_reservation,
+            create_date=dt_date_reservation,
             status=status_char,
             etat_reservation=etat_reser,
-            date_heure_debut = date_depart ,
-            date_heure_fin = date_retour,
+            date_heure_debut = dt_depart,
+            date_heure_fin = dt_retour,
             date_depart_char = date_depart_date,
             date_retour_char = date_retour_date,
             heure_depart_char = heure_depart,
@@ -226,8 +239,8 @@ def creer_reservation(request):
             solde = client.solde,
             nom_nd_condicteur = nd_nom if nd_nom else None,
             prenom_nd_condicteur = nd_prenom if nd_prenom else None,
-            date_de_permis=nd_date_permis if nd_date_permis else None,
-            opt_klm = klm_a_illimite ,
+            date_de_permis=dt_nd_date_permis,
+            opt_klm = klm_a_illimite,
             opt_klm_name = klm_a_illimite.name,
             opt_klm_total = 0,
             opt_protection = protection,
@@ -249,8 +262,8 @@ def creer_reservation(request):
             num_vol=num_vol,
             total_reduit = total,
             total_reduit_euro = total,       
-            confirmation_date=confirmation_date,
-            cancelation_date=cancel_date
+            confirmation_date=dt_confirmation_date,
+            cancelation_date=dt_cancel_date
         )  
         reservation.save()
 
@@ -283,7 +296,7 @@ def creer_reservation(request):
         
         else:
             payment = Payment.objects.create(
-                create_date=timezone.now(),
+                create_date=datetime.now(),
                 reservation=reservation,
                 vehicule=reservation.vehicule,  
                 modele=reservation.modele,  
@@ -305,7 +318,7 @@ def creer_reservation(request):
         if reservation.status == "confirmee":
 
             livraison = Livraison.objects.create(
-                date_de_livraison = date_valid_depart,
+                date_de_livraison = dt_date_valid_depart,
                 kilomtrage = km_depart,
                 lv_note = dep_note,
                 reservation = reservation,
@@ -352,7 +365,7 @@ def creer_reservation(request):
             livraison.save()
 
             restitution = Livraison.objects.create(
-                date_de_livraison=date_valid_retour,
+                date_de_livraison=dt_date_valid_retour,
                 kilomtrage=km_retour,
                 lv_note=ret_note,
                 reservation = reservation,
@@ -387,9 +400,8 @@ def creer_reservation(request):
    
         return JsonResponse({"finish":True,"message": "record creer avec succé", "reservation_name":reservation.name}, status=200)       
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)     
+        return JsonResponse({"error": str(e)}, status=500)
     
-
 def ajuster_les_duree(request):
     try:
         reservations = Reservation.objects.all()
