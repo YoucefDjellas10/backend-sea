@@ -170,15 +170,16 @@ def creer_reservation(request):
         if opt_nd_driver == "yes":
             nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
 
+        status_str = str(status) if status is not None else None
         status_char = None
 
         print("Status : ",status)
 
-        if status == "1":
+        if status_str  == "1":
              status_char = "confirmee"
-        elif status == "2":
+        elif status_str  == "2":
             status_char = "rejete"
-        elif status == "3":
+        elif status_str  == "3":
             status_char = "annule"
 
         etat_reser = "reserve"
