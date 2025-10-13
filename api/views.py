@@ -318,6 +318,7 @@ def creer_reservation(request):
             )
             payment.save()
 
+
         if reservation.status == "confirmee":
 
             livraison = Livraison.objects.create(
@@ -366,6 +367,7 @@ def creer_reservation(request):
 
             ) 
             livraison.save()
+            
 
             restitution = Livraison.objects.create(
                 date_de_livraison=dt_date_valid_retour,
@@ -399,6 +401,13 @@ def creer_reservation(request):
                 action_date=reservation.date_heure_fin,
             ) 
             restitution.save()
+            if not livraison : 
+                return JsonResponse({"error": "Livraison non creer"}, status=400)     
+            if not payment : 
+            return JsonResponse({"error": "payment non creer"}, status=400)
+        
+        if not restitution : 
+                return JsonResponse({"error": "restitution non creer"}, status=400)
         
    
         return JsonResponse({"finish":True,"message": "record creer avec succé", "reservation_name":reservation.name}, status=200)       
