@@ -101,6 +101,9 @@ def creer_reservation(request):
         nb_jr = (dt_retour.date() - dt_depart.date()).days
         duree = f"{nb_jr} jours"
 
+        status_str = str(status) if status is not None else None
+        status_char = None
+
         # Parser les autres dates
         dt_date_reservation = parse_date(date_reservation)
         dt_confirmation_date = parse_date(confirmation_date)
@@ -126,9 +129,14 @@ def creer_reservation(request):
             if not nd_client:
                 nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
                 if not nd_client: 
-                    return JsonResponse({"error": "pas de nd client"}, status=400)
+                    nd_client = ListeClient.objects.create(
+                        nom = nd_nom,
+                        prenom = nd_prenom,
+                        date_de_permis = nd_date_permis
+                    )
+                    if not nd_client:
+                        return JsonResponse({"error": "pas de nd client"}, status=400)
                 
-        
         searched_model = Modele.objects.filter(name=modele).first()
 
         if not searched_model : 
@@ -138,16 +146,20 @@ def creer_reservation(request):
 
         vehicule = None
         for vehicule_ in vehicules:
-            reservations_confirmees = Reservation.objects.filter(
-                vehicule=vehicule_,
-                status="confirmee",
-                date_heure_debut__lt=dt_retour,   
-                date_heure_fin__gt=dt_depart     
-            )
-            
-            if not reservations_confirmees.exists():
-                vehicule = vehicule_
-                break 
+            if status_str == "1":
+                reservations_confirmees = Reservation.objects.filter(
+                    vehicule=vehicule_,
+                    status="confirmee",
+                    date_heure_debut__lt=dt_retour,   
+                    date_heure_fin__gt=dt_depart     
+                )
+                
+                if not reservations_confirmees.exists():
+                    vehicule = vehicule_
+                    break 
+            else: 
+                vehicule = vehicule = vehicule_
+                break
 
         if not vehicule:
             return JsonResponse({"error": "Aucun véhicule disponible"}, status=400) 
@@ -169,11 +181,6 @@ def creer_reservation(request):
         
         if opt_nd_driver == "yes":
             nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
-
-        status_str = str(status) if status is not None else None
-        status_char = None
-
-        print("Status : ",status)
 
         if status_str  == "1":
              status_char = "confirmee"
