@@ -402,14 +402,13 @@ def creer_reservation(request):
             ) 
             restitution.save()
             if not livraison : 
-                return JsonResponse({"error": "Livraison non creer"}, status=400)     
-            if not payment : 
-            return JsonResponse({"error": "payment non creer"}, status=400)
-        
-        if not restitution : 
+                return JsonResponse({"error": "Livraison non creer"}, status=400) 
+            if not restitution : 
                 return JsonResponse({"error": "restitution non creer"}, status=400)
-        
-   
+                
+        if not payment : 
+            return JsonResponse({"error": "payment non creer"}, status=400)
+    
         return JsonResponse({"finish":True,"message": "record creer avec succé", "reservation_name":reservation.name}, status=200)       
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
