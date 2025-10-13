@@ -32,6 +32,7 @@ from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def creer_reservation(request):
