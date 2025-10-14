@@ -1905,3 +1905,73 @@ class BlockCar(models.Model):
     class Meta:
         verbose_name = 'Blocker un vehicule'
         db_table = 'block_car'
+
+class ReservationCorrection(models.Model):
+    # Relations Many2one -> ForeignKey
+    reservation = models.ForeignKey(
+        Reservation,
+        on_delete=models.CASCADE,
+        db_column='reservation',
+        related_name="corrections",
+        verbose_name="Réservation"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('en_attend', 'En attente'),
+            ('rejete', 'Rejeté'),
+            ('annule', 'Annulé'),
+            ('confirmee', 'Confirmé'),
+        ],
+        verbose_name="État confirmation",
+        blank=True,
+        null=True
+    )
+
+    date_depart = models.DateField(verbose_name="Date départ", blank=True, null=True)
+    date_retour = models.DateField(verbose_name="Date retour", blank=True, null=True)
+    heure_depart = models.CharField(max_length=10, verbose_name="Heure départ", blank=True, null=True)
+    heure_retour = models.CharField(max_length=10, verbose_name="Heure retour", blank=True, null=True)
+
+    vehicule = models.ForeignKey(
+        Vehicule,
+        on_delete=models.SET_NULL,
+        db_column='vehicule',
+        related_name="corrections",
+        verbose_name="Véhicule",
+        blank=True,
+        null=True
+    )
+
+    status_new = models.CharField(
+        max_length=20,
+        choices=[
+            ('en_attend', 'En attente'),
+            ('rejete', 'Rejeté'),
+            ('annule', 'Annulé'),
+            ('confirmee', 'Confirmé'),
+        ],
+        verbose_name="Nouvel état confirmation",
+        blank=True,
+        null=True
+    )
+
+    date_depart_new = models.DateField(verbose_name="Nouvelle date départ", blank=True, null=True)
+    date_retour_new = models.DateField(verbose_name="Nouvelle date retour", blank=True, null=True)
+    heure_depart_new = models.CharField(max_length=10, verbose_name="Nouvelle heure départ", blank=True, null=True)
+    heure_retour_new = models.CharField(max_length=10, verbose_name="Nouvelle heure retour", blank=True, null=True)
+
+    vehicule_new = models.ForeignKey(
+        Vehicule,
+        on_delete=models.SET_NULL,
+        db_column='vehicule_new',
+        related_name="corrections_new",
+        verbose_name="Nouveau véhicule",
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        verbose_name = 'reservation correction'
+        db_table = 'reservation_correction'
