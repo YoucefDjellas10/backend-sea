@@ -80,6 +80,14 @@ def creer_reservation(request):
                 return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
             except:
                 return None
+        def parse_only_date(date_str):
+            if not date_str:
+                return None
+            try:
+                # Parser au format dd/mm/yyyy
+                return datetime.strptime(date_str, "%d/%m/%Y").date()
+            except:
+                return None
 
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         if lieu_depart and lieu_retour:
@@ -111,7 +119,7 @@ def creer_reservation(request):
         dt_cancel_date = parse_date(cancel_date)
         dt_date_valid_depart = parse_date(date_valid_depart)
         dt_date_valid_retour = parse_date(date_valid_retour)
-        dt_nd_date_permis = parse_date(nd_date_permis)
+        dt_nd_date_permis = parse_only_date(nd_date_permis)
 
         nom = re.sub(r'\s+', ' ', nom.strip()).upper()
         prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
