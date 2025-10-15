@@ -80,13 +80,16 @@ def creer_reservation(request):
                 return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
             except:
                 return None
+            
         def parse_only_date(date_str):
             if not date_str:
                 return None
             try:
-                # Parser au format dd/mm/yyyy
-                return datetime.strptime(date_str, "%d/%m/%Y").date()
-            except:
+                # Parser dd/mm/yyyy → puis reformater en yyyy-mm-dd
+                dt = datetime.strptime(date_str, "%d/%m/%Y")
+                return dt.strftime("%Y-%m-%d")
+            except Exception as e:
+                print("Erreur parse_only_date:", e)
                 return None
 
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
@@ -276,7 +279,7 @@ def creer_reservation(request):
             solde = client.solde,
             nom_nd_condicteur = nd_nom if nd_nom else None,
             prenom_nd_condicteur = nd_prenom if nd_prenom else None,
-            date_de_permis=nd_date_permis if nd_date_permis else None,
+            date_de_permis=dt_nd_date_permis,
             opt_klm = klm_a_illimite,
             opt_klm_name = klm_a_illimite.name,
             opt_klm_total = 0,
