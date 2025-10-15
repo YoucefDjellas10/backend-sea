@@ -276,7 +276,7 @@ def creer_reservation(request):
             solde = client.solde,
             nom_nd_condicteur = nd_nom if nd_nom else None,
             prenom_nd_condicteur = nd_prenom if nd_prenom else None,
-            date_de_permis=dt_nd_date_permis,
+            date_de_permis=nd_date_permis if nd_date_permis else None,
             opt_klm = klm_a_illimite,
             opt_klm_name = klm_a_illimite.name,
             opt_klm_total = 0,
