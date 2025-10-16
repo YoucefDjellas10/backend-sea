@@ -71,12 +71,10 @@ def creer_reservation(request):
         ret_note = data.get("ret_note")
         caution = data.get("caution")
 
-        # Fonction pour parser les dates au format dd/mm/yyyy HH:MM
         def parse_date(date_str):
             if not date_str:
                 return None
             try:
-                # Parser au format dd/mm/yyyy HH:MM
                 return datetime.strptime(date_str, "%d/%m/%Y %H:%M")
             except:
                 return None
@@ -85,7 +83,6 @@ def creer_reservation(request):
             if not date_str:
                 return None
             try:
-                # Parser dd/mm/yyyy → puis reformater en yyyy-mm-dd
                 dt = datetime.strptime(date_str, "%d/%m/%Y")
                 return dt.strftime("%Y-%m-%d")
             except Exception as e:
@@ -159,28 +156,22 @@ def creer_reservation(request):
         vehicule = None
         for vehicule_ in vehicules:
             if status_str == "1":
-                # Construire les datetime de la nouvelle réservation
-                nouvelle_depart = dt_depart  # datetime
-                nouvelle_retour = dt_retour  # datetime
+                nouvelle_depart = dt_depart  
+                nouvelle_retour = dt_retour  
                 
-                # Récupérer toutes les réservations confirmées du véhicule
                 reservations_confirmees = Reservation.objects.filter(
                     vehicule=vehicule_,
                     status="confirmee"
                 )
                 
-                # Vérifier manuellement les chevauchements
                 vehicule_dispo = True
                 for res in reservations_confirmees:
-                    # Reconstruire les datetime de la réservation existante
                     res_depart_str = f"{res.date_depart_char} {res.heure_depart_char}"
                     res_retour_str = f"{res.date_retour_char} {res.heure_retour_char}"
                     
                     res_depart = datetime.strptime(res_depart_str, "%d/%m/%Y %H:%M")
                     res_retour = datetime.strptime(res_retour_str, "%d/%m/%Y %H:%M")
                     
-                    # Vérifier s'il y a chevauchement
-                    # Il y a chevauchement si : début_existant < fin_nouvelle ET fin_existante > début_nouvelle
                     if res_depart < nouvelle_retour and res_retour > nouvelle_depart:
                         vehicule_dispo = False
                         break
