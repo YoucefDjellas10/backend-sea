@@ -1026,8 +1026,8 @@ class Reservation(models.Model):
     total = models.IntegerField(editable=False)
     total_reduit = models.IntegerField(editable=False)
     total_reduit_euro = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
-    total_revenue = models.FloatField(max_digits=12, decimal_places=2, editable=False)
-    montant_paye = models.FloatField(max_digits=12, decimal_places=2, editable=False)
+    total_revenue = models.FloatField(decimal_places=2, editable=False)
+    montant_paye = models.FloatField(decimal_places=2, editable=False)
     du_au = models.CharField(max_length=255, editable=False)
 
     total_afficher = models.IntegerField(editable=False)
