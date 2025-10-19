@@ -129,11 +129,11 @@ def creer_reservation(request):
             client=ListeClient.objects.filter(nom=prenom, prenom=nom).first()
             if not client: 
                 return JsonResponse({"error": "pas de client"}, status=400)
-            
+        
+        nd_client = None            
         if nd_nom and nd_prenom :
             nd_nom = re.sub(r'\s+', ' ', nd_nom.strip()).upper()
             nd_prenom = re.sub(r'\s+', ' ', nd_prenom.strip()).upper()
-            nd_client = None
             nd_client=ListeClient.objects.filter(nom=nd_nom, prenom=nd_prenom).first()
             if not nd_client:
                 nd_client=ListeClient.objects.filter(nom=nd_prenom, prenom=nd_nom).first()
@@ -294,7 +294,11 @@ def creer_reservation(request):
             total_reduit = total,
             total_reduit_euro = total,       
             confirmation_date=dt_confirmation_date,
-            cancelation_date=dt_cancel_date
+            cancelation_date=dt_cancel_date,
+            reste_payer = total,
+            total_revenue = 0,
+            montant_paye = 0,
+            nd_client = nd_client if nd_client else None
         )  
         reservation.save()
 
@@ -324,6 +328,9 @@ def creer_reservation(request):
                 total_encaisse=total,  
             )
             payment.save()
+            reservation.reste_payer = 0
+            reservation.montant_paye = total
+            reservation.total_revenue = total
         
         else:
             payment = Payment.objects.create(
@@ -345,6 +352,9 @@ def creer_reservation(request):
                 total_encaisse=5,  
             )
             payment.save()
+            reservation.reste_payer = float(total) - float(5)
+            reservation.montant_paye = 5
+            reservation.total_revenue = 5
 
 
         if reservation.status == "confirmee":
@@ -3567,7 +3577,8 @@ def add_reservation_post_view(request):
             total_afficher_reduit = total_afficher_red,
             prix_jour_afficher_reduit = last_prix_unitaire,
             total_reduit = last_total,
-            total_reduit_euro = last_total
+            total_reduit_euro = last_total,
+            reste_payer = last_total
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
