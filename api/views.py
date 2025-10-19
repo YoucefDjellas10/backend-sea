@@ -150,9 +150,15 @@ def creer_reservation(request):
 
         model_name = None
         vehicule = None
+        klm_a_illimite = None
+        protection = None
 
         if not searched_model : 
             model_name = modele
+            klm_a_illimite = Options.objects.filter(option_code__icontains="KLM_ILLIMITED", zone= lieu_depart_obj.zone).first()
+                
+            protection = Options.objects.filter(option_code__icontains="STANDART", zone= lieu_depart_obj.zone).first()
+
         else : 
             vehicules = Vehicule.objects.filter(modele=searched_model,zone=zone)
             for vehicule_ in vehicules:
@@ -186,9 +192,9 @@ def creer_reservation(request):
 
             if not vehicule:
                 return JsonResponse({"error": "Aucun véhicule disponible"}, status=400)       
-        klm_a_illimite = Options.objects.filter(option_code__icontains="KLM_ILLIMITED",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
-               
-        protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
+            klm_a_illimite = Options.objects.filter(option_code__icontains="KLM_ILLIMITED",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
+                
+            protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
 
         carburant = None
         sb_a = None
@@ -271,11 +277,11 @@ def creer_reservation(request):
             nom_nd_condicteur = nd_nom if nd_nom else None,
             prenom_nd_condicteur = nd_prenom if nd_prenom else None,
             date_de_permis=dt_nd_date_permis,
-            opt_klm = klm_a_illimite,
-            opt_klm_name = klm_a_illimite.name,
+            opt_klm = klm_a_illimite if klm_a_illimite else None,
+            opt_klm_name = klm_a_illimite.name if klm_a_illimite else None,
             opt_klm_total = 0,
-            opt_protection = protection,
-            opt_protection_name = protection.name,
+            opt_protection = protection if protection else None,
+            opt_protection_name = protection.name if protection else None,
             opt_protection_caution= caution,
             opt_protection_price=0,
             opt_protection_total=0,
