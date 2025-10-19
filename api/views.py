@@ -141,7 +141,6 @@ def creer_reservation(request):
                     nd_client = ListeClient.objects.create(
                         nom = nd_nom,
                         prenom = nd_prenom,
-                        date_de_permis = nd_date_permis
                     )
                     if not nd_client:
                         return JsonResponse({"error": "pas de nd client"}, status=400)
@@ -189,9 +188,12 @@ def creer_reservation(request):
                 else: 
                     vehicule = vehicule_
                     break
+            if not vehicule and vehicules.exists():
+                vehicule = vehicules.first()
 
             if not vehicule:
-                return JsonResponse({"error": "Aucun véhicule disponible"}, status=400)       
+                return JsonResponse({"error": "Aucun véhicule disponible"}, status=400)
+      
             klm_a_illimite = Options.objects.filter(option_code__icontains="KLM_ILLIMITED",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
                 
             protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
@@ -337,6 +339,7 @@ def creer_reservation(request):
             reservation.reste_payer = 0
             reservation.montant_paye = total
             reservation.total_revenue = total
+            reservation.save()
         
         else:
             payment = Payment.objects.create(
@@ -361,6 +364,7 @@ def creer_reservation(request):
             reservation.reste_payer = float(total) - float(5)
             reservation.montant_paye = 5
             reservation.total_revenue = 5
+            reservation.save()
 
 
         if reservation.status == "confirmee":
