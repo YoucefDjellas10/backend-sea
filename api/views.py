@@ -148,43 +148,44 @@ def creer_reservation(request):
                 
         searched_model = Modele.objects.filter(name=modele).first()
 
-        if not searched_model : 
-            return JsonResponse({"error": "pas de modele"}, status=400)
-        
-        vehicules = Vehicule.objects.filter(modele=searched_model,zone=zone)
-
+        model_name = None
         vehicule = None
-        for vehicule_ in vehicules:
-            if status_str == "1":
-                nouvelle_depart = dt_depart  
-                nouvelle_retour = dt_retour  
-                
-                reservations_confirmees = Reservation.objects.filter(
-                    vehicule=vehicule_,
-                    status="confirmee"
-                )
-                
-                vehicule_dispo = True
-                for res in reservations_confirmees:
-                    res_depart_str = f"{res.date_depart_char} {res.heure_depart_char}"
-                    res_retour_str = f"{res.date_retour_char} {res.heure_retour_char}"
+
+        if not searched_model : 
+            model_name = modele
+        else : 
+            vehicules = Vehicule.objects.filter(modele=searched_model,zone=zone)
+            for vehicule_ in vehicules:
+                if status_str == "1":
+                    nouvelle_depart = dt_depart  
+                    nouvelle_retour = dt_retour  
                     
-                    res_depart = datetime.strptime(res_depart_str, "%d/%m/%Y %H:%M")
-                    res_retour = datetime.strptime(res_retour_str, "%d/%m/%Y %H:%M")
+                    reservations_confirmees = Reservation.objects.filter(
+                        vehicule=vehicule_,
+                        status="confirmee"
+                    )
                     
-                    if res_depart < nouvelle_retour and res_retour > nouvelle_depart:
-                        vehicule_dispo = False
+                    vehicule_dispo = True
+                    for res in reservations_confirmees:
+                        res_depart_str = f"{res.date_depart_char} {res.heure_depart_char}"
+                        res_retour_str = f"{res.date_retour_char} {res.heure_retour_char}"
+                        
+                        res_depart = datetime.strptime(res_depart_str, "%d/%m/%Y %H:%M")
+                        res_retour = datetime.strptime(res_retour_str, "%d/%m/%Y %H:%M")
+                        
+                        if res_depart < nouvelle_retour and res_retour > nouvelle_depart:
+                            vehicule_dispo = False
+                            break
+                    
+                    if vehicule_dispo:
+                        vehicule = vehicule_
                         break
-                
-                if vehicule_dispo:
+                else: 
                     vehicule = vehicule_
                     break
-            else: 
-                vehicule = vehicule_
-                break
 
-        if not vehicule:
-            return JsonResponse({"error": "Aucun véhicule disponible"}, status=400)       
+            if not vehicule:
+                return JsonResponse({"error": "Aucun véhicule disponible"}, status=400)       
         klm_a_illimite = Options.objects.filter(option_code__icontains="KLM_ILLIMITED",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
                
         protection = Options.objects.filter(option_code__icontains="STANDART",categorie=searched_model.categorie, zone= lieu_depart_obj.zone).first()
@@ -217,7 +218,6 @@ def creer_reservation(request):
         if now > dt_depart :
             etat_reser = "loue"
 
-
         reservation = Reservation.objects.create(
             note_lv_d=note_depart,
             note_lv_r=note_retour,
@@ -240,21 +240,21 @@ def creer_reservation(request):
             address_ar = depart.address_ar,
             lieu_retour = retour,
             depart_retour = depart_retour_string,
-            vehicule = vehicule,
-            modele = vehicule.modele,
-            categorie = vehicule.categorie,
-            carburant = vehicule.carburant,
-            matricule = vehicule.matricule,
-            numero = vehicule.numero,
-            model_name = vehicule.model_name,
-            marketing_text_fr = vehicule.marketing_text_fr,
-            photo_link_nd = vehicule.photo_link_nd,
-            photo_link = vehicule.photo_link,
-            nombre_deplace = vehicule.nombre_deplace,
-            nombre_de_porte = vehicule.nombre_de_porte,
-            nombre_de_bagage = vehicule.nombre_de_bagage,
-            boite_vitesse = vehicule.boite_vitesse,
-            age_min = vehicule.age_min,
+            vehicule = vehicule if vehicule else None,
+            modele = vehicule.modele if vehicule else None,
+            categorie = vehicule.categorie if vehicule else None,
+            carburant = vehicule.carburant if vehicule else None,
+            matricule = vehicule.matricule if vehicule else None,
+            numero = vehicule.numero if vehicule else None,
+            model_name = vehicule.model_name if vehicule else model_name,
+            marketing_text_fr = vehicule.marketing_text_fr if vehicule else None,
+            photo_link_nd = vehicule.photo_link_nd if vehicule else None,
+            photo_link = vehicule.photo_link if vehicule else None,
+            nombre_deplace = vehicule.nombre_deplace if vehicule else None,
+            nombre_de_porte = vehicule.nombre_de_porte if vehicule else None,
+            nombre_de_bagage = vehicule.nombre_de_bagage if vehicule else None,
+            boite_vitesse = vehicule.boite_vitesse if vehicule else None,
+            age_min = vehicule.age_min if vehicule else None,
             client = client,
             client_create_date = client.create_date if client.create_date is not None else None,
             nom = client.nom,
