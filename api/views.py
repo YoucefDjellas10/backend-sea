@@ -71,10 +71,6 @@ def creer_reservation(request):
         ret_note = data.get("ret_note")
         caution = data.get("caution")
 
-        old_resa = Reservation.objects.filter(name=ref)
-        if old_resa : 
-            return JsonResponse({"error": "reservation existe deja"}, status=400)
-
         def parse_date(date_str):
             if not date_str:
                 return None
