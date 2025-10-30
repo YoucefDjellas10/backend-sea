@@ -538,10 +538,47 @@ def cancel__button_view(request):
                 status='en_attente',
                 date=datetime.now()
             )
+            
+            sujet = f"Annulation de votre reservation N°= {reservation.name}"
+            expediteur = settings.EMAIL_HOST_USER
+            
+            html_message = render_to_string('email/annulation_email.html', {
+                "referance":reservation.name,
+                "annuler_raison":reservation.annuler_raison.name,
+                "client":reservation.client.name,
+            })
+
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [reservation.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
             return JsonResponse({
                 "message": "Réservation annulée avec succès, remboursement en attente",
                 "remboursement_id": remboursement.id
             }, status=200)
+        
+        
+        sujet = f"Annulation de votre reservation N°= {reservation.name}"
+        expediteur = settings.EMAIL_HOST_USER
+        
+        html_message = render_to_string('email/annulation_email.html', {
+            "referance":reservation.name,
+            "annuler_raison":reservation.annuler_raison.name,
+            "client":reservation.client.name,
+        })
+
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
 
         return JsonResponse({"message": "Réservation annulée avec succès, pas de remboursement"}, status=200)
 
