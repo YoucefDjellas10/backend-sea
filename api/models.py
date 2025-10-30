@@ -516,9 +516,8 @@ class ListeClient(models.Model):
         self.name = f"{self.civilite or ''} {self.nom} {self.prenom or ''}".strip()
 
     def compute_code_prime(self):
-        """Génère un code prime respectant le format '01AAxxxx'."""
-        year_suffix = str(datetime.now().year)[-2:]  # Récupère les 2 derniers chiffres de l'année
-        random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))  # Génère 4 caractères aléatoires
+        year_suffix = str(datetime.now().year)[-2:]  
+        random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4)) 
         self.code_prime = f"01{year_suffix}{random_part}"
 
     def compute_total_points_char(self):
@@ -526,7 +525,6 @@ class ListeClient(models.Model):
         self.total_points_char = f"{self.total_points} pts" if self.total_points is not None else ""
 
     def save(self, *args, **kwargs):
-        # Calculer les champs dépendants avant de sauvegarder
         self.compute_full_name()
         self.compute_code_prime()
         self.compute_total_points_char()
