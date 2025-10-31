@@ -11,9 +11,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'no-reply@safarelamir.com'
+EMAIL_HOST_USER = 'no-replay@safarelamir.com'
 EMAIL_HOST_PASSWORD = 'zxcn yjjr eekz rhks'
-DEFAULT_FROM_EMAIL = 'no-reply@safarelamir.com'
+DEFAULT_FROM_EMAIL = 'no-replay@safarelamir.com'
 ROOT_URLCONF = 'crud.urls'
 
 APPEND_SLASH = False
