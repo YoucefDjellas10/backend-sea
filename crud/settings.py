@@ -12,7 +12,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'no-reply@safarelamir.com'
-EMAIL_HOST_PASSWORD = 'crbu ewvz agke cytf'
+EMAIL_HOST_PASSWORD = 'zxcn yjjr eekz rhks'
 DEFAULT_FROM_EMAIL = 'no-reply@safarelamir.com'
 ROOT_URLCONF = 'crud.urls'
 
