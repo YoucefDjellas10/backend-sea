@@ -2936,6 +2936,7 @@ def add_reservation_post_view(request):
         client_id = data.get("client_id")
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
+        token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
 
         prix_jour = 0
@@ -3646,7 +3647,8 @@ def add_reservation_post_view(request):
                     "reservation_id": reservation.id,
                     "montant_total":last_total,
                     "montant_paye":montant_a_paye,
-                    "email": reservation.email
+                    "email": reservation.email,
+                    "token":token
 
                 }),
                 content_type="application/json"
@@ -3679,6 +3681,8 @@ def create_payment_session_reservation(request):
         currency = data.get("currency", "eur")
         reservation_id = data.get("reservation_id")
         customer_email = data.get("email")
+        token = data.get("token")
+
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
@@ -3703,7 +3707,7 @@ def create_payment_session_reservation(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safar.ranwip.com/confirmation/{reservation_id}",
+            success_url=f"https://safar.ranwip.com/confirmation/{reservation_id}?token={token}",
             cancel_url="https://safar.ranwip.com/cancel",
             customer_email=customer_email,
             metadata={
