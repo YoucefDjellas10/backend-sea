@@ -12,7 +12,8 @@ EMAIL_HOST = 'ssl0.ovh.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'no-reply@safarelamir.com'
-EMAIL_HOST_PASSWORD = 'crbu ewvz agke cyt'
+EMAIL_HOST_PASSWORD = 'SafarElAmir@10.'
+DEFAULT_FROM_EMAIL = 'no-reply@safarelamir.com'
 ROOT_URLCONF = 'crud.urls'
 
 APPEND_SLASH = False
