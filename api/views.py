@@ -1794,7 +1794,7 @@ def solde_history_view_(request):
         response_data = {
             'data': history_data,
             'pagination': {
-                'total':total_consome * taux,
+                'total':float(total_consome) * float(taux) if total_consome is not None else 0,
                 'current_page': history_page.number,
                 'total_pages': paginator.num_pages,
                 'total_records': paginator.count,
