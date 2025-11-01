@@ -1061,6 +1061,8 @@ def confirmation_download(request):
     else : 
         nd_client_name = " "
         permi_desc = " "
+
+    limit_klm = livraison.nbr_jour_reservation * 250
     
     context = {
         "REF": livraison.name,
@@ -1088,7 +1090,7 @@ def confirmation_download(request):
         "NUM_VOL": livraison.num_vol,
         "RESTE_PAYE":livraison.reste_payer,
         "VERSER": livraison.total_reduit_euro - livraison.reste_payer,
-        "klm_limit": livraison.nbr_jour_reservation * 250 if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
+        "klm_limit": f"{limit_klm} km (0,4 €/km supplémentaire)" if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
         "protection":livraison.opt_protection.name
 
     }
