@@ -1088,7 +1088,7 @@ def confirmation_download(request):
         "NUM_VOL": livraison.num_vol,
         "RESTE_PAYE":livraison.reste_payer,
         "VERSER": livraison.total_reduit_euro - livraison.reste_payer,
-        "klm_limit": livraison.nbr_jour_reservation * 250,
+        "klm_limit": livraison.nbr_jour_reservation * 250 if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
         "protection":livraison.opt_protection.name
 
     }
