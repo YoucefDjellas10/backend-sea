@@ -1739,7 +1739,7 @@ def coming_soon_email_view(request):
         return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def solde_history_view(request):
+def solde_history_view_(request):
     try :
         client_id = request.GET.get("client_id")
         page_number = request.GET.get("page")
