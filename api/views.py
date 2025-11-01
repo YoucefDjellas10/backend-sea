@@ -1785,7 +1785,7 @@ def solde_history_view(request):
                     'label': record.reservation.name,
                     'label_en': record.reservation.name,
                     'label_ar': record.reservation.name,
-                    'montant': float(record.montant) * float(taux) if record.montant else 0,
+                    'montant': float(record.montant) * float(taux) if record.montant is not None else 0,
                     'status':"paiement",
                     'reservation': record.reservation.name
                 }
