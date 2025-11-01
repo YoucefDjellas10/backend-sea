@@ -973,7 +973,7 @@ def ma_reservation_detail(ref, email, country_code):
             taux_change = taux.montant
             if ma_reservation :
                 result.append({
-                    "currency":"DA",
+                    "currency":"EUR",
                     'can_cancel': can_cancel,
                     "can_midify":can_midify,
                     "can_modify_return":can_modify_return,
