@@ -918,9 +918,9 @@ def combined_document_download(request):
     }
 
     birthday_date_contract = livraison.client.date_de_naissance
-    birthday_contract = birthday_date_contract.strftime("%d %B %Y")
+    birthday_contract = birthday_date_contract.strftime("%d %B %Y") if birthday_contract else None 
     permis_contract = livraison.client.date_de_permis
-    permit_date_contract = permis_contract.strftime("%B/%Y")
+    permit_date_contract = permis_contract.strftime("%B/%Y") if permis_contract else None 
 
     signature_url = f"https://api.safarelamir.com/signature/{livraison.id}/"
 
