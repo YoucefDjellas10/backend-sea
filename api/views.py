@@ -855,7 +855,7 @@ def combined_document_download(request):
     heure_fin = date_heure_retour.strftime("%H:%M")
     birthday_date = None
     permis = None
-    
+
     birthday_date = reservation.client.date_de_naissance
     birthday = birthday_date.strftime("%d %B %Y") if birthday_date else None 
     permis = reservation.client.date_de_permis
@@ -889,6 +889,8 @@ def combined_document_download(request):
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
 
+    limit_klm = livraison.nbr_jour_reservation * 250
+    
     confirmation_context = {
         "REF": reservation.name,
         "SERVICE": reservation.lieu_depart.mobile,
@@ -915,7 +917,7 @@ def combined_document_download(request):
         "NUM_VOL": reservation.num_vol,
         "RESTE_PAYE": reservation.reste_payer,
         "VERSER": reservation.total_reduit_euro - reservation.reste_payer,
-        "klm_limit": reservation.nbr_jour_reservation * 250,
+        "klm_limit": f"{limit_klm} km (0,4 €/km supplémentaire)" if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
         "protection": reservation.opt_protection.name
     }
     birthday_contract = None
