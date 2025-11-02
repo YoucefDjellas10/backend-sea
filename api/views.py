@@ -853,7 +853,9 @@ def combined_document_download(request):
     heure_debut = date_heure_depart.strftime("%H:%M")  
     date_fin = date_heure_retour.strftime("%d %B %Y")
     heure_fin = date_heure_retour.strftime("%H:%M")
-
+    birthday_date = None
+    permis = None
+    
     birthday_date = reservation.client.date_de_naissance
     birthday = birthday_date.strftime("%d %B %Y") if birthday_date else None 
     permis = reservation.client.date_de_permis
@@ -916,6 +918,8 @@ def combined_document_download(request):
         "klm_limit": reservation.nbr_jour_reservation * 250,
         "protection": reservation.opt_protection.name
     }
+    birthday_contract = None
+    permis_contract = None
 
     birthday_date_contract = livraison.client.date_de_naissance
     birthday_contract = birthday_date_contract.strftime("%d %B %Y") if birthday_contract else None 
