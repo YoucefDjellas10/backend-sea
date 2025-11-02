@@ -855,9 +855,9 @@ def combined_document_download(request):
     heure_fin = date_heure_retour.strftime("%H:%M")
 
     birthday_date = reservation.client.date_de_naissance
-    birthday = birthday_date.strftime("%d %B %Y")
+    birthday = birthday_date.strftime("%d %B %Y") if birthday_date else None 
     permis = reservation.client.date_de_permis
-    permit_date = permis.strftime("%B/%Y")
+    permit_date = permis.strftime("%B/%Y") if permis else None
 
     taux_change = TauxChange.objects.get(id=2)
     taux = taux_change.montant
@@ -1020,10 +1020,10 @@ def confirmation_download(request):
     heure_fin = date_heure_retour.strftime("%H:%M")
 
     birthday_date = livraison.client.date_de_naissance
-    birthday = birthday_date.strftime("%d %B %Y")
+    birthday = birthday_date.strftime("%d %B %Y") if birthday_date else None
 
     permis = livraison.client.date_de_permis
-    permit_date = permis.strftime("%B/%Y")
+    permit_date = permis.strftime("%B/%Y") if permis else None
 
     taux_change = TauxChange.objects.get(id=2)
     taux = taux_change.montant
