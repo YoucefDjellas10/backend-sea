@@ -839,7 +839,7 @@ def combined_document_download(request):
     
     if reservation_id:
         reservation = Reservation.objects.get(id=reservation_id)
-        livraison = reservation.livraison  
+        livraison = Livraison.objects.filter(reservation=reservation).first()  
     elif livraison_id:
         livraison = Livraison.objects.get(id=livraison_id)
         reservation = livraison.reservation
