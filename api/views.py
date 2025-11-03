@@ -2213,9 +2213,9 @@ def get_all_categories(request):
         ]
         options_ar = [opt for opt in options_ar if opt is not None]
         options_ar = list(dict.fromkeys(options_ar))
-        options_en = [
+        options_ar = [
             "تأمين حماية قصوى مجاني" if opt.strip().lower() == "الحد الأقصى" else opt
-            for opt in options_en
+            for opt in options_ar
         ]
 
         # Si on a au moins une option dans une des langues
