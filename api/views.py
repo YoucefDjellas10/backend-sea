@@ -540,6 +540,7 @@ def cancel__button_view(request):
             )
             
             sujet = f"Annulation de votre reservation N°= {reservation.name}"
+            sujet_ceo = f"Annulation de  reservation N°= {reservation.name}"
             expediteur = settings.EMAIL_HOST_USER
             
             html_message = render_to_string('email/annulation_email.html', {
@@ -547,6 +548,24 @@ def cancel__button_view(request):
                 "annuler_raison":reservation.annuler_raison.name,
                 "client":reservation.client.name,
             })
+            html_message_ceo = """
+                <p>Bonjour,</p>
+
+                <p>Une réservation vient d’être <strong>annulée</strong>.<br>
+                Voici les détails :</p>
+
+                <ul>
+                    <li><strong>Client :</strong> {reservation.client.name}</li>
+                    <li><strong>Référence :</strong> {reservation.name}</li>
+                    <li><strong>Cause d’annulation :</strong> {reservation.annuler_raison.name}</li>
+                    <li><strong>Montant a rembourser :</strong> {montant_ref}</li>
+                </ul>
+
+                <p>Ceci est une notification automatique pour information.</p>
+
+                <p>Cordialement,<br>
+                Le système Backoffice</p>
+                """
 
             send_mail(
                 sujet,
@@ -556,6 +575,14 @@ def cancel__button_view(request):
                 html_message=html_message,
                 fail_silently=False,
             )
+            send_mail(
+                sujet_ceo,
+                strip_tags(html_message_ceo),  
+                expediteur,
+                ["contact@safarelamir.com"],
+                html_message=html_message_ceo,
+                fail_silently=False,
+            )
             return JsonResponse({
                 "message": "Réservation annulée avec succès, remboursement en attente",
                 "remboursement_id": remboursement.id
@@ -563,13 +590,27 @@ def cancel__button_view(request):
         
         
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
+        sujet_ceo = f"Annulation de  reservation N°= {reservation.name}"
         expediteur = settings.EMAIL_HOST_USER
         
-        html_message = render_to_string('email/annulation_email.html', {
-            "referance":reservation.name,
-            "annuler_raison":reservation.annuler_raison.name,
-            "client":reservation.client.name,
-        })
+        html_message_ceo = """
+                <p>Bonjour,</p>
+
+                <p>Une réservation vient d’être <strong>annulée</strong>.<br>
+                Voici les détails :</p>
+
+                <ul>
+                    <li><strong>Client :</strong> {reservation.client.name}</li>
+                    <li><strong>Référence :</strong> {reservation.name}</li>
+                    <li><strong>Cause d’annulation :</strong> {reservation.annuler_raison.name}</li>
+                    <li><strong>Pas de remboursement</strong></li>
+                </ul>
+
+                <p>Ceci est une notification automatique pour information.</p>
+
+                <p>Cordialement,<br>
+                Le système Backoffice</p>
+                """
 
         send_mail(
             sujet,
@@ -577,6 +618,14 @@ def cancel__button_view(request):
             expediteur,
             [reservation.email],
             html_message=html_message,
+            fail_silently=False,
+        )
+        send_mail(
+            sujet_ceo,
+            strip_tags(html_message_ceo),  
+            expediteur,
+            ["contact@safarelamir.com"],
+            html_message=html_message_ceo,
             fail_silently=False,
         )
 
@@ -4470,13 +4519,32 @@ def cancel_do_view(request):
         reservation.save()
 
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
+        sujet_ceo = f"Annulation de  reservation N°= {reservation.name}"
         expediteur = settings.EMAIL_HOST_USER
-
+        
         html_message = render_to_string('email/annulation_email.html', {
             "referance":reservation.name,
             "annuler_raison":reservation.annuler_raison.name,
             "client":reservation.client.name,
         })
+        html_message_ceo = """
+            <p>Bonjour,</p>
+
+            <p>Une réservation vient d’être <strong>annulée</strong>.<br>
+            Voici les détails :</p>
+
+            <ul>
+                <li><strong>Client :</strong> {reservation.client.name}</li>
+                <li><strong>Référence :</strong> {reservation.name}</li>
+                <li><strong>Cause d’annulation :</strong> {reservation.annuler_raison.name}</li>
+                <li><strong>Montant a rembourser :</strong> {montant_ref}</li>
+            </ul>
+
+            <p>Ceci est une notification automatique pour information.</p>
+
+            <p>Cordialement,<br>
+            Le système Backoffice</p>
+            """
 
         send_mail(
             sujet,
@@ -4484,6 +4552,14 @@ def cancel_do_view(request):
             expediteur,
             [reservation.email],
             html_message=html_message,
+            fail_silently=False,
+        )
+        send_mail(
+            sujet_ceo,
+            strip_tags(html_message_ceo),  
+            expediteur,
+            ["contact@safarelamir.com"],
+            html_message=html_message_ceo,
             fail_silently=False,
         )
         taux = TauxChange.objects.filter(id=2).first()
