@@ -2406,11 +2406,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             for frais in frais_livraison:
                 total += frais.montant if frais else 0
         else :
-            transit_lieu = lieu_depart_obj.zone.transmission_point
-            frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=transit_lieu).first()
-            frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour_id).first()
-            total += frais_livraison_one.montant + frais_livraison_two.montant if frais_livraison_one and frais_livraison_two else 0
-                   
+            trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
+            chemins_possibles = [(lieu_depart_id, 0, set())]  # (position, total, lieux_visités)
+
+            meilleur_cout = None
+
+            while chemins_possibles:
+                pos, cout, visites = chemins_possibles.pop()
+                visites = visites | {pos}
+
+                for t in trajets:
+                    if t['depart_id'] == pos and t['retour_id'] not in visites:
+                        nouveau_cout = cout + (t['montant'] or 0)
+                        if t['retour_id'] == lieu_retour_id:
+                            if meilleur_cout is None or nouveau_cout < meilleur_cout:
+                                meilleur_cout = nouveau_cout
+                        else:
+                            chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+
+            total += (meilleur_cout or 0)     
         supplements_one = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
         ).first()
