@@ -2170,6 +2170,7 @@ def get_all_categories(request):
             cat.option_ten.name if cat.option_ten else None,
         ]
         options_fr = [opt for opt in options_fr if opt is not None]
+        options_fr = list(dict.fromkeys(options_fr))
 
         # Options EN
         options_en = [
@@ -2186,6 +2187,7 @@ def get_all_categories(request):
             cat.option_ten.name_en if cat.option_ten else None,
         ]
         options_en = [opt for opt in options_en if opt is not None]
+        options_en = list(dict.fromkeys(options_en))
 
         # Options AR
         options_ar = [
@@ -2202,6 +2204,7 @@ def get_all_categories(request):
             cat.option_ten.name_ar if cat.option_ten else None,
         ]
         options_ar = [opt for opt in options_ar if opt is not None]
+        options_ar = list(dict.fromkeys(options_ar))
 
         # Si on a au moins une option dans une des langues
         if options_fr or options_en or options_ar:
