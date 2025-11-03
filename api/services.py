@@ -1776,7 +1776,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             for frais in frais_livraison:
                 total += float(frais.montant) * taux_change if frais else 0
         else :
-            transit_lieu = lieu_depart_obj.zone.transmission_point
+            transit_lieu = lieu_depart_obj.zone.transmission_point.id
             frais_livraison_one = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=transit_lieu).first()
             frais_livraison_two = FraisLivraison.objects.filter(depart_id=transit_lieu, retour_id=lieu_retour_id).first()
             total += float(frais_livraison_one.montant + frais_livraison_two.montant) * taux_change if frais_livraison_one and frais_livraison_two else 0
