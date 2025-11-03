@@ -2193,7 +2193,7 @@ def get_all_categories(request):
         options_en = [opt for opt in options_en if opt is not None]
         options_en = list(dict.fromkeys(options_en))
         options_en = [
-            "Free Maximal Protection Insurance" if opt.strip().lower() == "Maximum" else opt
+            "Free Maximal Protection Insurance" if opt.strip().lower() == "maximum" else opt
             for opt in options_en
         ]
 
@@ -2214,7 +2214,7 @@ def get_all_categories(request):
         options_ar = [opt for opt in options_ar if opt is not None]
         options_ar = list(dict.fromkeys(options_ar))
         options_ar = [
-            "تأمين حماية قصوى مجاني" if opt.strip().lower() == "الحد الأقصى" else opt
+            "تأمين حماية قصوى مجاني" if "الحد الأقصى" in opt.replace("الاقصى", "الأقصى").strip() else opt
             for opt in options_ar
         ]
 
