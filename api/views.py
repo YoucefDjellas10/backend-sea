@@ -3030,7 +3030,7 @@ def add_reservation_post_view(request):
         token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
         
-        print("la")
+        print("-------- Entréé ---------")
         prix_jour = 0
         total = 0
         last_total = 0
@@ -3045,6 +3045,7 @@ def add_reservation_post_view(request):
         client_solde = 0
 
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
+        print("-------- recuperer lieu ---------")
 
         if not all([date_depart, heure_depart, date_retour, heure_retour]):
             return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
@@ -3055,6 +3056,7 @@ def add_reservation_post_view(request):
         date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
         total_days = (date_retour_obj - date_depart_obj).days
         duree = f"{total_days} jours"
+        print("-------- convertie l'heure ---------")
 
         if date_heure_debut and date_heure_fin:
             date_heure_debut_formate = date_heure_debut.strftime("%d/%m/%Y %H:%M")
@@ -3064,6 +3066,7 @@ def add_reservation_post_view(request):
             heure_debut_char = date_heure_debut.strftime("%H:%M")
             heure_fi_char = date_heure_fin.strftime("%H:%M")
             du_au_string = f"{date_heure_debut_formate} → {date_heure_fin_formate}"
+            print("-------- les hgeures vers char ---------")
         else :
             return JsonResponse({"error": "Les dates ou heures fournies sont invalides."}, status=400)
 
@@ -3072,6 +3075,7 @@ def add_reservation_post_view(request):
             if client :
                 client_solde = int(client.solde) if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
+                print("-------- verifier details client ---------")
             else :
                 return JsonResponse({"error": "client non trouver."}, status=400)
         else:
@@ -3081,6 +3085,7 @@ def add_reservation_post_view(request):
             depart = Lieux.objects.filter(id=lieu_depart).first()
             retour = Lieux.objects.filter(id=lieu_retour).first()
             depart_retour_string = f"{depart.name} → {retour.name}"
+            print("-------- depart retour ---------")
             if depart.zone != retour.zone:
                 return JsonResponse({"error": "zone invalides."}, status=400) 
         
@@ -3094,6 +3099,7 @@ def add_reservation_post_view(request):
                 date_heure_fin__gt=date_heure_debut_av,
                 status="confirmee" 
             )
+            print("-------- verifier la dispo ---------")
 
             if reservations_existantes:
                 return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
@@ -3102,6 +3108,7 @@ def add_reservation_post_view(request):
                 date_fin__gte=date_retour,
                 active_passive=True
             ).first()
+        
             if promotion:
                 zone_match = depart.zone in [promotion.zone_one, promotion.zone_two, promotion.zone_three]
                 model_match = vehicule.modele in [
@@ -3120,6 +3127,7 @@ def add_reservation_post_view(request):
                     promo_value = promotion.reduction
                 else:
                     promo_value = promotion.reduction
+            print("-------- verifier promo ---------")
             tarif = Tarifs.objects.filter(
                ( Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
                 Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
@@ -3129,6 +3137,7 @@ def add_reservation_post_view(request):
                 modele=vehicule.modele,
                 zone=depart.zone 
             ).first()
+            print("-------- verifier tarif ---------")
 
             if tarif :
                 prix_jour = tarif.prix
@@ -3153,7 +3162,7 @@ def add_reservation_post_view(request):
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         
         
-        
+        print("-------- avant les option ---------")
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
             total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else frais_dossier.prix
