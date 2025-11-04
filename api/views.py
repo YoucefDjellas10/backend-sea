@@ -3164,6 +3164,7 @@ def add_reservation_post_view(request):
                 total += frais.montant if frais else 0
                 last_total += frais.montant if frais else 0
                 frais_liv += frais.montant if frais else 0
+                print("laaa")
         else :
             trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
             chemins_possibles = [(lieu_depart, 0, set())]  # (position, total, lieux_visités)
