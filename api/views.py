@@ -3091,6 +3091,7 @@ def add_reservation_post_view(request):
         
         if vehicule_id :
             vehicule = Vehicule.objects.filter(id=vehicule_id).first()
+            print("-------- vehicule ",vehicule.name," ---------")
             date_heure_debut_av = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
             date_heure_fin_av = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
             reservations_existantes = Reservation.objects.filter(
