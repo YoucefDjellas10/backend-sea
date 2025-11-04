@@ -3086,8 +3086,7 @@ def add_reservation_post_view(request):
             retour = Lieux.objects.filter(id=lieu_retour).first()
             depart_retour_string = f"{depart.name} → {retour.name}"
             print("-------- depart retour ---------")
-            if depart.zone != retour.zone:
-                return JsonResponse({"error": "zone invalides."}, status=400) 
+
         
         if vehicule_id :
             vehicule = Vehicule.objects.filter(id=vehicule_id).first()
