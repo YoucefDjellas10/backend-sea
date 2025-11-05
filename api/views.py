@@ -3826,7 +3826,7 @@ def add_reservation_post_view(request):
             prix_jour_afficher = prix_unitaire,
             options_total = total_option,
             total = total ,
-            reduction = client_red_pr,
+            reduction = client_red_pr if  client_red_pr > promo_value else promo_value,
             total_afficher_reduit = total_afficher_red,
             prix_jour_afficher_reduit = last_prix_unitaire,
             total_reduit = last_total,
