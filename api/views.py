@@ -3728,6 +3728,8 @@ def add_reservation_post_view(request):
 
         print("!!!!!! total days : ",total_days)
         print("!!!!!! duree : ",duree)
+        taux_change = TauxChange.objects.get(id=2)
+        change = taux_change.montant
         
         reservation = Reservation.objects.create(
             create_date=timezone.now(),
@@ -3831,7 +3833,8 @@ def add_reservation_post_view(request):
             prix_jour_afficher_reduit = last_prix_unitaire,
             total_reduit = last_total,
             total_reduit_euro = last_total,
-            reste_payer = last_total
+            reste_payer = last_total,
+            exchange_amount = change
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 

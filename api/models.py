@@ -1012,6 +1012,7 @@ class Reservation(models.Model):
     solde = models.DecimalField(max_digits=10, decimal_places=2, editable=False, null=True, blank=True)
     solde_total = models.IntegerField(editable=False, null=True, blank=True)
     solde_consomer = models.IntegerField(editable=False, null=True, blank=True)
+    exchange_amount = models.FloatField(null=True, blank=True)
 
     prix_jour = models.IntegerField(editable=False)
     prix_jour_two = models.IntegerField(null=True, blank=True)
