@@ -961,9 +961,12 @@ def option_ma_reservation(ref, email, country_code):
 def ma_reservation_detail(ref, email, country_code):
     try:
         ma_reservation =Reservation.objects.filter(name=ref, email=email).first()
+
+
         if not ma_reservation :
             return {"error": "reservation non trouvé"}
         result =[]
+        
         date = ma_reservation.date_heure_debut.date()
         today = datetime.today().date()
         can_cancel = "yes" 
@@ -972,8 +975,12 @@ def ma_reservation_detail(ref, email, country_code):
         can_modify_return = "yes" if (retour - today).days >= 1 else "no"
         address = ma_reservation.lieu_depart.address
         frais_livraison = ma_reservation.frais_de_dossier
-        lieu_rdv = ma_reservation.lieu_depart.rendez_vous    
-          
+        lieu_rdv = ma_reservation.lieu_depart.rendez_vous 
+
+        if ma_reservation.create_date < datetime(2025, 11, 2, 0, 0): 
+            can_cancel = "no"
+            can_midify = "no"
+             
         
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
