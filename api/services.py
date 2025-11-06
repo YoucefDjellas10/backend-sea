@@ -685,6 +685,13 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
+            if record.create_date < datetime(2025, 11, 2, 0, 0):
+                result.append({
+                        'is_available': "no",
+                        'can_be_midified':"no",
+                    })
+                return result
+
             get_vehicule_id = record.vehicule.numero
 
             vehicule = Vehicule.objects.get(numero=get_vehicule_id)
