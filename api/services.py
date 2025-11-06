@@ -980,6 +980,7 @@ def ma_reservation_detail(ref, email, country_code):
         if ma_reservation.create_date < datetime(2025, 11, 2, 0, 0): 
             can_cancel = "no"
             can_midify = "no"
+            can_modify_return = "no"
              
         
         if country_code =="DZ":
