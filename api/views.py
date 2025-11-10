@@ -970,6 +970,7 @@ def combined_document_download(request):
         "klm_limit": f"{limit_klm} km (0,4 €/km supplémentaire)" if not reservation.opt_klm or not reservation.opt_klm_name else "Kilométrage illimité",
         "protection": reservation.opt_protection.name
     }
+    print("-------------------- ici 11111")
     birthday_contract = None
     permis_contract = None
 
@@ -1003,6 +1004,7 @@ def combined_document_download(request):
         "PROTECTION_NAME": protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
     }
+    print("-------------------- ici 222222")
 
     # Charger l'image en base64
     image_path = os.path.join(settings.BASE_DIR, 'api', 'static', 'images', 'nom (1).jpg')
@@ -1018,6 +1020,7 @@ def combined_document_download(request):
         "Prenom": livraison.prenom,
         "background_image": background_image,
     }
+    print("-------------------- ici 33333333333")
 
     # Générer les pages séparément
     confirmation_html_string = render_to_string("confirmation_pdf.html", confirmation_context)
