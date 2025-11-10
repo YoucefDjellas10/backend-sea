@@ -898,10 +898,10 @@ def combined_document_download(request):
     date_heure_depart = reservation.date_heure_debut
     date_heure_retour = reservation.date_heure_fin
 
-    date_debut = date_heure_depart.strftime("%d %B %Y") 
-    heure_debut = date_heure_depart.strftime("%H:%M")  
-    date_fin = date_heure_retour.strftime("%d %B %Y")
-    heure_fin = date_heure_retour.strftime("%H:%M")
+    date_debut = reservation.date_depart_char
+    heure_debut = reservation.heure_depart_char 
+    date_fin = reservation.date_retour_char
+    heure_fin = reservation.heure_retour_char
     birthday_date = None
     permis = None
 
