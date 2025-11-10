@@ -932,7 +932,7 @@ def combined_document_download(request):
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else " "
     permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
-    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet and permis_nd else None
     
     if nd_clinet :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
@@ -1563,7 +1563,7 @@ def contract_download_(request):
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else " "
     permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
-    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else None
     if nd_clinet :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
