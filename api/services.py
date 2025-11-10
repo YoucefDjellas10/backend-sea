@@ -709,7 +709,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 get_options_total = record.options_total_reduit
                 get_status = record.status
                 get_reservation_satus = record.etat_reservation
-                if get_status != "confirmee" or get_reservation_satus != 'reserve' :
+                if get_status != "confirmee":
                     result.append({
                         'is_available': "no",
                         'can_be_midified':"no",
