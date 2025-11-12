@@ -52,7 +52,7 @@ def relance_mail_view(request):
             html_message=html_message,
             fail_silently=False,
         )
-        return JsonResponse({"message": "mail de relance envoyé."}, status=400)
+        return JsonResponse({"message": "mail de relance envoyé."}, status=200)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
