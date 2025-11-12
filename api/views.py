@@ -33,6 +33,31 @@ from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
+def relance_mail_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+
+        reservation = Reservation.objects.get(id=reservation_id)
+        sujet = f"Besoin d'aide pour finaliser votre réservation ?"
+        expediteur = settings.EMAIL_HOST_USER
+        html_message = render_to_string('email/mail_relance_email.html', {
+            'client_code':reservation.client.code_prime,
+            'client_name':reservation.client.name,
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return JsonResponse({"message": "mail de relance envoyé."}, status=400)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def creer_reservation(request):
