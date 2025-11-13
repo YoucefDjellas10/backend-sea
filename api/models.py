@@ -689,7 +689,7 @@ class Options(models.Model):
         blank=True,
         related_name="options"
     )
-    prix = models.FloatField(
+    prix = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         verbose_name="Prix",
