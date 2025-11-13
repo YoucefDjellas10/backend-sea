@@ -2387,7 +2387,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         if frais_livraison :
             for frais in frais_livraison:
-                total += frais.montant if frais else 0
+                total += float(frais.montant) if frais else 0.00
         else :
             trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
             chemins_possibles = [(lieu_depart_id, 0, set())]  # (position, total, lieux_visités)
@@ -2407,22 +2407,22 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         else:
                             chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
-            total += (meilleur_cout or 0)     
+            total += float(meilleur_cout or 0)     
         supplements_one = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
         ).first()
 
-        total += supplements_one.montant if supplements_one else 0
+        total += float(supplements_one.montant) if supplements_one else 0.00
 
         supplements_two = Supplement.objects.filter(
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
         ).first()
-        total += supplements_two.montant if supplements_two else 0
+        total += float(supplements_two.montant) if supplements_two else 0.00
 
             
 
         frais_dossier = search_option("FRAIS_DOSSIER", total_days, lieu_depart)
-        total += Decimal(frais_dossier["total"])
+        total += float(frais_dossier["total"])
         
         paiement_anticipe = search_option("P_ANTICIPE", total_days, lieu_depart)
         opt_payment_name = paiement_anticipe["name"]
@@ -2614,7 +2614,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
                     duration = end_hour - start_hour
                     if duration > supplement.reatrd:
-                        total_primary += (prix_jour * supplement.valeur) / 100 
+                        total_primary += float((prix_jour * supplement.valeur) / 100 )
                         
                 total_brut = total_primary + (prix_jour * total_days)
                 prix_unitaire = total_brut / total_days
