@@ -2422,7 +2422,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             
 
         frais_dossier = search_option("FRAIS_DOSSIER", total_days, lieu_depart)
-        total += frais_dossier["total"]
+        total += Decimal(frais_dossier["total"])
         
         paiement_anticipe = search_option("P_ANTICIPE", total_days, lieu_depart)
         opt_payment_name = paiement_anticipe["name"]
