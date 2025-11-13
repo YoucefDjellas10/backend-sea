@@ -3847,12 +3847,12 @@ def add_reservation_post_view(request):
             num_vol=num_vol,
             frais_de_dossier = Decimal(frais_dossier.prix),
             prix_jour = Decimal(prix_jour),
-            nbr_jour_one = total_days,
+            nbr_jour_one = Decimal(total_days),
             frais_de_livraison = Decimal(frais_liv),
             supplements = Decimal(supp_total) ,
             retour_tard = Decimal(ecart_montant),
             total_afficher = Decimal(total_afficher),
-            prix_jour_afficher = prix_unitaire,
+            prix_jour_afficher = float(prix_unitaire),
             options_total = Decimal(total_option),
             total = Decimal(total) ,
             reduction = client_red_pr if  client_red_pr > promo_value else promo_value,
@@ -3861,7 +3861,7 @@ def add_reservation_post_view(request):
             total_reduit = Decimal(last_total),
             total_reduit_euro = float(last_total),
             reste_payer = float(last_total),
-            exchange_amount = change
+            exchange_amount = float(change)
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
