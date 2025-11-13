@@ -689,7 +689,7 @@ class Options(models.Model):
         blank=True,
         related_name="options"
     )
-    prix = models.IntegerField(
+    prix = models.FloatField(
         verbose_name="Prix",
         null=True,
         blank=True
@@ -1083,7 +1083,7 @@ class Reservation(models.Model):
 
     opt_payment = models.ForeignKey('Options', on_delete=models.CASCADE,db_column='opt_payment', related_name='opt_payment')
     opt_payment_name = models.CharField(max_length=255, null=True, blank=True)
-    opt_payment_price = models.IntegerField(null=True, blank=True)
+    opt_payment_price = models.FloatField(null=True, blank=True)
     opt_payment_total = models.IntegerField(null=True, blank=True)
     opt_klm = models.ForeignKey(
         'Options', on_delete=models.CASCADE,
@@ -1091,13 +1091,13 @@ class Reservation(models.Model):
         null=True, blank=True
     ) 
     opt_klm_name = models.CharField(max_length=255, null=True, blank=True)
-    opt_klm_price = models.IntegerField(null=True, blank=True)
+    opt_klm_price = models.FloatField(null=True, blank=True)
     opt_klm_total = models.IntegerField(null=True, blank=True)
     opt_kilometrage = models.IntegerField(null=True, blank=True)
     opt_protection = models.ForeignKey('Options', on_delete=models.CASCADE,db_column='opt_protection', related_name='opt_protection', null=True, blank=True)
     opt_protection_name = models.CharField(max_length=255, null=True, blank=True)
     opt_protection_caution = models.IntegerField(null=True, blank=True)
-    opt_protection_price = models.IntegerField(null=True, blank=True)
+    opt_protection_price = models.FloatField(null=True, blank=True)
     opt_protection_total = models.IntegerField(null=True, blank=True)
     opt_nd_driver = models.ForeignKey(
         'Options',
@@ -1108,7 +1108,7 @@ class Reservation(models.Model):
         blank=True
     )
     opt_nd_driver_name = models.CharField(max_length=255, null=True, blank=True)
-    opt_nd_driver_price = models.IntegerField(null=True, blank=True)
+    opt_nd_driver_price = models.FloatField(null=True, blank=True)
     opt_nd_driver_total = models.IntegerField(null=True, blank=True)
     opt_plein_carburant = models.ForeignKey(
         'Options', on_delete=models.CASCADE,
@@ -1116,7 +1116,7 @@ class Reservation(models.Model):
         null=True, blank=True
     )
     opt_plein_carburant_name = models.CharField(max_length=255, null=True, blank=True)
-    opt_plein_carburant_prix = models.IntegerField(null=True, blank=True)
+    opt_plein_carburant_prix = models.FloatField(null=True, blank=True)
     opt_plein_carburant_total = models.IntegerField(null=True, blank=True)
     opt_siege_a = models.ForeignKey(
         'Options', on_delete=models.CASCADE,
@@ -1124,7 +1124,7 @@ class Reservation(models.Model):
         null=True, blank=True
     )
     opt_siege_a_name = models.CharField(max_length=255, null=True, blank=True)
-    opt_siege_a_prix = models.IntegerField(null=True, blank=True)
+    opt_siege_a_prix = models.FloatField(null=True, blank=True)
     opt_siege_a_total = models.IntegerField(null=True, blank=True)
     opt_siege_b = models.ForeignKey(
         'Options', on_delete=models.CASCADE,
@@ -1132,14 +1132,14 @@ class Reservation(models.Model):
         null=True, blank=True
     )
     opt_siege_b_name = models.CharField(max_length=255, null=True, blank=True)
-    opt_siege_b_prix = models.IntegerField(null=True, blank=True)
+    opt_siege_b_prix = models.FloatField(null=True, blank=True)
     opt_siege_b_total = models.IntegerField(null=True, blank=True)
     opt_siege_c = models.ForeignKey(
         'Options', on_delete=models.CASCADE,
         db_column='opt_siege_c', related_name='opt_siege_c',
         null=True, blank=True
     )
-    opt_siege_c_prix = models.IntegerField(null=True, blank=True)
+    opt_siege_c_prix = models.FloatField(null=True, blank=True)
     opt_siege_c_name = models.CharField(max_length=255, null=True, blank=True)
     opt_siege_c_total = models.IntegerField(null=True, blank=True)
     num_vol = models.CharField()
