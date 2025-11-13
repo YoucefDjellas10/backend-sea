@@ -690,6 +690,8 @@ class Options(models.Model):
         related_name="options"
     )
     prix = models.FloatField(
+        max_digits=12,
+        decimal_places=2,
         verbose_name="Prix",
         null=True,
         blank=True
