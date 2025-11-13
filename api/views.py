@@ -3856,11 +3856,11 @@ def add_reservation_post_view(request):
             options_total = Decimal(total_option),
             total = Decimal(total) ,
             reduction = client_red_pr if  client_red_pr > promo_value else promo_value,
-            total_afficher_reduit = total_afficher_red,
-            prix_jour_afficher_reduit = last_prix_unitaire,
+            total_afficher_reduit = Decimal(total_afficher_red),
+            prix_jour_afficher_reduit = float(last_prix_unitaire),
             total_reduit = Decimal(last_total),
-            total_reduit_euro = last_total,
-            reste_payer = last_total,
+            total_reduit_euro = float(last_total),
+            reste_payer = float(last_total),
             exchange_amount = change
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
