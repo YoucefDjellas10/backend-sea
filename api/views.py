@@ -3876,12 +3876,12 @@ def add_reservation_post_view(request):
                     "product_name": f"Réservation N° : {reservation.name}",
                     "description": f"Réservation du {reservation.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
                     "images": [vehicule.modele.photo_link_pay] if vehicule.modele.photo_link_pay else [],
-                    "unit_amount": int(montant_a_paye * 100),
+                    "unit_amount": int(float(montant_a_paye) * 100),
                     "quantity": 1,
                     "currency": "eur",
                     "reservation_id": reservation.id,
-                    "montant_total":last_total,
-                    "montant_paye":montant_a_paye,
+                    "montant_total":float(last_total),
+                    "montant_paye":float(montant_a_paye),
                     "email": reservation.email,
                     "token":token
 
