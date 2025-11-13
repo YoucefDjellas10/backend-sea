@@ -3276,7 +3276,7 @@ def add_reservation_post_view(request):
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         
-        
+        print("avnt frais dossier")
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
             total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
