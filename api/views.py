@@ -3261,7 +3261,7 @@ def add_reservation_post_view(request):
                 if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                     last_total = (100-client_red_pr) * total / 100
                 elif promo_value > client_red_pr:
-                    last_total = (100-promo_value) * total / 100
+                    last_total = Decimal((100-promo_value) * total / 100)
                 else : 
                     last_total = total
                 if client_solde > 0:
@@ -3281,7 +3281,7 @@ def add_reservation_post_view(request):
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
             total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
-            last_total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
+            last_total += Decimal(frais_dossier.prix) * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
         frais_liv = 0
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
         if frais_livraison :
@@ -3350,7 +3350,7 @@ def add_reservation_post_view(request):
                 paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE", zone= lieu_depart_obj.zone).first()
                 opt_payment_name = paiement_anticipe.name
                 opt_payment_unit = float(paiement_anticipe.prix) if paiement_anticipe.prix else 0.0
-                opt_payment_total = paiement_anticipe.prix * total_days if paiement_anticipe.type_option =="jour" else paiement_anticipe.prix
+                opt_payment_total = Decimal(paiement_anticipe.prix) * total_days if paiement_anticipe.type_option =="jour" else Decimal(paiement_anticipe.prix)
                 to_pay = prix_jour
                 total_option += opt_payment_total
                 total += opt_payment_total
