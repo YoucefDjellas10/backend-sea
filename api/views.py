@@ -3443,19 +3443,19 @@ def add_reservation_post_view(request):
             base_a = Options.objects.filter(option_code="BASE_P_1", zone= lieu_depart_obj.zone).first()
             base_a_name = base_a.name
             base_a_unit = float(base_a.prix) if base_a.prix else 0.0
-            base_a_total = base_a.prix * total_days if base_a.type_tarif == "jour" else base_a.prix
+            base_a_total = Decimal(base_a.prix) * total_days if base_a.type_tarif == "jour" else Decimal(base_a.prix)
             base_a_category = base_a.categorie.id
             base_a_caution = base_a.caution
             base_b = Options.objects.filter(option_code="BASE_P_2", zone= lieu_depart_obj.zone).first()
             base_b_name = base_b.name
             base_b_unit = float(base_b.prix) if base_b.prix else 0.0
-            base_b_total = base_b.prix * total_days if base_b.type_tarif == "jour" else base_b.prix
+            base_b_total = Decimal(base_b.prix) * total_days if base_b.type_tarif == "jour" else Decimal(base_b.prix)
             base_b_category = base_b.categorie.id
             base_b_caution = base_b.caution
             base_c = Options.objects.filter(option_code="BASE_P_3", zone= lieu_depart_obj.zone).first()
             base_c_name = base_c.name
             base_c_unit = float(base_c.prix) if base_c.prix else 0.0
-            base_c_total = base_c.prix * total_days if base_c.type_tarif == "jour" else base_c.prix
+            base_c_total = Decimal(base_c.prix) * total_days if base_c.type_tarif == "jour" else Decimal(base_c.prix)
             base_c_category = base_c.categorie.id
             base_c_caution = base_c.caution
 
@@ -3492,19 +3492,19 @@ def add_reservation_post_view(request):
             standart_a = Options.objects.filter(option_code="STANDART_P_1", zone= lieu_depart_obj.zone).first()
             standart_a_name = standart_a.name
             standart_a_unit = float(standart_a.prix) if standart_a.prix else 0.0
-            standart_a_total = standart_a.prix * total_days if standart_a.type_tarif == "jour" else standart_a.prix
+            standart_a_total = Decimal(standart_a.prix) * total_days if standart_a.type_tarif == "jour" else Decimal(standart_a.prix)
             standart_a_caution = standart_a.caution
 
             standart_b = Options.objects.filter(option_code="STANDART_P_2", zone= lieu_depart_obj.zone).first()
             standart_b_name = standart_b.name
             standart_b_unit = float(standart_b.prix) if standart_b.prix else 0.0
-            standart_b_total = standart_b.prix * total_days if standart_b.type_tarif == "jour" else standart_b.prix
+            standart_b_total = Decimal(standart_b.pri) * total_days if standart_b.type_tarif == "jour" else Decimal(standart_b.prix)
             standart_b_caution = standart_b.caution
             
             standart_c = Options.objects.filter(option_code="STANDART_P_3", zone= lieu_depart_obj.zone).first()
             standart_c_name = standart_c.name
             standart_c_unit = float(standart_c.prix) if standart_c.prix else 0.0
-            standart_c_total = standart_c.prix * total_days if standart_c.type_tarif == "jour" else standart_c.prix
+            standart_c_total = Decimal(standart_c.prix) * total_days if standart_c.type_tarif == "jour" else Decimal(standart_c.prix)
             standart_c_caution = standart_c.caution
             if vehicule.categorie == standart_a.categorie :
                 protection = standart_a
@@ -3545,10 +3545,10 @@ def add_reservation_post_view(request):
                 max_a = Options.objects.filter(option_code="MAX_P_1", zone= lieu_depart_obj.zone).first()
                 max_a_name = max_a.name
                 if max_a.type_tarif == "jour" :
-                    max_a_total = max_a.prix * total_days if max_a.min_prix < max_a.prix * total_days else max_a.min_prix
+                    max_a_total = Decimal(max_a.prix * total_days) if max_a.min_prix < max_a.prix * total_days else Decimal(max_a.min_prix)
                 else :
-                    max_a_total = max_a.prix  if max_a.min_prix < max_a.prix * total_days else max_a.min_prix
-                max_a_unit = max_a_total / total_days
+                    max_a_total = Decimal(max_a.prix)  if max_a.min_prix < max_a.prix * total_days else Decimal(max_a.min_prix)
+                max_a_unit = float(max_a_total / total_days)
                 max_a_caution = max_a.caution
             
             if free_options and free_options[0].get("option_eight") == True:
@@ -3561,8 +3561,8 @@ def add_reservation_post_view(request):
                 max_b = Options.objects.filter(option_code="MAX_P_2", zone= lieu_depart_obj.zone).first()
                 max_b_name = max_b.name
                 
-                max_b_unit = max_b.prix
-                max_b_total = max_b.prix * total_days if max_b.type_tarif == "jour" else max_b.prix
+                max_b_unit = float(max_b.prix)
+                max_b_total = Decimal(max_b.prix) * total_days if max_b.type_tarif == "jour" else Decimal(max_b.prix)
                 max_b_caution = max_b.caution
 
             if free_options and free_options[0].get("option_eight") == True:
@@ -3574,8 +3574,8 @@ def add_reservation_post_view(request):
             else :
                 max_c = Options.objects.filter(option_code="MAX_P_3", zone= lieu_depart_obj.zone).first()
                 max_c_name = max_c.name
-                max_c_unit = max_c.prix
-                max_c_total = max_c.prix * total_days if max_c.type_tarif == "jour" else max_c.prix
+                max_c_unit = float(max_c.prix)
+                max_c_total = Decimal(max_c.prix) * total_days if max_c.type_tarif == "jour" else Decimal(max_c.prix)
                 max_c_caution = max_c.caution
             
             if vehicule.categorie == max_a.categorie :
@@ -3626,7 +3626,7 @@ def add_reservation_post_view(request):
                 carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
                 carburant_name = carburant.name
                 carburant_unit = float(carburant.prix) if carburant.prix else 0.0
-                carburant_total = carburant.prix * total_days if carburant.type_tarif == "jour" else carburant.prix
+                carburant_total = Decimal(carburant.prix) * total_days if carburant.type_tarif == "jour" else Decimal(carburant.prix)
                 total += carburant_total
                 last_total += carburant_total
                 total_option += carburant_total
@@ -3649,7 +3649,7 @@ def add_reservation_post_view(request):
                 sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
                 sb_a_name = sb_a.name
                 sb_a_unit = float(sb_a.prix) if sb_a.prix else 0.0
-                sb_a_total = sb_a.prix * total_days if sb_a.type_tarif == "jour" else sb_a.prix
+                sb_a_total = Decimal(sb_a.prix) * total_days if sb_a.type_tarif == "jour" else Decimal(sb_a.prix)
                 total += sb_a_total
                 last_total += sb_a_total
                 total_option += sb_a_total 
@@ -3672,7 +3672,7 @@ def add_reservation_post_view(request):
                 sb_b = Options.objects.filter(option_code="S_BEBE_13", zone= lieu_depart_obj.zone).first()
                 sb_b_name = sb_b.name
                 sb_b_unit = float(sb_b.prix) if sb_b.prix else 0.0
-                sb_b_total = sb_b.prix * total_days if sb_b.type_tarif == "jour" else sb_b.prix
+                sb_b_total = Decimal(sb_b.prix) * total_days if sb_b.type_tarif == "jour" else Decimal(sb_b.prix)
                 total += sb_b_total 
                 last_total += sb_b_total
                 total_option += sb_b_total
@@ -3696,7 +3696,7 @@ def add_reservation_post_view(request):
                 sb_c = Options.objects.filter(option_code="S_BEBE_18", zone= lieu_depart_obj.zone).first()
                 sb_c_name = sb_c.name
                 sb_c_unit = float(sb_c.prix) if sb_c.prix else 0.0
-                sb_c_total = sb_c.prix * total_days if sb_c.type_tarif == "jour" else sb_c.prix
+                sb_c_total = Decimal(sb_c.prix) * total_days if sb_c.type_tarif == "jour" else Decimal(sb_c.prix)
                 total += sb_c_total
                 last_total += sb_c_total
                 total_option += sb_c_total
@@ -3732,7 +3732,7 @@ def add_reservation_post_view(request):
                     nd_driver_opt = Options.objects.filter(option_code="ND_DRIVER", zone= lieu_depart_obj.zone).first()
                     nd_driver_opt_name = nd_driver_opt.name
                     nd_driver_opt_unit = float(nd_driver_opt.prix) if nd_driver_opt.prix else 0.0
-                    nd_driver_opt_total = nd_driver_opt.prix * total_days if nd_driver_opt.type_tarif == "jour" else nd_driver_opt.prix
+                    nd_driver_opt_total = Decimal(nd_driver_opt.prix) * total_days if nd_driver_opt.type_tarif == "jour" else nd_driver_opt.prix
                     total += nd_driver_opt_total
                     last_total += nd_driver_opt_total
                     total_option += nd_driver_opt_total
