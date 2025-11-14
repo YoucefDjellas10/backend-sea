@@ -3498,7 +3498,7 @@ def add_reservation_post_view(request):
             standart_b = Options.objects.filter(option_code="STANDART_P_2", zone= lieu_depart_obj.zone).first()
             standart_b_name = standart_b.name
             standart_b_unit = float(standart_b.prix) if standart_b.prix else 0.0
-            standart_b_total = Decimal(standart_b.pri) * total_days if standart_b.type_tarif == "jour" else Decimal(standart_b.prix)
+            standart_b_total = Decimal(standart_b.prix) * total_days if standart_b.type_tarif == "jour" else Decimal(standart_b.prix)
             standart_b_caution = standart_b.caution
             
             standart_c = Options.objects.filter(option_code="STANDART_P_3", zone= lieu_depart_obj.zone).first()
