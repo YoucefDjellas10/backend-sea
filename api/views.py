@@ -3036,6 +3036,7 @@ def verify_client_view(request):
 def add_reservation_post_view(request):
     try:
         data = json.loads(request.body)
+        print("data : ", data)
         lieu_depart = data.get("lieu_depart")
         lieu_retour = data.get("lieu_retour")
         date_depart = data.get("date_depart")
