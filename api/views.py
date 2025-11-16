@@ -3329,13 +3329,13 @@ def add_reservation_post_view(request):
             ecart_montant = (prix_jour * ecart.valeur) / 100
             total+= ecart_montant
             last_total+= ecart_montant
-        
+        print("------------------laaaa -----------------") 
         prix_unitaire = total / total_days
         total_afficher = total
         total_afficher_red = last_total
         last_prix_unitaire = last_total / total_days
         free_options = free_options_f(client_id=client_id)
-        print("------------------laaaa -----------------") 
+       
         if opt_paiement == "yes" :
             if free_options and free_options[0].get("option_six") == True:
                 paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE", zone= lieu_depart_obj.zone).first()
