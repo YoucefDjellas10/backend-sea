@@ -3320,7 +3320,7 @@ def add_reservation_post_view(request):
             supp_total += supplement.montant
             total += supplement.montant if supplement else 0
             last_total += supplement.montant if supplement else 0
-        print("------------------laaaa -----------------")
+        
         ecart = Supplement.objects.filter(valeur__gt=0).first()
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -3335,7 +3335,7 @@ def add_reservation_post_view(request):
         total_afficher_red = last_total
         last_prix_unitaire = last_total / total_days
         free_options = free_options_f(client_id=client_id)
-        print('avnt options')  
+        print("------------------laaaa -----------------") 
         if opt_paiement == "yes" :
             if free_options and free_options[0].get("option_six") == True:
                 paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE", zone= lieu_depart_obj.zone).first()
