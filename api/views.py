@@ -3327,7 +3327,6 @@ def add_reservation_post_view(request):
         duration = end_hour - start_hour
         
         if duration > ecart.reatrd:
-            print("------------------laaaa -----------------") 
             ecart_montant = (prix_jour * ecart.valeur) / 100
             total+= Decimal(ecart_montant)
             last_total+= Decimal(ecart_montant)
