@@ -3325,12 +3325,12 @@ def add_reservation_post_view(request):
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
         duration = end_hour - start_hour
-        print("------------------laaaa -----------------")
+        
         if duration > ecart.reatrd:
             ecart_montant = (prix_jour * ecart.valeur) / 100
             total+= ecart_montant
             last_total+= Decimal(ecart_montant)
-         
+        print("------------------laaaa -----------------") 
         prix_unitaire = total / total_days
         total_afficher = total
         total_afficher_red = last_total
