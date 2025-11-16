@@ -3286,9 +3286,9 @@ def add_reservation_post_view(request):
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
         if frais_livraison :
             for frais in frais_livraison:
-                total += frais.montant if frais else 0
-                last_total += frais.montant if frais else 0
-                frais_liv += frais.montant if frais else 0
+                total += Decimal(frais.montant if frais else 0)
+                last_total += Decimal(frais.montant if frais else 0)
+                frais_liv += Decimal(frais.montant if frais else 0)
         else :
             trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
             chemins_possibles = [(lieu_depart, 0, set())]  # (position, total, lieux_visités)
@@ -3308,9 +3308,9 @@ def add_reservation_post_view(request):
                         else:
                             chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
-            total += (meilleur_cout or 0) 
-            last_total += (meilleur_cout or 0) 
-            frais_liv += (meilleur_cout or 0)  
+            total += Decimal((meilleur_cout or 0)) 
+            last_total += Decimal((meilleur_cout or 0)) 
+            frais_liv += Decimal((meilleur_cout or 0))  
         
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
