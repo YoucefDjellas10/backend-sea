@@ -3320,11 +3320,12 @@ def add_reservation_post_view(request):
             supp_total += supplement.montant
             total += supplement.montant if supplement else 0
             last_total += supplement.montant if supplement else 0
-        print("------------------laaaa -----------------")
+        
         ecart = Supplement.objects.filter(valeur__gt=0).first()
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
         duration = end_hour - start_hour
+        print("------------------laaaa -----------------")
         if duration > ecart.reatrd:
             ecart_montant = (prix_jour * ecart.valeur) / 100
             total+= ecart_montant
