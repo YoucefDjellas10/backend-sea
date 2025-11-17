@@ -3283,7 +3283,7 @@ def add_reservation_post_view(request):
             last_total += Decimal(frais_dossier.prix) * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
         frais_liv = 0
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
-        
+        print("--------laaaa----------")
         if frais_livraison :
             for frais in frais_livraison:
                 total += Decimal(frais.montant) if frais else 0
@@ -3311,7 +3311,7 @@ def add_reservation_post_view(request):
             total += Decimal((meilleur_cout or 0)) 
             last_total += Decimal((meilleur_cout or 0)) 
             frais_liv += Decimal((meilleur_cout or 0))  
-        print("--------laaaa----------")
+        
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
