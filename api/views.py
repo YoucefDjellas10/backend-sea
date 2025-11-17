@@ -3096,7 +3096,7 @@ def add_reservation_post_view(request):
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
             if client :
-                client_solde = int(client.solde) if client.solde else 0
+                client_solde = Decimal(client.solde) if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
             else :
                 return JsonResponse({"error": "client non trouver."}, status=400)
