@@ -3276,10 +3276,11 @@ def add_reservation_post_view(request):
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
-        
+        print("--------- total : ",total)
+        print("--------- last_total : ",last_total)
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
-            total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
+            total += Decimal(frais_dossier.prix) * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
             last_total += Decimal(frais_dossier.prix) * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
         frais_liv = 0
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
