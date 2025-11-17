@@ -3095,6 +3095,7 @@ def add_reservation_post_view(request):
 
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
+            print(client.name)
             if client :
                 client_solde = Decimal(client.solde) if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
