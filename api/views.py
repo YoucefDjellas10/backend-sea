@@ -3104,6 +3104,8 @@ def add_reservation_post_view(request):
         else:
             return JsonResponse({"error": "client non fournis."}, status=400)
         
+        print("--------laaaa----------")
+        
         if lieu_depart and lieu_retour:
             depart = Lieux.objects.filter(id=lieu_depart).first()
             retour = Lieux.objects.filter(id=lieu_retour).first()
