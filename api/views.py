@@ -3276,8 +3276,6 @@ def add_reservation_post_view(request):
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
-        
-        print("--------laaaa----------")
 
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
@@ -3313,7 +3311,7 @@ def add_reservation_post_view(request):
             total += Decimal((meilleur_cout or 0)) 
             last_total += Decimal((meilleur_cout or 0)) 
             frais_liv += Decimal((meilleur_cout or 0))  
-        
+        print("--------laaaa----------")
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
