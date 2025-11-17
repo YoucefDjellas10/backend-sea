@@ -3095,7 +3095,6 @@ def add_reservation_post_view(request):
 
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
-            print(client.name)
             if client :
                 client_solde = Decimal(client.solde) if client.solde else 0
                 client_red_pr = client.categorie_client.reduction if client.categorie_client.reduction and client.categorie_client is not None else 0
@@ -3103,9 +3102,7 @@ def add_reservation_post_view(request):
                 return JsonResponse({"error": "client non trouver."}, status=400)
         else:
             return JsonResponse({"error": "client non fournis."}, status=400)
-        
-        print("--------laaaa----------")
-        
+            
         if lieu_depart and lieu_retour:
             depart = Lieux.objects.filter(id=lieu_depart).first()
             retour = Lieux.objects.filter(id=lieu_retour).first()
@@ -3280,6 +3277,8 @@ def add_reservation_post_view(request):
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         
+        print("--------laaaa----------")
+
         frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone= lieu_depart_obj.zone).first()
         if frais_dossier:
             total += frais_dossier.prix * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
