@@ -741,7 +741,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_one)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += overlap_days * tarif.prix
+                                total += Decimal(overlap_days * tarif.prix)
                                 prix_unitaire = tarif.prix
 
                     if tarif.date_depart_two and tarif.date_fin_two:
@@ -750,7 +750,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_two)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += overlap_days * tarif.prix
+                                total += Decimal(overlap_days * tarif.prix)
                                 prix_unitaire = tarif.prix
 
                     if tarif.date_depart_three and tarif.date_fin_three:
@@ -759,7 +759,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_three)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += overlap_days * tarif.prix
+                                total += Decimal(overlap_days * tarif.prix)
                                 prix_unitaire = tarif.prix
 
                     if tarif.date_depart_four and tarif.date_fin_four:
@@ -768,17 +768,17 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_four)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += overlap_days * tarif.prix
+                                total += Decimal(overlap_days * tarif.prix)
                                 prix_unitaire = tarif.prix
                                         
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
-                        total += frais_dossier.prix
+                        total += Decimal(frais_dossier.prix)
 
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour) 
                     if frais_livraison :
                         for frais in frais_livraison:
-                            total += frais.montant
+                            total += Decimal(frais.montant)
                     else :
                         # cas indirect : on cherche un chemin via escales
                         trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
@@ -799,13 +799,13 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                     else:
                                         chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
-                        total += (meilleur_cout or 0)
+                        total += Decimal((meilleur_cout or 0))
                     supplements = Supplement.objects.filter(
                         Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
                         Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
                     )
                     for supplement in supplements:
-                        total += supplement.montant if supplement else 0
+                        total += Decimal(supplement.montant) if supplement else 0
 
                     supplements = Supplement.objects.filter(
                         Q(valeur__gt=0)
@@ -819,11 +819,11 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         duration = end_hour - start_hour
 
                         if duration > supplement.reatrd:
-                            total += (prix_unitaire * supplement.valeur) / 100
+                            total += Decimal((prix_unitaire * supplement.valeur) / 100)
                                     
                 if record.reduction > 0 :
                     pourcentage = record.reduction
-                    total = ((100-pourcentage) * total) / 100  
+                    total = Decimal(((100-pourcentage) * total) / 100)  
 
                 free_options = free_options_f(client_id)
                 if free_options:
@@ -831,35 +831,35 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 if record.opt_klm:
                     if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
-                        total += record.opt_klm.prix * total_days if record.opt_klm.type_tarif == "jour" else record.opt_klm.prix
+                        total += Decimal(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else Decimal(record.opt_klm.prix)
 
                 if record.opt_protection:
                     if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
-                        total += record.opt_protection.prix * total_days if record.opt_protection.type_tarif == "jour" else record.opt_protection.prix
+                        total += Decimal(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else Decimal(record.opt_protection.prix)
 
                 if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
                     if not (free_options.get("option_three") and "MAX" in record.opt_protection.opt.option_code):
-                        total += record.opt_protection.opt.prix * total_days if record.opt_protection.opt.type_tarif == "jour" else record.opt_protection.opt.prix
+                        total += Decimal(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else Decimal(record.opt_protection.opt.prix)
 
                 if record.opt_nd_driver:
                     if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
-                        total += record.opt_nd_driver.prix * total_days if record.opt_nd_driver.type_tarif == "jour" else record.opt_nd_driver.prix
+                        total += Decimal(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else Decimal(record.opt_nd_driver.prix)
 
                 if record.opt_plein_carburant:
                     if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
-                        total += record.opt_plein_carburant.prix * total_days if record.opt_plein_carburant.type_tarif == "jour" else record.opt_plein_carburant.prix
+                        total += Decimal(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else Decimal(record.opt_plein_carburant.prix)
 
                 if record.opt_siege_a:
                     if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
-                        total += record.opt_siege_a.prix * total_days if record.opt_siege_a.type_tarif == "jour" else record.opt_siege_a.prix
+                        total += Decimal(record.opt_siege_a.prix) * total_days if record.opt_siege_a.type_tarif == "jour" else Decimal(record.opt_siege_a.prix)
 
                 if record.opt_siege_b:
                     if not (free_options.get("option_four") and "S_BEBE_13" in record.opt_siege_b.option_code):
-                        total += record.opt_siege_b.prix * total_days if record.opt_siege_b.type_tarif == "jour" else record.opt_siege_b.prix
+                        total += Decimal(record.opt_siege_b.prix) * total_days if record.opt_siege_b.type_tarif == "jour" else Decimal(record.opt_siege_b.prix)
 
                 if record.opt_siege_c:
                     if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
-                        total += record.opt_siege_c.prix * total_days if record.opt_siege_c.type_tarif == "jour" else record.opt_siege_c.prix
+                        total += Decimal(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else Decimal(record.opt_siege_c.prix)
                 
                 credit = "no"
                 credit_amount = 0
@@ -868,7 +868,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     credit_amount = float(get_total) - float(total)
                 
                 if float(total) < float(get_total):
-                    total = get_total
+                    total = Decimal(get_total)
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
