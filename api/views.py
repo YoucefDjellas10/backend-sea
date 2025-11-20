@@ -3306,6 +3306,7 @@ def add_reservation_post_view(request):
                                 meilleur_cout = nouveau_cout
                         else:
                             chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+            print("frais de livraison",meilleur_cout)            
             total += Decimal((meilleur_cout or 0)) 
             last_total += Decimal((meilleur_cout or 0)) 
             frais_liv += Decimal((meilleur_cout or 0))  
