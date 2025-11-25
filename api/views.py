@@ -3035,6 +3035,24 @@ def verify_client_view(request):
 @require_http_methods(["POST"])
 def add_reservation_post_view(request):
     try:
+        client_extractor = ClientInfoExtractor(request)
+        
+        print(client_extractor.format_for_display())
+        
+        client_info = client_extractor.get_complete_info()
+        ip_client = client_info['ip']
+        
+        client_info_json = client_extractor.get_json_summary()
+        
+        country_code = client_info['location']['country_code']
+        is_mobile = client_info['user_agent']['is_mobile']
+        is_bot = client_info['security']['is_bot']
+        
+        if is_bot:
+            return JsonResponse({
+                "error": "Les requêtes automatisées ne sont pas autorisées."
+            }, status=403)
+        
         data = json.loads(request.body)
         print("data : ", data)
         lieu_depart = data.get("lieu_depart")
@@ -3057,27 +3075,6 @@ def add_reservation_post_view(request):
         num_vol = data.get("num_vol")
         token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
-
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip_client = x_forwarded_for.split(',')[0].strip()
-        else:
-            ip_client = request.META.get('REMOTE_ADDR', 'IP inconnue')
-        
-        user_agent = request.META.get('HTTP_USER_AGENT', 'User-Agent inconnu')
-        
-        
-        referer = request.META.get('HTTP_REFERER', 'Aucun referer')  
-        accept_language = request.META.get('HTTP_ACCEPT_LANGUAGE', 'Langue inconnue')  
-        
-        print("=" * 50)
-        print("INFORMATIONS CLIENT:")
-        print(f"IP Client: {ip_client}")
-        print(f"User-Agent: {user_agent}")
-        print(f"Code Pays: {ccountry_code}")
-        print(f"Referer: {referer}")
-        print(f"Langue: {accept_language}")
-        print("=" * 50)
         
         prix_jour = 0
         total = 0
