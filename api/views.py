@@ -3066,7 +3066,6 @@ def add_reservation_post_view(request):
         
         user_agent = request.META.get('HTTP_USER_AGENT', 'User-Agent inconnu')
         
-        ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE", "Inconnu")
         
         referer = request.META.get('HTTP_REFERER', 'Aucun referer')  
         accept_language = request.META.get('HTTP_ACCEPT_LANGUAGE', 'Langue inconnue')  
