@@ -30,6 +30,8 @@ from django.shortcuts import get_object_or_404
 import logging
 from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
+from utils.client_info import ClientInfoExtractor
+
 
 logger = logging.getLogger(__name__)
 
