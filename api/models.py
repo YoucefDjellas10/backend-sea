@@ -940,12 +940,18 @@ class Promotion(models.Model):
         return self.name or "Promotion"
 
 class AnnulerRaison(models.Model):
-    name = models.CharField()
-
+    name = models.AutoField(primary_key=True)
     name_en = models.CharField()
     name_ar = models.CharField()
     class Meta:
         db_table = 'annuler_raison'
+        managed = False
+
+class Users(models.Model):
+    id = models.CharField()
+    name = models.CharField(max_length=10, unique=True, editable=False, default='')
+    class Meta:
+        db_table = 'res_users'
         managed = False
 
 class Reservation(models.Model):
@@ -1597,6 +1603,13 @@ class Prolongation(models.Model):
         default='New',
         help_text='Nom de la prolongation'
     )
+    effectuer_par = models.ForeignKey(
+        Users,  
+        on_delete=models.CASCADE,
+        verbose_name='effectuer_par',
+        db_column='effectuer_par',
+        related_name='prolongationss'
+    )
     
     stage = models.CharField(
         max_length=20,
@@ -1857,6 +1870,13 @@ class RetourAvance(models.Model):
         null=True, 
         blank=True,
         help_text='Date prévue pour le retour anticipé'
+    )
+    effectuer_par = models.ForeignKey(
+        Users,  
+        on_delete=models.CASCADE,
+        verbose_name='effectuer_par',
+        db_column='effectuer_par',
+        related_name='prolongationss'
     )
     
     differance_heure = models.IntegerField(
