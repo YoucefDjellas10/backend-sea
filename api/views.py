@@ -3039,7 +3039,6 @@ def add_reservation_post_view(request):
     try:
         client_extractor = ClientInfoExtractor(request)
         
-        print(client_extractor.format_for_display())
         
         client_info = client_extractor.get_complete_info()
         ip_client = client_info['ip']
@@ -3049,6 +3048,15 @@ def add_reservation_post_view(request):
         country_code = client_info['location']['country_code']
         is_mobile = client_info['user_agent']['is_mobile']
         is_bot = client_info['security']['is_bot']
+        print("=" * 15)
+        print("ip_client", ip_client)
+        print("client_info", client_info)
+        print("client_info_json", client_info_json)
+        print("country_code", country_code)
+        print("is_mobile", is_mobile)
+        print("is_bot", is_bot)
+        print("=" * 15)
+        
         
         if is_bot:
             return JsonResponse({
