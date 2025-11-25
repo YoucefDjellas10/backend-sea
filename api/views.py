@@ -3068,7 +3068,9 @@ def add_reservation_post_view(request):
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
         token = data.get("token")
-        ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
+        ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE")
+
+        print("country code : ", ccountry_code) 
         pays_drapeau = country_code_to_emoji(ccountry_code)
 
         print("pays_drapeau :", pays_drapeau)
