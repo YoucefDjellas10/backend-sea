@@ -3033,19 +3033,20 @@ def verify_client_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
+def country_code_to_emoji(country_code):
+    if not country_code:
+        return None
+    country_code = country_code.upper()
+    try:
+        return ''.join(chr(127397 + ord(c)) for c in country_code)
+    except:
+        return None
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def add_reservation_post_view(request):
     try:
-        client_extractor = ClientInfoExtractor(request)
-        client_info = client_extractor.get_complete_info()
-        ip_client = client_info['ip']
-        country_code = client_info['location']['country_code']
-        print("=" * 15)
-        print("ip_client", ip_client)
-        print("country_code", country_code)
-        print("=" * 15)
-        
+
         data = json.loads(request.body)
         print("data : ", data)
         lieu_depart = data.get("lieu_depart")
@@ -3068,6 +3069,9 @@ def add_reservation_post_view(request):
         num_vol = data.get("num_vol")
         token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
+        pays_drapeau = country_code_to_emoji(ccountry_code)
+
+        print("pays_drapeau :", pays_drapeau)
         
         prix_jour = 0
         total = 0
