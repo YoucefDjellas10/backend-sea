@@ -3057,6 +3057,28 @@ def add_reservation_post_view(request):
         num_vol = data.get("num_vol")
         token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE") 
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip_client = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip_client = request.META.get('REMOTE_ADDR', 'IP inconnue')
+        
+        user_agent = request.META.get('HTTP_USER_AGENT', 'User-Agent inconnu')
+        
+        ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE", "Inconnu")
+        
+        referer = request.META.get('HTTP_REFERER', 'Aucun referer')  
+        accept_language = request.META.get('HTTP_ACCEPT_LANGUAGE', 'Langue inconnue')  
+        
+        print("=" * 50)
+        print("INFORMATIONS CLIENT:")
+        print(f"IP Client: {ip_client}")
+        print(f"User-Agent: {user_agent}")
+        print(f"Code Pays: {ccountry_code}")
+        print(f"Referer: {referer}")
+        print(f"Langue: {accept_language}")
+        print("=" * 50)
         
         prix_jour = 0
         total = 0
