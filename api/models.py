@@ -941,6 +941,7 @@ class Promotion(models.Model):
 
 class AnnulerRaison(models.Model):
     name = models.CharField()
+
     name_en = models.CharField()
     name_ar = models.CharField()
     class Meta:
@@ -964,6 +965,7 @@ class Reservation(models.Model):
 
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=10, unique=True, editable=False, default='')
+    country_code = models.CharField(max_length=10, unique=True, editable=False, default='')
     numero_lieu = models.CharField(max_length=10, editable=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     create_date = models.DateTimeField(default=datetime.now)

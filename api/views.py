@@ -3048,7 +3048,6 @@ def add_reservation_post_view(request):
     try:
 
         data = json.loads(request.body)
-        print("data : ", data)
         lieu_depart = data.get("lieu_depart")
         lieu_retour = data.get("lieu_retour")
         date_depart = data.get("date_depart")
@@ -3069,12 +3068,7 @@ def add_reservation_post_view(request):
         num_vol = data.get("num_vol")
         token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE")
-
-        print("country code : ", ccountry_code) 
         pays_drapeau = country_code_to_emoji(ccountry_code)
-
-        print("pays_drapeau :", pays_drapeau)
-        
         prix_jour = 0
         total = 0
         last_total = 0
@@ -3772,8 +3766,6 @@ def add_reservation_post_view(request):
             nd_driver_opt_unit = 0
             nd_driver_opt_total = 0
 
-        print("!!!!!! total days : ",total_days)
-        print("!!!!!! duree : ",duree)
         taux_change = TauxChange.objects.get(id=2)
         change = taux_change.montant
         
@@ -3880,7 +3872,8 @@ def add_reservation_post_view(request):
             total_reduit = Decimal(last_total),
             total_reduit_euro = float(last_total),
             reste_payer = float(last_total),
-            exchange_amount = float(change)
+            exchange_amount = float(change),
+            country_code = pays_drapeau,
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
