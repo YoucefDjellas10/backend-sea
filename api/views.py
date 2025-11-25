@@ -3038,30 +3038,13 @@ def verify_client_view(request):
 def add_reservation_post_view(request):
     try:
         client_extractor = ClientInfoExtractor(request)
-        
-        
         client_info = client_extractor.get_complete_info()
         ip_client = client_info['ip']
-        
-        client_info_json = client_extractor.get_json_summary()
-        
         country_code = client_info['location']['country_code']
-        is_mobile = client_info['user_agent']['is_mobile']
-        is_bot = client_info['security']['is_bot']
         print("=" * 15)
         print("ip_client", ip_client)
-        print("client_info", client_info)
-        print("client_info_json", client_info_json)
         print("country_code", country_code)
-        print("is_mobile", is_mobile)
-        print("is_bot", is_bot)
         print("=" * 15)
-        
-        
-        if is_bot:
-            return JsonResponse({
-                "error": "Les requêtes automatisées ne sont pas autorisées."
-            }, status=403)
         
         data = json.loads(request.body)
         print("data : ", data)
