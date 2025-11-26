@@ -682,13 +682,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
-        if total == 0 : 
-            result.append({
-                        'is_available': "no",
-                        'can_be_midified':"no",
-                    })
-            return result
-        
+                
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
             if record.create_date < datetime(2025, 11, 2, 0, 0):
@@ -786,9 +780,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         for frais in frais_livraison:
                             total += Decimal(frais.montant)
                     else :
-                        # cas indirect : on cherche un chemin via escales
                         trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-                        chemins_possibles = [(lieu_depart, 0, set())]  # (position, total, lieux_visités)
+                        chemins_possibles = [(lieu_depart, 0, set())] 
 
                         meilleur_cout = None
 
