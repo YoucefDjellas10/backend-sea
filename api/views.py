@@ -2606,7 +2606,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     
 
-def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice):
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by):
     try:
         verify_value = verify_and_calculate(
             ref,
@@ -2620,6 +2620,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         )
         if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
             return {"success": "no"}
+
+        user = Users.objects.get(id=did_by)
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             reservation_obj = Reservation.objects.get(name=ref)
@@ -2641,6 +2643,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             taux_change = TauxChange.objects.get(id=2)
             taux = taux_change.montant
 
+
+
             if backoffice == "yes":
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     
@@ -2659,7 +2663,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             prix_prolongation_devise = diff_prix,
                             date_du_au = anciennes_dates,
                             date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
-                            date_prolongation = datetime.now()
+                            date_prolongation = datetime.now(),
+                            effectuer_par = user if user else None 
                         )
                         prolongation_id = prolongation_obj.id
                         reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else float(reservation_obj.total_prolone) + float(diff_prix)
@@ -2674,7 +2679,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             prix_retour_avance= diff_prix,
                             date_du_au = anciennes_dates,
                             date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
-                            date_retour_avance = datetime.now()
+                            date_retour_avance = datetime.now(),
+                            effectuer_par = user if user else None
                         )
 
                         retour_avance_id = retour_avance_obj.id
@@ -2961,6 +2967,7 @@ def verify_and_do_view(request):
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
     backoffice = request.GET.get("backoffice")
+    did_by = request.GET.get("did_by")
     country_code = request.headers.get("X-Country-Code")
 
     if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
@@ -2975,7 +2982,8 @@ def verify_and_do_view(request):
             heure_depart = heure_depart,
             date_retour = date_retour,
             heure_retour = heure_retour,
-            backoffice = backoffice
+            backoffice = backoffice,
+            did_by = did_by
         )
         if resultats.get('success') == "yes":
             return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
