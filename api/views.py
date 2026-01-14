@@ -830,7 +830,11 @@ def confirme_reservation_view(request):
             lv_type = "livraison",
             action_lieu=reservation.lieu_depart.name,
             action_date=reservation.date_heure_debut,
-
+            date_depart_char = reservation.date_depart_char,
+            date_retour_char = reservation.date_retour_char,
+            heure_depart_char = reservation.heure_depart_char,
+            heure_retour_char = reservation.heure_retour_char,
+            num_vol = reservation.num_vol,
         ) 
         livraison.save()
 
@@ -874,6 +878,11 @@ def confirme_reservation_view(request):
             lv_type = "restitution",
             action_lieu=reservation.lieu_retour.name,
             action_date=reservation.date_heure_fin,
+            date_depart_char = reservation.date_depart_char,
+            date_retour_char = reservation.date_retour_char,
+            heure_depart_char = reservation.heure_depart_char,
+            heure_retour_char = reservation.heure_retour_char,
+            num_vol = reservation.num_vol,
         ) 
         restitution.save()
         sujet = f"Confirmation de votre reservation N°= {reservation.name}"
@@ -4142,6 +4151,11 @@ def stripe_webhook_reservation_(request):
                     lv_type = "livraison",
                     action_lieu=reservation.lieu_depart.name,
                     action_date=reservation.date_heure_debut,
+                    date_depart_char = reservation.date_depart_char,
+                    date_retour_char = reservation.date_retour_char,
+                    heure_depart_char = reservation.heure_depart_char,
+                    heure_retour_char = reservation.heure_retour_char,
+                    num_vol = reservation.num_vol,
 
                 ) 
                 livraison.save()
@@ -4186,6 +4200,11 @@ def stripe_webhook_reservation_(request):
                     lv_type = "restitution",
                     action_lieu=reservation.lieu_retour.name,
                     action_date=reservation.date_heure_fin,
+                    date_depart_char = reservation.date_depart_char,
+                    date_retour_char = reservation.date_retour_char,
+                    heure_depart_char = reservation.heure_depart_char,
+                    heure_retour_char = reservation.heure_retour_char,
+                    num_vol = reservation.num_vol,
                 ) 
                 restitution.save()
 
