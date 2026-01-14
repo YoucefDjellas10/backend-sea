@@ -1380,10 +1380,10 @@ class Livraison(models.Model):
     opt_sb_c = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_c', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_sb_c_check = models.BooleanField()
 
-    date_depart_char = models.CharField(null=True, blank=True)
-    date_retour_char = models.CharField(null=True, blank=True)
-    heure_depart_char = models.CharField(null=True, blank=True)
-    heure_retour_char = models.CharField(null=True, blank=True)
+    date_depart_char_ = models.CharField(null=True, blank=True)
+    date_retour_char_ = models.CharField(null=True, blank=True)
+    heure_depart_char_ = models.CharField(null=True, blank=True)
+    heure_retour_char_ = models.CharField(null=True, blank=True)
     num_vol = models.CharField()
 
     opt_protection_caution = models.IntegerField(null=True, blank=True)
