@@ -261,7 +261,7 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
             if client_id.risque == "eleve":
                 return {"message":"negatif"}
             else :
-                if phone and client_id.mobile != phone:
+                if phone and client_id.mobile and client_id.mobile != phone:
                     client_id.mobile = phone
                     client_id.save()
                 if email and client_id.email != email:
@@ -276,7 +276,7 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
                 if client_verify.risque == "eleve":
                     return {"message":"negatif"}
                 else :
-                    if phone and client_id.mobile != phone:
+                    if phone and client_id.mobile and client_id.mobile != phone:
                         client_id.mobile = phone
                         client_id.save()
                     if email and client_id.email != email:
