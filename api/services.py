@@ -694,17 +694,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
-
-        print("!!!!!!!!!!!!  valeurs !!!!!!!!!!!!!")
-        print("!!!!!!!!!  ref ===========",ref)
-        print("!!!!!!!!!  lieu_depart ===========",lieu_depart)
-        print("!!!!!!!!!  lieu_retour ===========",lieu_retour)
-        print("!!!!!!!!!  date_depart ===========",date_depart)
-        print("!!!!!!!!!  heure_depart ===========",heure_depart)
-        print("!!!!!!!!!  date_retour ===========",date_retour)
-        print("!!!!!!!!!  heure_retour ===========",heure_retour)
-        print("!!!!!!!!!  country_code ===========",country_code)
-
                 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -723,14 +712,14 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             is_available = True
 
             for reservation in vehicle_reservations:
-                print("@@@@@@@@@@@@@ ref ",reservation.name,"@@@@@@@@@@@@@ date retour ",reservation.date_heure_fin,"@@@@@@@@@@@@@ date depart ",reservation.date_heure_debut)
-                print("``````````````` depart : ",date_depart_heure,"`````````````` retour :",date_retour_heure)
+                if date_depart_heure < reservation.date_heure_fin:
+                    print("############## TRUE ###########")
+                else:
+                    print("############## FALSE ###########")
                 if (date_depart_heure < reservation.date_heure_fin and date_retour_heure > reservation.date_heure_debut and ref != record.name):
-                    print("~~~~~~~~~~~~ reservation IN : ", reservation.name)
                     is_available = False
                     break
 
-            print("************** is_available ************",is_available)
 
             if is_available == True :
                 get_total = record.total_reduit_euro
