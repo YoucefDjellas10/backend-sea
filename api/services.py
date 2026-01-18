@@ -694,6 +694,17 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
+
+        print("!!!!!!!!!!!!  valeurs !!!!!!!!!!!!!")
+        print("!!!!!!!!!  ref ===========",ref)
+        print("!!!!!!!!!  lieu_depart ===========",lieu_depart)
+        print("!!!!!!!!!  lieu_retour ===========",lieu_retour)
+        print("!!!!!!!!!  date_depart ===========",date_depart)
+        print("!!!!!!!!!  heure_depart ===========",heure_depart)
+        print("!!!!!!!!!  date_retour ===========",date_retour)
+        print("!!!!!!!!!  heure_retour ===========",heure_retour)
+        print("!!!!!!!!!  country_code ===========",country_code)
+
                 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -716,6 +727,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     is_available = False
                     break
 
+            print("************** is_available ************",is_available)
+
             if is_available == True :
                 get_total = record.total_reduit_euro
                 get_options_total = record.options_total_reduit
@@ -731,7 +744,123 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
                 date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
 
-                total_days = (date_retour - date_depart).days                
+                total_days = (date_retour - date_depart).days 
+                today = datetime.today().date()  
+                
+                promotions = Promotion.objects.filter(
+                    debut_visibilite__lte=today,
+                    fin_visibilite__gte=today,
+                    date_debut__lte=date_depart,
+                    date_fin__gte=date_retour,
+                    active_passive=True
+                ).first()
+                promotion_name = promotions.name if promotions is not None else None
+                promotion_value = 0
+                model_one = None
+                model_two = None
+                model_three = None
+                model_four = None
+                model_five = None
+
+                if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
+                    promotion_value = promotions.reduction
+                elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
+                    if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one :
+                        promotion_value = promotions.reduction
+                    else :
+                        promotion_value = 0
+                elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
+                    promotion_value = promotions.reduction
+                    if promotions.model_one :
+                        model_one = promotions.model_one
+                    else :
+                        model_one = None
+                    if promotions.model_two :
+                        model_two = promotions.model_two
+                    else :
+                        model_two = None
+                    if promotions.model_three :
+                        model_three = promotions.model_three
+                    else :
+                        model_three = None
+                    if promotions.model_four :
+                        model_four = promotions.model_four
+                    else :
+                        model_four = None
+                    if promotions.model_five :
+                        model_five = promotions.model_five
+                    else :
+                        model_five = None
+                elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
+                    if lieu_depart.zone == promotions.zone_one :
+                        promotion_value = promotions.reduction
+                        if promotions.model_one :
+                            model_one = promotions.model_one
+                        else :
+                            model_one = None
+                        if promotions.model_two :
+                            model_two = promotions.model_two
+                        else :
+                            model_two = None
+                        if promotions.model_three :
+                            model_three = promotions.model_three
+                        else :
+                            model_three = None
+                        if promotions.model_four :
+                            model_four = promotions.model_four
+                        else :
+                            model_four = None
+                        if promotions.model_five :
+                            model_five = promotions.model_five
+                        else :
+                            model_five = None
+                    elif lieu_depart.zone == promotions.zone_two :
+                        promotion_value = promotions.reduction
+                        if promotions.model_one :
+                            model_one = promotions.model_one
+                        else :
+                            model_one = None
+                        if promotions.model_two :
+                            model_two = promotions.model_two
+                        else :
+                            model_two = None
+                        if promotions.model_three :
+                            model_three = promotions.model_three
+                        else :
+                            model_three = None
+                        if promotions.model_four :
+                            model_four = promotions.model_four
+                        else :
+                            model_four = None
+                        if promotions.model_five :
+                            model_five = promotions.model_five
+                        else :
+                            model_five = None
+                    elif lieu_depart.zone == promotions.zone_three :
+                        promotion_value = promotions.reduction
+                        if promotions.model_one :
+                            model_one = promotions.model_one
+                        else :
+                            model_one = None
+                        if promotions.model_two :
+                            model_two = promotions.model_two
+                        else :
+                            model_two = None
+                        if promotions.model_three :
+                            model_three = promotions.model_three
+                        else :
+                            model_three = None
+                        if promotions.model_four :
+                            model_four = promotions.model_four
+                        else :
+                            model_four = None
+                        if promotions.model_five :
+                            model_five = promotions.model_five
+                        else :
+                            model_five = None
+                    else :
+                        promotion_value = 0
+                            
 
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
