@@ -723,8 +723,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             is_available = True
 
             for reservation in vehicle_reservations:
-                print("@@@@@@@@@@@@@ date depart ",reservation.date_heure_debut)
-                print("@@@@@@@@@@@@@ date retour ",reservation.date_heure_fin)
+                print("@@@@@@@@@@@@@ ref ",reservation.name,"@@@@@@@@@@@@@ date retour ",reservation.date_heure_fin,"@@@@@@@@@@@@@ date depart ",reservation.date_heure_debut)
                 if (date_depart_heure < reservation.date_heure_fin and date_retour_heure > reservation.date_heure_debut and ref != record.name):
                     print("~~~~~~~~~~~~ reservation IN : ", reservation.name)
                     is_available = False
