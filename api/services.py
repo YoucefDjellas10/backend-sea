@@ -723,6 +723,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             is_available = True
 
             for reservation in vehicle_reservations:
+                if reservation.name == "269991":
+                    print("////////// 269991 est la ///////////")
                 if (date_depart_heure < reservation.date_heure_fin and date_retour_heure > reservation.date_heure_debut and ref != record.name):
                     is_available = False
                     break
