@@ -913,6 +913,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 free_options = free_options_f(client_id)
                 if free_options:
                     free_options = free_options[0]  
+                
+                if record.opt_payment:  
+                    total += Decimal(record.opt_payment_total) 
 
                 if record.opt_klm:
                     if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
