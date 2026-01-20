@@ -743,114 +743,50 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     date_fin__gte=date_retour,
                     active_passive=True
                 ).first()
-                promotion_name = promotions.name if promotions is not None else None
                 promotion_value = 0
-                model_one = None
-                model_two = None
-                model_three = None
-                model_four = None
-                model_five = None
+                percentage = 0 
 
                 if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
                     promotion_value = promotions.reduction
                 elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-                    if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one :
+                    if reservation.zone == promotions.zone_one or reservation.zone == promotions.zone_two or reservation.zone == promotions.zone_three :
                         promotion_value = promotions.reduction
                     else :
                         promotion_value = 0
                 elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
-                    promotion_value = promotions.reduction
-                    if promotions.model_one :
-                        model_one = promotions.model_one
-                    else :
-                        model_one = None
-                    if promotions.model_two :
-                        model_two = promotions.model_two
-                    else :
-                        model_two = None
-                    if promotions.model_three :
-                        model_three = promotions.model_three
-                    else :
-                        model_three = None
-                    if promotions.model_four :
-                        model_four = promotions.model_four
-                    else :
-                        model_four = None
-                    if promotions.model_five :
-                        model_five = promotions.model_five
-                    else :
-                        model_five = None
+                    if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                        promotion_value = promotions.reduction
+                    else: 
+                        promotion_value = 0
+
                 elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
-                    if lieu_depart.zone == promotions.zone_one :
-                        promotion_value = promotions.reduction
-                        if promotions.model_one :
-                            model_one = promotions.model_one
-                        else :
-                            model_one = None
-                        if promotions.model_two :
-                            model_two = promotions.model_two
-                        else :
-                            model_two = None
-                        if promotions.model_three :
-                            model_three = promotions.model_three
-                        else :
-                            model_three = None
-                        if promotions.model_four :
-                            model_four = promotions.model_four
-                        else :
-                            model_four = None
-                        if promotions.model_five :
-                            model_five = promotions.model_five
-                        else :
-                            model_five = None
-                    elif lieu_depart.zone == promotions.zone_two :
-                        promotion_value = promotions.reduction
-                        if promotions.model_one :
-                            model_one = promotions.model_one
-                        else :
-                            model_one = None
-                        if promotions.model_two :
-                            model_two = promotions.model_two
-                        else :
-                            model_two = None
-                        if promotions.model_three :
-                            model_three = promotions.model_three
-                        else :
-                            model_three = None
-                        if promotions.model_four :
-                            model_four = promotions.model_four
-                        else :
-                            model_four = None
-                        if promotions.model_five :
-                            model_five = promotions.model_five
-                        else :
-                            model_five = None
-                    elif lieu_depart.zone == promotions.zone_three :
-                        promotion_value = promotions.reduction
-                        if promotions.model_one :
-                            model_one = promotions.model_one
-                        else :
-                            model_one = None
-                        if promotions.model_two :
-                            model_two = promotions.model_two
-                        else :
-                            model_two = None
-                        if promotions.model_three :
-                            model_three = promotions.model_three
-                        else :
-                            model_three = None
-                        if promotions.model_four :
-                            model_four = promotions.model_four
-                        else :
-                            model_four = None
-                        if promotions.model_five :
-                            model_five = promotions.model_five
-                        else :
-                            model_five = None
+                    if reservation.zone == promotions.zone_one :
+                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                            promotion_value = promotions.reduction
+                        else: 
+                            promotion_value = 0
+                    elif reservation.zone == promotions.zone_two :
+                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                            promotion_value = promotions.reduction
+                        else: 
+                            promotion_value = 0
+                    elif reservation.zone == promotions.zone_three :
+                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                            promotion_value = promotions.reduction
+                        else: 
+                            promotion_value = 0
                     else :
                         promotion_value = 0
-                            
+                
+                if client_id :
+                    if reservation.client.reduction > 0:
+                        client_pr = reservation.client.reduction if reservation.client is not None else 0
 
+                    else:
+                        client_pr = 0
+
+                promotion_value = client_pr if client_pr > promotion_value else promotion_value
+                
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
                     Q(zone = lieu_depart_obj.zone)&
@@ -872,7 +808,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
                                 total += Decimal(overlap_days * tarif.prix)
-                                prix_unitaire = tarif.prix
+                                percentage = promotion_value * tarif.prix / 100
+                                prix_unitaire = tarif.prix - percentage
 
                     if tarif.date_depart_two and tarif.date_fin_two:
                         if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
@@ -881,7 +818,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
                                 total += Decimal(overlap_days * tarif.prix)
-                                prix_unitaire = tarif.prix
+                                percentage = promotion_value * tarif.prix / 100
+                                prix_unitaire = tarif.prix - percentage
 
                     if tarif.date_depart_three and tarif.date_fin_three:
                         if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
@@ -890,7 +828,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
                                 total += Decimal(overlap_days * tarif.prix)
-                                prix_unitaire = tarif.prix
+                                percentage = promotion_value * tarif.prix / 100
+                                prix_unitaire = tarif.prix - percentage
 
                     if tarif.date_depart_four and tarif.date_fin_four:
                         if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
@@ -899,7 +838,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
                                 total += Decimal(overlap_days * tarif.prix)
-                                prix_unitaire = tarif.prix
+                                percentage = promotion_value * tarif.prix / 100
+                                prix_unitaire = tarif.prix - percentage
                                         
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
