@@ -2654,6 +2654,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         print("********** backoffice : ",backoffice)
         print("********** did_by : ",did_by)
 
+        user = Users.objects.get(id=did_by)
+
         if verify_value and verify_value[0].get('is_available') == "yes":
             reservation_obj = Reservation.objects.get(name=ref)
             lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
@@ -2690,6 +2692,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             date_du_au = anciennes_dates,
                             date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
                             date_prolongation = datetime.now(),
+                            effectuer_par = user if user else None 
                         )
                         prolongation_id = prolongation_obj.id
                         reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else float(reservation_obj.total_prolone) + float(diff_prix)
@@ -2705,6 +2708,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             date_du_au = anciennes_dates,
                             date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
                             date_retour_avance = datetime.now(),
+                            effectuer_par = user if user else None
                         )
 
                         retour_avance_id = retour_avance_obj.id
