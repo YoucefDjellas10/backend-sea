@@ -777,10 +777,12 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             promotion_value = 0
                     else :
                         promotion_value = 0
+                    
+                print("/////// client id :")
                 
-                if client_id :
-                    if reservation.client.categorie_client.reduction > 0:
-                        client_pr = reservation.client.categorie_client.reduction if reservation.client is not None else 0
+                if record.client :
+                    if record.client.reduction > 0:
+                        client_pr = record.client.reduction if record.client.reduction is not None else 0
 
                     else:
                         client_pr = 0
