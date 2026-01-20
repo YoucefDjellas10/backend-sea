@@ -811,9 +811,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_one)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                total += Decimal(overlap_days * prix_unitaire)
                                 print("==============   tarif.prix : ",tarif.prix," ==========")
                                 print("==============   prix_unitaire : ",prix_unitaire," ==========")
 
@@ -823,9 +823,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_two)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                total += Decimal(overlap_days * prix_unitaire)
                                 print("==============   tarif.prix : ",tarif.prix," ==========")
                                 print("==============   prix_unitaire : ",prix_unitaire," ==========")
 
@@ -835,9 +835,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_three)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                total += Decimal(overlap_days * prix_unitaire)
                                 print("==============   tarif.prix : ",tarif.prix," ==========")
                                 print("==============   prix_unitaire : ",prix_unitaire," ==========")
 
@@ -847,9 +847,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_four)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
-                                total += Decimal(overlap_days * tarif.prix)
+                                
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                total += Decimal(overlap_days * prix_unitaire)
                                 print("==============   tarif.prix : ",tarif.prix," ==========")
                                 print("==============   prix_unitaire : ",prix_unitaire," ==========")
                                         
