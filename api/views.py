@@ -2999,16 +2999,6 @@ def verify_and_do_view(request):
 
     if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
         return JsonResponse({"error": "Tous les paramètres sont requis."}, status=400)
-    
-    print("********** ref : ",ref)
-    print("********** lieu_depart : ",lieu_depart)
-    print("********** lieu_retour : ",lieu_retour)
-    print("********** date_depart : ",date_depart)
-    print("********** heure_depart : ",heure_depart)
-    print("********** date_retour : ",date_retour)
-    print("********** heure_retour : ",heure_retour)
-    print("********** backoffice : ",backoffice)
-    print("********** did_by : ",did_by)
 
     try:
         resultats = verify_and_do(
@@ -3022,6 +3012,15 @@ def verify_and_do_view(request):
             backoffice = backoffice,
             did_by = did_by
         )
+        print("********** ref : ",ref)
+        print("********** lieu_depart : ",lieu_depart)
+        print("********** lieu_retour : ",lieu_retour)
+        print("********** date_depart : ",date_depart)
+        print("********** heure_depart : ",heure_depart)
+        print("********** date_retour : ",date_retour)
+        print("********** heure_retour : ",heure_retour)
+        print("********** backoffice : ",backoffice)
+        print("********** did_by : ",did_by)
         if resultats.get('success') == "yes":
             return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
         else :
