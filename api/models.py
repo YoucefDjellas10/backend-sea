@@ -949,7 +949,6 @@ class AnnulerRaison(models.Model):
 
 class Users(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=10, unique=True, editable=False, default='')
     class Meta:
         db_table = 'res_users'
         managed = False
