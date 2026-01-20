@@ -2654,7 +2654,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         print("********** backoffice : ",backoffice)
         print("********** did_by : ",did_by)
 
-        user = Users.objects.get.all()
+        user = Users.objects.get(id=did_by)
         print(" #######################  User ",user,"########################")
 
         if verify_value and verify_value[0].get('is_available') == "yes":
