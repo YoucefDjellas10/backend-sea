@@ -914,7 +914,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if free_options:
                     free_options = free_options[0]  
                 print("avant 5")
-                if record.opt_payment:  
+                if record.opt_payment and record.opt_payment_name:  
                     total += Decimal(record.opt_payment_total) if record.opt_payment_total else 0
 
                 if record.opt_klm:
