@@ -786,7 +786,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         client_pr = 0
 
                 promotion_value = client_pr if client_pr > promotion_value else promotion_value
-                
+
+                print("###########   promotion_value : ",promotion_value," #############")
+
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
                     Q(zone = lieu_depart_obj.zone)&
@@ -810,6 +812,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                print("==============   tarif.prix : ",tarif.prix," ==========")
+                                print("==============   prix_unitaire : ",prix_unitaire," ==========")
 
                     if tarif.date_depart_two and tarif.date_fin_two:
                         if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
@@ -820,6 +824,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                print("==============   tarif.prix : ",tarif.prix," ==========")
+                                print("==============   prix_unitaire : ",prix_unitaire," ==========")
 
                     if tarif.date_depart_three and tarif.date_fin_three:
                         if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
@@ -830,6 +836,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                print("==============   tarif.prix : ",tarif.prix," ==========")
+                                print("==============   prix_unitaire : ",prix_unitaire," ==========")
 
                     if tarif.date_depart_four and tarif.date_fin_four:
                         if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
@@ -840,6 +848,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 total += Decimal(overlap_days * tarif.prix)
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
+                                print("==============   tarif.prix : ",tarif.prix," ==========")
+                                print("==============   prix_unitaire : ",prix_unitaire," ==========")
                                         
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
