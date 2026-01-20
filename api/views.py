@@ -2640,20 +2640,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour,
             None
         )
-        print("********** ref : ",ref)
-        print("********** lieu_depart : ",lieu_depart)
-        print("********** lieu_retour : ",lieu_retour)
-        print("********** date_depart : ",date_depart)
-        print("********** heure_depart : ",heure_depart)
-        print("********** date_retour : ",date_retour)
-        print("********** heure_retour : ",heure_retour)
-        print("********** backoffice : ",backoffice)
-        print("********** did_by : ",did_by)
+        
         if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
             return {"success": "no"}
-
-        user = Users.objects.get(id=did_by)
-
+        
         print("********** ref : ",ref)
         print("********** lieu_depart : ",lieu_depart)
         print("********** lieu_retour : ",lieu_retour)
@@ -2663,6 +2653,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         print("********** heure_retour : ",heure_retour)
         print("********** backoffice : ",backoffice)
         print("********** did_by : ",did_by)
+
+        user = Users.objects.get(id=did_by)
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             reservation_obj = Reservation.objects.get(name=ref)
