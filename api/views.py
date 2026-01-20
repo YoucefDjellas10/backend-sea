@@ -2997,6 +2997,9 @@ def verify_and_do_view(request):
     did_by = request.GET.get("did_by")
     country_code = request.headers.get("X-Country-Code")
 
+    if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
+        return JsonResponse({"error": "Tous les paramètres sont requis."}, status=400)
+    
     print("********** ref : ",ref)
     print("********** lieu_depart : ",lieu_depart)
     print("********** lieu_retour : ",lieu_retour)
@@ -3006,9 +3009,6 @@ def verify_and_do_view(request):
     print("********** heure_retour : ",heure_retour)
     print("********** backoffice : ",backoffice)
     print("********** did_by : ",did_by)
-
-    if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
-        return JsonResponse({"error": "Tous les paramètres sont requis."}, status=400)
 
     try:
         resultats = verify_and_do(
