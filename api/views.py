@@ -2656,7 +2656,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
-            diff_prix = float(new_total) - float(old_total) if (float(new_total) - float(old_total))>0 else 0
+            diff_prix = float(new_total) - float(old_total) if (float(new_total) - float(old_total)) >0 else 0
             session_id = None
             payment_url = None
             anciennes_dates = reservation_obj.du_au 
@@ -5872,23 +5872,33 @@ class HistoriqueSoldeViewset(viewsets.ViewSet):
         taux_change.delete()
         return Response(status=204)
 
+
 @csrf_exempt
-def create_payment_authorization_session____(request):
+def create_caution_authorization(request):
+    """
+    Crée une session Stripe pour autoriser un paiement de caution sans le capturer immédiatement.
+    Le hold reste valide pendant 30 jours.
+    """
     try:
         if request.method != "POST":
             return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
 
         data = json.loads(request.body)
         
-        deposit_amount = data.get("deposit_amount", 10000)  # 100€ en centimes par défaut
-        currency = data.get("currency", "eur")
         reservation_id = data.get("reservation_id")
-        
-        if not reservation_id:
-            return JsonResponse({"error": "reservation_id is required"}, status=400)
-        
-        deposit_amount = int(deposit_amount)
-        
+        montant_caution = data.get("montant_caution")  
+        customer_email = data.get("email")
+        token = data.get("token")
+        currency = data.get("currency", "eur")
+    
+        reservation_name = data.get("reservation_name", "test")
+        vehicule_model = data.get("vehicule_model", "V1")
+
+        if not all([reservation_id, montant_caution, customer_email]):
+            return JsonResponse({"error": "Missing required fields: reservation_id, montant_caution, email"}, status=400)
+
+        montant_caution = int(montant_caution)
+
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[
@@ -5896,185 +5906,249 @@ def create_payment_authorization_session____(request):
                     "price_data": {
                         "currency": currency,
                         "product_data": {
-                            "name": "Dépôt de garantie - Réservation",
-                            "description": f"Autorisation de {deposit_amount/100}€ pour la réservation #{reservation_id}",
-                            "images": [],  # Tu peux ajouter une image de ton logo
+                            "name": f"Caution - Réservation {reservation_name}",
+                            "description": f"Autorisation de caution pour {vehicule_model}. Ce montant sera bloqué mais non débité.",
+                            "images": data.get("images", []),
                         },
-                        "unit_amount": deposit_amount,
+                        "unit_amount": montant_caution,
                     },
                     "quantity": 1,
                 },
             ],
             mode="payment",
             payment_intent_data={
-                "capture_method": "manual",  # Ceci est la clé pour l'autorisation non capturée
-                "description": f"Dépôt de garantie pour réservation #{reservation_id}",
-                "metadata": {
-                    "type": "deposit_authorization",
-                    "reservation_id": str(reservation_id),
-                }
+                "capture_method": "manual", 
+                "statement_descriptor": "CAUTION LOCATION",
             },
-            success_url=f"https://safarelamir.com/deposit-success?reservation_id={reservation_id}&session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"https://safarelamir.com/deposit-cancel?reservation_id={reservation_id}",
+            success_url=f"https://safarelamir.com",
+            cancel_url=f"https://safarelamir.com",
+            customer_email=customer_email,
             metadata={
-                "type": "deposit_authorization",
                 "reservation_id": str(reservation_id),
-                "deposit_amount": str(deposit_amount),
+                "type": "caution",
+                "montant_caution": str(montant_caution),
+                "reservation_name": reservation_name,
             }
         )
 
         return JsonResponse({
             "session_id": checkout_session.id, 
             "url": checkout_session.url,
-            "amount": deposit_amount,
-            "currency": currency,
-            "type": "authorization"
+            "message": "Session de caution créée avec succès"
         }, status=200)
         
-    except stripe.error.StripeError as e:
-        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
-    except ValueError as e:
-        return JsonResponse({"error": f"Invalid data: {str(e)}"}, status=400)
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": str(e)}, status=400)
+
 
 @csrf_exempt
-def create_payment_authorization_session(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+def stripe_webhook_caution(request):
+    """
+    Webhook pour gérer les événements de caution (autorisation, capture, annulation).
+    """
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
-        data = json.loads(request.body)
-        reservation_id = data.get("reservation_id")
-        if not reservation_id:
-            return JsonResponse({"error": "reservation_id is required"}, status=400)
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except ValueError:
+        return JsonResponse({"error": "Invalid payload"}, status=400)
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({"error": "Invalid signature"}, status=400)
 
-        deposit_amount = int(data.get("deposit_amount", 10000))
-        currency       = data.get("currency", "eur")
-        authorize_now  = data.get("authorize_now", True)
+    # Gestion de l'autorisation de la caution
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        type_id = session.get("metadata", {}).get("type")
+        
+        if type_id == "caution":
+            reservation_id = session.get("metadata", {}).get("reservation_id")
+            montant_caution = session.get("metadata", {}).get("montant_caution")
+            payment_intent_id = session.get("payment_intent")
 
-        if authorize_now:
-            # Autorisation immédiate
-            session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
-                line_items=[{
-                    "price_data": {
-                        "currency": currency,
-                        "product_data": {
-                            "name": "Dépôt de garantie – Réservation",
-                            "description": f"{deposit_amount/100:.2f}€ – Réservation #{reservation_id}",
-                        },
-                        "unit_amount": deposit_amount,
-                    },
-                    "quantity": 1,
-                }],
-                mode="payment",
-                payment_intent_data={
-                    "capture_method": "manual",
-                    "description": f"Dépôt garantie #{reservation_id}",
-                    "metadata": {
-                        "type": "deposit_authorization",
-                        "reservation_id": str(reservation_id),
-                    }
-                },
-                success_url= f"https://safarelamir.com/confirmation?id={reservation_id}",
-                cancel_url =f"https://safarelamir.com/",
-                metadata={
-                    "type": "deposit_authorization",
-                    "reservation_id": str(reservation_id),
-                    "deposit_amount": str(deposit_amount),
-                }
-            )
+            try:
+                reservation = Reservation.objects.get(id=reservation_id)
+                
+                # Enregistrement de l'autorisation de caution
+                reservation.caution_autorisee = True
+                reservation.caution_payment_intent_id = payment_intent_id
+                reservation.caution_montant = Decimal(montant_caution) / 100  # Conversion centimes -> euros
+                reservation.caution_date_autorisation = timezone.now()
+                reservation.save()
+
+                # Création d'un enregistrement de paiement pour traçabilité
+                Payment.objects.create(
+                    reservation=reservation,
+                    vehicule=reservation.vehicule,
+                    modele=reservation.modele,
+                    zone=reservation.lieu_depart.zone if reservation.lieu_depart else None,
+                    montant=Decimal(montant_caution) / 100,
+                    montant_dzd=0,
+                    montant_eur_dzd=0,
+                    montant_dzd_eur=0,
+                    note=f"Caution autorisée (non capturée) - Payment Intent: {payment_intent_id}",
+                    mode_paiement="carte_hold",
+                    total_encaisse=0,  # Pas encore encaissé
+                )
+
+                # Envoi d'un email de confirmation
+                sujet = f"Autorisation de caution confirmée - Réservation N°{reservation.name}"
+                expediteur = settings.EMAIL_HOST_USER
+
+                html_message = render_to_string('email/caution_autorisee_email.html', {
+                    'client': reservation.client.nom,
+                    'client_prenom': reservation.client.prenom,
+                    'referance': reservation.name,
+                    'montant_caution': reservation.caution_montant,
+                    'model_name': reservation.model_name,
+                })
+
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),
+                    expediteur,
+                    [reservation.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+
+                print(f"✅ Caution autorisée pour réservation ID: {reservation_id} - PaymentIntent: {payment_intent_id}")
+
+            except Reservation.DoesNotExist:
+                print(f"❌ Réservation introuvable: {reservation_id}")
+                return JsonResponse({"error": "Reservation not found"}, status=404)
+
+    # Gestion de la capture de la caution (si dommages)
+    elif event["type"] == "payment_intent.succeeded":
+        payment_intent = event["data"]["object"]
+        payment_intent_id = payment_intent["id"]
+        
+        try:
+            reservation = Reservation.objects.get(caution_payment_intent_id=payment_intent_id)
+            reservation.caution_capturee = True
+            reservation.caution_date_capture = timezone.now()
+            reservation.save()
+
+            print(f"💰 Caution capturée pour réservation ID: {reservation.id}")
+
+        except Reservation.DoesNotExist:
+            print(f"⚠️ Aucune réservation trouvée pour PaymentIntent: {payment_intent_id}")
+
+    # Gestion de l'annulation de la caution
+    elif event["type"] == "payment_intent.canceled":
+        payment_intent = event["data"]["object"]
+        payment_intent_id = payment_intent["id"]
+        
+        try:
+            reservation = Reservation.objects.get(caution_payment_intent_id=payment_intent_id)
+            reservation.caution_liberee = True
+            reservation.caution_date_liberation = timezone.now()
+            reservation.save()
+
+            print(f"🔓 Caution libérée pour réservation ID: {reservation.id}")
+
+        except Reservation.DoesNotExist:
+            print(f"⚠️ Aucune réservation trouvée pour PaymentIntent: {payment_intent_id}")
+
+    return JsonResponse({"status": "success"}, status=200)
+
+
+# FONCTIONS UTILITAIRES POUR GÉRER LA CAUTION
+
+def capturer_caution(reservation_id, montant_a_capturer=None):
+    """
+    Capture la caution (en cas de dommages) - À appeler manuellement ou via une API.
+    
+    Args:
+        reservation_id: ID de la réservation
+        montant_a_capturer: Montant en euros (si None, capture le montant total autorisé)
+    """
+    try:
+        reservation = Reservation.objects.get(id=reservation_id)
+        
+        if not reservation.caution_payment_intent_id:
+            return {"error": "Aucune caution autorisée pour cette réservation"}
+        
+        if reservation.caution_capturee:
+            return {"error": "Caution déjà capturée"}
+
+        # Montant en centimes
+        if montant_a_capturer:
+            amount_to_capture = int(montant_a_capturer * 100)
         else:
-            # Simplement enregistrer la carte (setup) pour autoriser plus tard
-            session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
-                mode="setup",
-                setup_intent_data={
-                    "metadata": {
-                        "type": "deposit_payment_method",
-                        "reservation_id": str(reservation_id),
-                    }
-                },
-                success_url=f"https://safarelamir.com/setup-success?reservation_id={reservation_id}&session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url =f"https://safarelamir.com/setup-cancel?reservation_id={reservation_id}",
-                metadata={
-                    "type": "deposit_payment_method",
-                    "reservation_id": str(reservation_id),
-                }
-            )
+            amount_to_capture = int(reservation.caution_montant * 100)
 
-        return JsonResponse({
-            "session_id": session.id,
-            "url":        session.url,
-            "authorize_now": authorize_now,
-            "amount":     deposit_amount if authorize_now else None,
-            "currency":   currency,
-        }, status=200)
-
-    except stripe.error.StripeError as e:
-        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
-    except ValueError as e:
-        return JsonResponse({"error": f"Invalid data: {str(e)}"}, status=400)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-@csrf_exempt
-def capture_authorized_payment(request):
-    try:
-        if request.method != "POST":
-            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
-
-        data = json.loads(request.body)
-        payment_intent_id = data.get("payment_intent_id")
-        amount_to_capture = data.get("amount_to_capture")  # Optionnel, capture le montant total si non spécifié
-        
-        if not payment_intent_id:
-            return JsonResponse({"error": "payment_intent_id is required"}, status=400)
-        
-        capture_params = {}
-        if amount_to_capture:
-            capture_params["amount_to_capture"] = int(amount_to_capture)
-        
+        # Capture via l'API Stripe
         payment_intent = stripe.PaymentIntent.capture(
-            payment_intent_id,
-            **capture_params
+            reservation.caution_payment_intent_id,
+            amount_to_capture=amount_to_capture
         )
-        
-        return JsonResponse({
-            "payment_intent_id": payment_intent.id,
-            "status": payment_intent.status,
-            "amount_captured": payment_intent.amount_received,
-            "currency": payment_intent.currency
-        }, status=200)
-        
-    except stripe.error.StripeError as e:
-        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
+
+        reservation.caution_capturee = True
+        reservation.caution_montant_capture = Decimal(amount_to_capture) / 100
+        reservation.caution_date_capture = timezone.now()
+        reservation.save()
+
+        return {"success": True, "payment_intent": payment_intent}
+
+    except Reservation.DoesNotExist:
+        return {"error": "Réservation introuvable"}
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return {"error": str(e)}
 
 
-@csrf_exempt
-def cancel_authorized_payment(request):
+def liberer_caution(reservation_id):
+    """
+    Libère la caution (annule l'autorisation) - À appeler à la fin de la location sans dommages.
+    
+    Args:
+        reservation_id: ID de la réservation
+    """
     try:
-        if request.method != "POST":
-            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+        reservation = Reservation.objects.get(id=reservation_id)
+        
+        if not reservation.caution_payment_intent_id:
+            return {"error": "Aucune caution autorisée pour cette réservation"}
+        
+        if reservation.caution_capturee:
+            return {"error": "Caution déjà capturée, impossible de libérer"}
+        
+        if reservation.caution_liberee:
+            return {"error": "Caution déjà libérée"}
 
-        data = json.loads(request.body)
-        payment_intent_id = data.get("payment_intent_id")
-        
-        if not payment_intent_id:
-            return JsonResponse({"error": "payment_intent_id is required"}, status=400)
-        
-        payment_intent = stripe.PaymentIntent.cancel(payment_intent_id)
-        
-        return JsonResponse({
-            "payment_intent_id": payment_intent.id,
-            "status": payment_intent.status,
-            "canceled_at": payment_intent.canceled_at
-        }, status=200)
-        
-    except stripe.error.StripeError as e:
-        return JsonResponse({"error": f"Stripe error: {str(e)}"}, status=400)
+        # Annulation via l'API Stripe
+        payment_intent = stripe.PaymentIntent.cancel(
+            reservation.caution_payment_intent_id
+        )
+
+        reservation.caution_liberee = True
+        reservation.caution_date_liberation = timezone.now()
+        reservation.save()
+
+        # Email de confirmation
+        sujet = f"Caution libérée - Réservation N°{reservation.name}"
+        expediteur = settings.EMAIL_HOST_USER
+
+        html_message = render_to_string('email/caution_liberee_email.html', {
+            'client': reservation.client.nom,
+            'client_prenom': reservation.client.prenom,
+            'referance': reservation.name,
+            'montant_caution': reservation.caution_montant,
+        })
+
+        send_mail(
+            sujet,
+            strip_tags(html_message),
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+        return {"success": True, "payment_intent": payment_intent}
+
+    except Reservation.DoesNotExist:
+        return {"error": "Réservation introuvable"}
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return {"error": str(e)}
