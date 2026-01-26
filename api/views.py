@@ -2137,7 +2137,11 @@ def protection_put_view(request):
             reservation = Reservation.objects.filter(name=ref).first()
             to_day = date.today()
 
+            if reservation.date_heure_debut.date() < to_day :
+                return JsonResponse({"message": "modification impossible"}, status=400)
+
             to_pay_value = resultats.get("to_pay")
+            protection_id = resultats.get("protection")
 
             if to_pay_value is not None:
                 request_factory = RequestFactory()
@@ -2150,7 +2154,9 @@ def protection_put_view(request):
                         "unit_amount": int(to_pay_value * 100),
                         "quantity": 1,
                         "currency": "eur",
-                        "reservation_id": reservation.id
+                        "reservation_id": reservation.id,
+                        "protection": protection_id ,
+                        "to_pay": to_pay_value
                     }),
                     content_type="application/json"
                 )
@@ -2190,6 +2196,8 @@ def create_payment_session_protection(request):
         quantity = data.get("quantity")
         currency = data.get("currency", "eur")
         reservation_id = data.get("reservation_id")
+        protection_id = data.get("protection")
+        to_pay = data.get("to_pay")
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
@@ -2216,6 +2224,12 @@ def create_payment_session_protection(request):
             mode="payment",
             success_url= f"https://safarelamir.com/confirmation?id={reservation_id}",
             cancel_url="https://safarelamir.com/cancel",
+            metadata={
+                "reservation_id": str(reservation_id),
+                "to_pay": to_pay, 
+                "protection_id": str(protection_id),
+                "type": "protection",
+            }
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)

@@ -638,6 +638,7 @@ class TypeOptions(models.Model):
         return self.name
 
 class Options(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(
         max_length=255,
         verbose_name="Nom de l'option",

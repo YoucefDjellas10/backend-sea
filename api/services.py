@@ -140,11 +140,12 @@ def modify_protection_request(ref, protection,country_code):
                 prix = opt_protection.prix
                 total = prix * nb_jour
 
-                if total > reservation.opt_protection_total:
+                if total >= reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_pay":total_pay * taux
@@ -152,6 +153,7 @@ def modify_protection_request(ref, protection,country_code):
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -160,6 +162,7 @@ def modify_protection_request(ref, protection,country_code):
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_refund":to_refund * taux
@@ -167,6 +170,7 @@ def modify_protection_request(ref, protection,country_code):
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -176,11 +180,12 @@ def modify_protection_request(ref, protection,country_code):
                 prix = opt_protection.prix
                 total = prix * nb_jour
 
-                if total > reservation.opt_protection_total:
+                if total >= reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_pay":total_pay * taux
@@ -188,6 +193,7 @@ def modify_protection_request(ref, protection,country_code):
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -196,6 +202,7 @@ def modify_protection_request(ref, protection,country_code):
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_refund":to_refund * taux
@@ -203,6 +210,7 @@ def modify_protection_request(ref, protection,country_code):
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -212,11 +220,12 @@ def modify_protection_request(ref, protection,country_code):
                 prix = opt_protection.prix
                 total = prix * nb_jour
 
-                if total > reservation.opt_protection_total:
+                if total >= reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_pay":total_pay * taux
@@ -224,6 +233,7 @@ def modify_protection_request(ref, protection,country_code):
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
@@ -232,6 +242,7 @@ def modify_protection_request(ref, protection,country_code):
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             "to_refund":to_refund * taux
@@ -239,6 +250,7 @@ def modify_protection_request(ref, protection,country_code):
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
+                            "protection": opt_protection.id,
                             "new_protection_price":prix * taux,
                             "new_protection_total":total * taux,
                             }
