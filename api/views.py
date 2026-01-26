@@ -2156,7 +2156,7 @@ def protection_put_view(request):
                         "currency": "eur",
                         "reservation_id": reservation.id,
                         "protection": protection_id ,
-                        "to_pay": to_pay_value
+                        "to_pay": int(to_pay_value)
                     }),
                     content_type="application/json"
                 )
@@ -2226,7 +2226,7 @@ def create_payment_session_protection(request):
             cancel_url="https://safarelamir.com/cancel",
             metadata={
                 "reservation_id": str(reservation_id),
-                "to_pay": to_pay, 
+                "to_pay": str(to_pay), 
                 "protection_id": str(protection_id),
                 "type": "protection",
             }
