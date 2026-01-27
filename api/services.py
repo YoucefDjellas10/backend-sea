@@ -470,7 +470,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
                 carburant = tarif_carburant.name
                 carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
                 carburant_last_price = 0
-                carburant_total = carburant_price * reservations.nbr_jour_reservation
+                carburant_total = carburant_price 
                 carburant_last_total = 0
                 carburant_result = {
                     "carburant_name": carburant,
@@ -483,7 +483,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
             else :
                 carburant = tarif_carburant.name
                 carburant_price = tarif_carburant.prix * taux_change if country_code=="DZ" else tarif_carburant.prix
-                carburant_total = carburant_price * reservations.nbr_jour_reservation
+                carburant_total = carburant_price 
                 to_pay_total += carburant_total
                 carburant_result = {
                     "carburant_name": carburant,
