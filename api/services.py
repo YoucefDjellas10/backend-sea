@@ -707,6 +707,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
         print("!!!!!!!!!!!!!!!!!! total : ",total)
+        print("ref :",ref)
                 
         ma_reservation = Reservation.objects.filter(name=ref)
         if not ma_reservation:
