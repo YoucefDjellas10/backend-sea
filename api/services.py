@@ -816,7 +816,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
                     )
                 )
-                print("################## tarif",tarif)
+                print("################## tarif",tarifs)
                 
                 for tarif in tarifs:
                     total = 0
