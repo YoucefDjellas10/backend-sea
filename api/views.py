@@ -4447,7 +4447,6 @@ def new_modeles_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-
 @csrf_exempt
 @require_http_methods(["PUT"])
 def add_options_put_view(request):
@@ -4475,192 +4474,125 @@ def add_options_put_view(request):
             reservation = Reservation.objects.filter(name=ref).first()
             lieu_depart_obj = reservation.lieu_depart
 
-            request_result = add_options_request(
-                                                ref=ref,
-                                                klm=klm,
-                                                nd_driver=nd_driver,
-                                                carburant=carburant,
-                                                sb_a=sb_a,
-                                                sb_b=sb_b,
-                                                sb_c=sb_c,
-                                                country_code=country_code
-                                                )
-            print(request_result)
+            request_result = add_options_request(ref=ref,
+                                                 klm=klm,
+                                                 nd_driver=nd_driver,
+                                                 carburant=carburant,
+                                                 sb_a=sb_a,
+                                                 sb_b=sb_b,
+                                                 sb_c=sb_c,
+                                                 country_code=country_code )
             
-            if nd_driver == "yes":
-                if not nom or not prenom or not birthday or not permis_date :
-                    return JsonResponse({"error": "Les champ 'info client' sont requis."}, status=400)
-                else :
-                    risque_client = verify_client(reservation.email, nom, prenom, birthday, permis_date, reservation.telephone)
-                    print("risque_client : ",risque_client)
-                    if risque_client.get("message") == "negatif":
-                        return JsonResponse({"message": "2eme conducteur est bloqué"}, status=400)
-                    else : 
-                        nd_client_id = risque_client.get("client_id",None) 
-                        if nd_client_id is not None:
-                            nd_client = ListeClient.objects.filter(id=nd_client_id).first()
-                            nd_client_name = nd_client.name
-                            nd_client_permis = nd_client.date_de_permis
-                            nd_client_birthday = nd_client.date_de_naissance
-                            nd_client_phone = nd_client.telephone
-                            nd_client_email = nd_client.email
-                            nd_client_risque = nd_client.risque
-                            nd_client_code_prime = nd_client.code_prime
-                            nd_client_category = nd_client.categorie_client
-                            nd_client_solde = nd_client.solde
-
-            if isinstance(request_result, str):
-                request_result = json.loads(request_result)
-
-            to_pay = request_result.get("total_price", 0)
-            if to_pay > 0 and reservation.opt_payment_name :
-                request_factory = RequestFactory()
-                fake_request = request_factory.post(
-                    path="/create-payment-session-option/",
-                    data=json.dumps({
-                        "product_name": reservation.name,
-                        "description": "test",
-                        "images": [reservation.vehicule.photo_link] if reservation.vehicule.photo_link else [],
-                        "unit_amount": int(to_pay * 100),
-                        "quantity": 1,
-                        "currency": "eur",
-                        "reservation_id": reservation.id
-                    }),
-                    content_type="application/json"
-                )
-
-                payment_session_response = create_payment_session_option(fake_request)
-
-                if payment_session_response.status_code == 200:
-                    payment_session_data = json.loads(payment_session_response.content)
-                    session_id = payment_session_data.get("session_id", "")
-                    payment_url = payment_session_data.get("url", "")
-                    return JsonResponse({"message": "Réservation créée avec succès.", "reservation_id": reservation.id, "session_id": session_id, "payment_url": payment_url}, status=201)
+            klm_put = request_result.get("klm", None)
+            if klm_put is not None :
+                klm_discount = klm_put.get("klM_last_price",None)
+                category = reservation.categorie
+                klm_name = klm_put.get("klm_name",None)
+                klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
+                if klm_discount is None:
+                    reservation.opt_klm = klm_option
+                    reservation.opt_klm_name = klm_option.name
+                    reservation.opt_klm_price = klm_option.prix
+                    reservation.opt_klm_total = klm_option.prix * reservation.nbr_jour_reservation
+                    reservation.save()
                 else:
-                    return JsonResponse({"error": "Échec de la création de la session de paiement.", "response": payment_session_response.content.decode('utf-8')}, status=500)
-            elif to_pay >= 0 and not reservation.opt_payment_name :
+                    reservation.opt_klm = klm_option
+                    reservation.opt_klm_name = klm_option.name
+                    reservation.opt_klm_price = 0
+                    reservation.opt_klm_total = 0
+                    reservation.save()
 
-                klm_put = request_result.get("klm", None)
-                print("klm_put : ",klm_put)
-                if klm_put is not None :
-                    print("klm_put : ",klm_put)
-                    klm_discount = klm_put.get("klM_last_price",None)
-                    category = reservation.categorie
-                    klm_name = klm_put.get("klm_name",None)
-                    klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
-                    if klm_discount is None:
-                        reservation.opt_klm = klm_option
-                        reservation.opt_klm_name = klm_option.name
-                        reservation.opt_klm_price = klm_option.prix
-                        reservation.opt_klm_total = klm_option.prix * reservation.nbr_jour_reservation
-                        reservation.save()
-                    else:
-                        reservation.opt_klm = klm_option
-                        reservation.opt_klm_name = klm_option.name
-                        reservation.opt_klm_price = 0
-                        reservation.opt_klm_total = 0
-                        reservation.save()
+            nd_driver_put = request_result.get("nd_driver", None)
+            if nd_driver_put is not None :
+                nd_driver_discount = nd_driver_put.get("nd_driver_last_price",None)
+                nd_driver_name = nd_driver_put.get("nd_driver_name",None)
+                nd_driver_option = Options.objects.filter(name=nd_driver_name, zone= lieu_depart_obj.zone).first()
+                if nd_driver_discount is None:
+                    reservation.opt_nd_driver = nd_driver_option
+                    reservation.opt_nd_driver_name = nd_driver_option.name
+                    reservation.opt_nd_driver_price = nd_driver_option.prix
+                    reservation.opt_nd_driver_total = nd_driver_option.prix * reservation.nbr_jour_reservation
+                    reservation.save()
+                else:
+                    reservation.opt_nd_driver = nd_driver_option
+                    reservation.opt_nd_driver_name = nd_driver_option.name
+                    reservation.opt_nd_driver_price = 0
+                    reservation.opt_nd_driver_total = 0
+                    reservation.save()
 
-                nd_driver_put = request_result.get("nd_driver", None)
-                if nd_driver_put is not None :
-                    nd_driver_discount = nd_driver_put.get("nd_driver_last_price",None)
-                    nd_driver_name = nd_driver_put.get("nd_driver_name",None)
-                    nd_driver_option = Options.objects.filter(name=nd_driver_name, zone= lieu_depart_obj.zone).first()
-                    if nd_driver_discount is None:
-                        reservation.opt_nd_driver = nd_driver_option
-                        reservation.opt_nd_driver_name = nd_driver_option.name
-                        reservation.opt_nd_driver_price = nd_driver_option.prix
-                        reservation.opt_nd_driver_total = nd_driver_option.prix * reservation.nbr_jour_reservation
-                        #nd_client_name = nd_client.name
-                        #nd_client_permis = nd_client.date_de_permis
-                        #nd_client_birthday = nd_client.date_de_naissance
-                        #nd_client_phone = nd_client.telephone
-                        #nd_client_email = nd_client.email
-                        #nd_client_risque = nd_client.risque
-                        #nd_client_code_prime = nd_client.code_prime
-                        #nd_client_category = nd_client.categorie_client
-                        #nd_client_solde = nd_client.solde
-                        reservation.save()
-                    else:
-                        reservation.opt_nd_driver = nd_driver_option
-                        reservation.opt_nd_driver_name = nd_driver_option.name
-                        reservation.opt_nd_driver_price = 0
-                        reservation.opt_nd_driver_total = 0
-                        reservation.save()
+            carburant_put = request_result.get("carburant", None)
+            if carburant_put is not None :
+                carburant_discount = carburant_put.get("carburant_last_price",None)
+                carburant_name = carburant_put.get("carburant_name",None)
+                carburant_option = Options.objects.filter(name=carburant_name, zone= lieu_depart_obj.zone).first()
+                if carburant_discount is None:
+                    reservation.opt_plein_carburant = carburant_option
+                    reservation.opt_plein_carburant_name = carburant_option.name
+                    reservation.opt_plein_carburant_prix = carburant_option.prix
+                    reservation.opt_plein_carburant_total = carburant_option.prix * reservation.nbr_jour_reservation
+                    reservation.save()
+                else:
+                    reservation.opt_plein_carburant = carburant_option
+                    reservation.opt_plein_carburant_name = carburant_option.name
+                    reservation.opt_plein_carburant_prix = 0
+                    reservation.opt_plein_carburant_total = 0
+                    reservation.save()
+            
+            sb_a_put = request_result.get("sb_a", None)
+            if sb_a_put is not None :
+                sb_a_discount = sb_a_put.get("sb_a_last_price",None)
+                sb_a_name = sb_a_put.get("sb_a_name",None)
+                sb_a_option = Options.objects.filter(name=sb_a_name, zone= lieu_depart_obj.zone).first()
+                if sb_a_discount is None:
+                    reservation.opt_siege_a = sb_a_option
+                    reservation.opt_siege_a_name = sb_a_option.name
+                    reservation.opt_siege_a_prix = sb_a_option.prix
+                    reservation.opt_siege_a_total = sb_a_option.prix * reservation.nbr_jour_reservation
+                    reservation.save()
+                else:
+                    reservation.opt_siege_a = sb_a_option
+                    reservation.opt_siege_a_name = sb_a_option.name
+                    reservation.opt_siege_a_prix = 0
+                    reservation.opt_siege_a_total = 0
+                    reservation.save()
 
-                carburant_put = request_result.get("carburant", None)
-                if carburant_put is not None :
-                    carburant_discount = carburant_put.get("carburant_last_price",None)
-                    carburant_name = carburant_put.get("carburant_name",None)
-                    carburant_option = Options.objects.filter(name=carburant_name, zone= lieu_depart_obj.zone).first()
-                    if carburant_discount is None:
-                        reservation.opt_plein_carburant = carburant_option
-                        reservation.opt_plein_carburant_name = carburant_option.name
-                        reservation.opt_plein_carburant_prix = carburant_option.prix
-                        reservation.opt_plein_carburant_total = carburant_option.prix * reservation.nbr_jour_reservation
-                        reservation.save()
-                    else:
-                        reservation.opt_plein_carburant = carburant_option
-                        reservation.opt_plein_carburant_name = carburant_option.name
-                        reservation.opt_plein_carburant_prix = 0
-                        reservation.opt_plein_carburant_total = 0
-                        reservation.save()
-                
-                sb_a_put = request_result.get("sb_a", None)
-                if sb_a_put is not None :
-                    sb_a_discount = sb_a_put.get("sb_a_last_price",None)
-                    sb_a_name = sb_a_put.get("sb_a_name",None)
-                    sb_a_option = Options.objects.filter(name=sb_a_name, zone= lieu_depart_obj.zone).first()
-                    if sb_a_discount is None:
-                        reservation.opt_siege_a = sb_a_option
-                        reservation.opt_siege_a_name = sb_a_option.name
-                        reservation.opt_siege_a_prix = sb_a_option.prix
-                        reservation.opt_siege_a_total = sb_a_option.prix * reservation.nbr_jour_reservation
-                        reservation.save()
-                    else:
-                        reservation.opt_siege_a = sb_a_option
-                        reservation.opt_siege_a_name = sb_a_option.name
-                        reservation.opt_siege_a_prix = 0
-                        reservation.opt_siege_a_total = 0
-                        reservation.save()
+            sb_b_put = request_result.get("sb_b", None)
+            if sb_b_put is not None :
+                sb_b_discount = sb_b_put.get("sb_b_last_price",None)
+                sb_b_name = sb_b_put.get("sb_b_name",None)
+                sb_b_option = Options.objects.filter(name=sb_b_name, zone= lieu_depart_obj.zone).first()
+                if sb_b_discount is None:
+                    reservation.opt_siege_b = sb_b_option
+                    reservation.opt_siege_b_name = sb_b_option.name
+                    reservation.opt_siege_b_prix = sb_b_option.prix
+                    reservation.opt_siege_b_total = sb_b_option.prix * reservation.nbr_jour_reservation
+                    reservation.save()
+                else:
+                    reservation.opt_siege_b = sb_b_option
+                    reservation.opt_siege_b_name = sb_b_option.name
+                    reservation.opt_siege_b_prix = 0
+                    reservation.opt_siege_b_total = 0
+                    reservation.save()
 
-                sb_b_put = request_result.get("sb_b", None)
-                if sb_b_put is not None :
-                    sb_b_discount = sb_b_put.get("sb_b_last_price",None)
-                    sb_b_name = sb_b_put.get("sb_b_name",None)
-                    sb_b_option = Options.objects.filter(name=sb_b_name, zone= lieu_depart_obj.zone).first()
-                    if sb_b_discount is None:
-                        reservation.opt_siege_b = sb_b_option
-                        reservation.opt_siege_b_name = sb_b_option.name
-                        reservation.opt_siege_b_prix = sb_b_option.prix
-                        reservation.opt_siege_b_total = sb_b_option.prix * reservation.nbr_jour_reservation
-                        reservation.save()
-                    else:
-                        reservation.opt_siege_b = sb_b_option
-                        reservation.opt_siege_b_name = sb_b_option.name
-                        reservation.opt_siege_b_prix = 0
-                        reservation.opt_siege_b_total = 0
-                        reservation.save()
+            sb_c_put = request_result.get("sb_c", None)
+            if sb_c_put is not None :
+                sb_c_discount = sb_c_put.get("sb_c_last_price",None)
+                sb_c_name = sb_c_put.get("sb_c_name",None)
+                sb_c_option = Options.objects.filter(name=sb_c_name, zone= lieu_depart_obj.zone).first()
+                if sb_c_discount is None:
+                    reservation.opt_siege_c = sb_c_option
+                    reservation.opt_siege_c_name = sb_c_option.name
+                    reservation.opt_siege_c_prix = sb_c_option.prix
+                    reservation.opt_siege_c_total = sb_c_option.prix * reservation.nbr_jour_reservation
+                    reservation.save()
+                else:
+                    reservation.opt_siege_c = sb_c_option
+                    reservation.opt_siege_c_name = sb_c_option.name
+                    reservation.opt_siege_c_prix = 0
+                    reservation.opt_siege_c_total = 0
+                    reservation.save()
 
-                sb_c_put = request_result.get("sb_c", None)
-                if sb_c_put is not None :
-                    sb_c_discount = sb_c_put.get("sb_c_last_price",None)
-                    sb_c_name = sb_c_put.get("sb_c_name",None)
-                    sb_c_option = Options.objects.filter(name=sb_c_name, zone= lieu_depart_obj.zone).first()
-                    if sb_c_discount is None:
-                        reservation.opt_siege_c = sb_c_option
-                        reservation.opt_siege_c_name = sb_c_option.name
-                        reservation.opt_siege_c_prix = sb_c_option.prix
-                        reservation.opt_siege_c_total = sb_c_option.prix * reservation.nbr_jour_reservation
-                        reservation.save()
-                    else:
-                        reservation.opt_siege_c = sb_c_option
-                        reservation.opt_siege_c_name = sb_c_option.name
-                        reservation.opt_siege_c_prix = 0
-                        reservation.opt_siege_c_total = 0
-                        reservation.save()
- 
-                return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=400)
+            return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=400)
 
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)

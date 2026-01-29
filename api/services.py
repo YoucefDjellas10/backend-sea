@@ -706,6 +706,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         total = 0
+        print("!!!!!!!!!!!!!!!!!! total : ",total)
                 
         ma_reservation = Reservation.objects.filter(name=ref)
         for record in ma_reservation:
@@ -810,6 +811,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
                     )
                 )
+                
                 for tarif in tarifs:
                     total = 0
                     prix_unitaire = 0
@@ -854,10 +856,14 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
                                 total += Decimal(overlap_days * prix_unitaire)
+                    
+                    print("!!!!!!!!!!!!!!!!!! total 11111111111111 : ",total)
                                         
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
                     if frais_dossier:
                         total += Decimal(frais_dossier.prix)
+                    
+                    print("!!!!!!!!!!!!!!!!!! total 22222222222 : ",total)
                     
                     frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour) 
                     if frais_livraison :
@@ -884,6 +890,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                         total += Decimal((meilleur_cout or 0))
                     
+                    print("!!!!!!!!!!!!!!!!!! total 33333333333333 : ",total)
+                    
                     supplements = Supplement.objects.filter(
                         Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
                         Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
@@ -904,6 +912,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                         if duration > supplement.reatrd:
                             total += Decimal((prix_unitaire * supplement.valeur) / 100)
+
+                print("!!!!!!!!!!!!!!!!!! total 44444444444 : ",total)
                                     
                 free_options = free_options_f(client_id)
                 if free_options:
@@ -945,6 +955,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     total = Decimal(get_total)
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
+
+                print("!!!!!!!!!!!!!!!!!! total 55555555555555 : ",total)
                 
                 result.append({
                     'is_available':"yes",
