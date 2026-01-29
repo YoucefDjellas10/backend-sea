@@ -709,6 +709,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         print("!!!!!!!!!!!!!!!!!! total : ",total)
                 
         ma_reservation = Reservation.objects.filter(name=ref)
+        if not ma_reservation:
+            return {"message": "pas de reservation"}
         for record in ma_reservation:
             if record.create_date < datetime(2025, 11, 2, 0, 0):
                 result.append({
@@ -720,6 +722,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             get_vehicule_id = record.vehicule.numero
 
             vehicule = Vehicule.objects.get(numero=get_vehicule_id)
+            if not vehicule:
+                return {"message": "pas de vehicule"}
             vehicle_reservations = Reservation.objects.filter(vehicule=vehicule)
             client_id = record.client.id
             is_available = True
