@@ -811,7 +811,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 print("total_days : ",total_days)
                 print("date_depart : ",date_depart)
                 print("date_retour : ",date_retour)
-                
+
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
                     Q(zone = lieu_depart_obj.zone)&
@@ -822,6 +822,11 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
                     )
                 )
+                if not tarifs:
+                    return result.append({
+                        'is_available': "no",
+                        'can_be_midified':"no",
+                    })
                 print("################## tarif",tarifs)
                 
                 for tarif in tarifs:
