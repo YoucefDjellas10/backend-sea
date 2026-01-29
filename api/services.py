@@ -805,7 +805,13 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 promotion_value = client_pr if client_pr > promotion_value else promotion_value
 
-
+                print("##################  Parametres ##########################")
+                print("zone : ",lieu_depart_obj.zone)
+                print("modele : ",record.modele)
+                print("total_days : ",total_days)
+                print("date_depart : ",date_depart)
+                print("date_retour : ",date_retour)
+                
                 tarifs = Tarifs.objects.filter(
                     Q(modele = record.modele)&
                     Q(zone = lieu_depart_obj.zone)&
