@@ -1181,9 +1181,9 @@ class Reservation(models.Model):
     @staticmethod
     def _generate_unique_code_():
         current_date = datetime.now()
-        year = current_date.strftime('%y')  # Deux derniers chiffres de l'année
+        year = current_date.strftime('%y')  
         while True:
-            random_digits = ''.join(random.choices(string.digits, k=4))  # Quatre chiffres aléatoires
+            random_digits = ''.join(random.choices(string.digits, k=4)) 
             unique_code = f'{year}{random_digits}'
             if not Reservation.objects.filter(name=unique_code).exists():
                 return unique_code

@@ -931,7 +931,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             total += Decimal((prix_unitaire * supplement.valeur) / 100)
 
                 print("!!!!!!!!!!!!!!!!!! total 44444444444 : ",total)
-                                    
+
                 free_options = free_options_f(client_id)
                 if free_options:
                     free_options = free_options[0]  
@@ -2101,7 +2101,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
                     promotion = "yes"
-                    percentage = promotion_value 
+                    percentage = promotion_value
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days

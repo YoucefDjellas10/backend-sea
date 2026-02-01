@@ -35,6 +35,47 @@ from utils.client_info import ClientInfoExtractor
 
 logger = logging.getLogger(__name__)
 
+def comming_soon_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+
+        reservation = Reservation.objects.get(id=reservation_id)
+        sujet = f"Checklist finale SAFAR EL AMIR - Bonjour { reservation.client.name } : Votre checklist finale — Bientôt là​ !"
+        expediteur = settings.EMAIL_HOST_USER
+        html_message = render_to_string('email/coming_soon_email.html', {
+            'client_code':reservation.client.code_prime,
+            'client_name':reservation.client.name,
+            'reference':reservation.name,
+            'rest_payer':reservation.reste_payer,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+            'reference':reservation.name,
+
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return JsonResponse({"message": "mail de relance envoyé."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 def relance_mail_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
@@ -2353,6 +2394,7 @@ def ajouter_liste_attente(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            print("data :",data)
             
             client_id = data.get('client_id')
             client = None 
