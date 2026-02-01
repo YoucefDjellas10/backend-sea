@@ -2397,6 +2397,8 @@ def ajouter_liste_attente(request):
             print("data :",data)
             
             client_id = data.get('client_id')
+            if client_id == "":
+                client_id = None
             client = None 
             if client_id is not None: 
                 try:
@@ -2409,6 +2411,8 @@ def ajouter_liste_attente(request):
                 phone = data.get('phone')
 
             car_model_id = data.get('car_model_id')
+            if car_model_id == "":
+                car_model_id = None
             lieu_depart_id = data.get('lieu_depart_id')
             lieu_retour_id = data.get('lieu_retour_id')
             date_depart = data.get('date_depart')
