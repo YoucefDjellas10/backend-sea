@@ -67,7 +67,6 @@ urlpatterns += [
     #path('cancel-authorization/',cancel_authorized_payment, name='cancel_authorization'),
     path('client-info/',client_info_view, name='client_info_view'),
     path('solde-history/',solde_history_view_, name='solde_history_view'),
-    path('comming-soon-email/',coming_soon_email_view, name='coming_soon_email_view'),
     path('livraison/<int:livraison_id>/photo/<int:attachment_id>/', livraison_photo_by_res, name='livraison_photo'),
     path('inspection-report/', success_pick_up_view, name='inspection_report'),
     path('signature/<int:livraison_id>/', get_signature_by_id, name='signature_by_id'),
@@ -85,5 +84,7 @@ urlpatterns += [
     path("cancel-from-system/", cancel__button_view, name="cancel__button_view"),
     path("ajuster-duree/", ajuster_les_duree, name="ajuster_les_duree"),
     path("create-reservation/", creer_reservation, name="creer_reservation"),
-    path("relance-mail/", relance_mail_view, name="relance_mail_view")
+    path("relance-mail/", relance_mail_view, name="relance_mail_view"),
+    path("checklist-mail/", checklist_mail_view, name="checklist_mail_view"),
+
 ]

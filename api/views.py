@@ -35,32 +35,50 @@ from utils.client_info import ClientInfoExtractor
 
 logger = logging.getLogger(__name__)
 
-def comming_soon_view(request):
+def checklist_mail_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
 
         reservation = Reservation.objects.get(id=reservation_id)
+
+        date_heure_depart = reservation.date_heure_debut
+        date_heure_retour = reservation.date_heure_fin
+
+        date_debut = date_heure_depart.strftime("%d %B %Y") 
+        heure_debut = date_heure_depart.strftime("%H:%M")  
+
+        date_fin = date_heure_retour.strftime("%d %B %Y")
+        heure_fin = date_heure_retour.strftime("%H:%M")
+
         sujet = f"Checklist finale SAFAR EL AMIR - Bonjour { reservation.client.name } : Votre checklist finale — Bientôt là​ !"
         expediteur = settings.EMAIL_HOST_USER
         html_message = render_to_string('email/coming_soon_email.html', {
             'client_code':reservation.client.code_prime,
             'client_name':reservation.client.name,
-            'reference':reservation.name,
-            'rest_payer':reservation.reste_payer,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
-            'reference':reservation.name,
+            "id":reservation.id,
+            "referance":reservation.name,
+            "mobile_one":reservation.lieu_depart.mobile,
+            "adresse_one":reservation.lieu_depart.address,
+            "mobile_two":reservation.lieu_retour.mobile,
+            "adresse_two":reservation.lieu_retour.address,
+            'client': reservation.client.nom,
+            'client_prenom':reservation.client.prenom,
+            'durrée':reservation.duree_dereservation,
+            'model_name':reservation.model_name,
+            'reste_paye':reservation.reste_payer,
+            'caution':reservation.opt_protection_caution,
+            "date_depart_char" : reservation.date_depart_char,
+            "date_retour_char" : reservation.date_retour_char,
+            "heure_depart_char" : reservation.heure_depart_char,
+            "heure_retour_char" : reservation.heure_retour_char,
+            'date_depart':date_debut,
+            'heure_depart':heure_debut,
+            'date_retoure':date_fin,
+            'haure_retour':heure_fin,
+            'lieu_depart':reservation.lieu_depart.name,
+            'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+            'lieu_retour':reservation.lieu_retour.name,
+            'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
 
         })
         send_mail(
@@ -930,6 +948,7 @@ def confirme_reservation_view(request):
         expediteur = settings.EMAIL_HOST_USER
 
         html_message = render_to_string('email/confirmation_email.html', {
+            "id":reservation.id,
             "referance":reservation.name,
             "mobile_one":reservation.lieu_depart.mobile,
             "adresse_one":reservation.lieu_depart.address,
@@ -1820,76 +1839,6 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
     except Exception as e:
         logger.error(f"Erreur dans livraison_photo_by_res: {str(e)}")
         raise
-
-def coming_soon_email_view(request):
-    try:
-        ref = request.GET.get("ref")
-
-        
-        reservation = Reservation.objects.get(name=ref)
-
-        if not reservation or reservation is None : 
-            return JsonResponse({'error': "there are not reservation with this ref"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        date_heure_depart = reservation.date_heure_debut
-        date_heure_retour = reservation.date_heure_fin
-
-        date_debut = date_heure_depart.strftime("%d %B %Y") 
-        heure_debut = date_heure_depart.strftime("%H:%M")  
-
-        date_fin = date_heure_retour.strftime("%d %B %Y")
-        heure_fin = date_heure_retour.strftime("%H:%M")
-        
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                sujet = f"Coming-Up-Soon N = {reservation.name}"
-                expediteur = settings.EMAIL_HOST_USER
-                html_message = render_to_string('email/coming_soon_email.html', {
-                    "clien_name" : reservation.client.name,
-                    "reference": ref,
-                    "rest_payer": reservation.reste_payer if reservation.reste_payer else 0,
-                    "caution": reservation.opt_protection_caution if reservation.opt_protection_caution else 0,
-                    "link":"link", #generation du lien
-                    "model_name" : reservation.model_name,
-                    "duree": reservation.duree_dereservation,
-                    "date_depart":date_debut,
-                    "heur_depart":heure_debut,
-                    "lieu_depart":reservation.lieu_depart.name,
-                    "lieu_depart_mobile":reservation.lieu_depart.mobile,
-                    "address_one":reservation.lieu_depart.address,
-                    "date_retour":date_fin,
-                    "heure_fin":heure_fin,
-                    "lieu_retour":reservation.lieu_retour.name,
-                    "lieu_retour_mobile":reservation.lieu_retour.mobile,
-                    "address_two":reservation.lieu_retour.address
-                })
-                
-                send_mail(
-                    sujet,
-                    strip_tags(html_message),
-                    expediteur,
-                    [reservation.email],
-                    html_message=html_message,
-                    fail_silently=False,
-                ) 
-
-                return JsonResponse({'message': "Opération réussie"}, status=200)      
-                
-            except Exception as mail_error:
-                if attempt == max_retries - 1:  
-                    print(f"Erreur envoi email: {mail_error}")
-                else:
-                    time.sleep(2)  
-        
-            
-        else:
-            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
-    
-    
-    
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def solde_history_view_(request):
@@ -2792,6 +2741,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 expediteur = settings.EMAIL_HOST_USER
 
                 html_message = render_to_string('email/confirmation_email.html', {
+                    "id":reservation_obj.id,
                     "referance":reservation_obj.name,
                     "mobile_one":reservation_obj.lieu_depart.mobile,
                     "adresse_one":reservation_obj.lieu_depart.address,
@@ -4107,6 +4057,7 @@ def stripe_webhook_reservation_(request):
                 expediteur = settings.EMAIL_HOST_USER
 
                 html_message = render_to_string('email/confirmation_email.html', {
+                    "id":reservation.id,
                     "referance":reservation.name,
                     "mobile_one":reservation.lieu_depart.mobile,
                     "adresse_one":reservation.lieu_depart.address,
@@ -4327,6 +4278,7 @@ def stripe_webhook_reservation_(request):
             expediteur = settings.EMAIL_HOST_USER
 
             html_message = render_to_string('email/confirmation_email.html', {
+                "id":reservation.id,
                 "referance":reservation.name,
                 "mobile_one":reservation.lieu_depart.mobile,
                 "adresse_one":reservation.lieu_depart.address,
