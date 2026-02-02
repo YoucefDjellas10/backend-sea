@@ -38,6 +38,11 @@ logger = logging.getLogger(__name__)
 def checklist_mail_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
+        if not reservation_id:
+            return JsonResponse(
+                {"error": "reservation_id manquant dans la requête"},
+                status=400
+            )
 
         reservation = Reservation.objects.get(id=reservation_id)
 
