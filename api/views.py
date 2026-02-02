@@ -35,6 +35,44 @@ from utils.client_info import ClientInfoExtractor
 
 logger = logging.getLogger(__name__)
 
+
+def avis_google_mail_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        if not reservation_id:
+            return JsonResponse(
+                {"error": "reservation_id manquant dans la requête"},
+                status=400
+            )
+
+        try:
+            reservation = Reservation.objects.get(id=int(reservation_id))
+        except (Reservation.DoesNotExist, ValueError):
+            return JsonResponse(
+                {"error": f"Aucune réservation trouvée pour id={reservation_id}"},
+                status=404
+            )
+        
+
+        sujet = "Demande avis google"
+        expediteur = settings.EMAIL_HOST_USER
+        html_message = render_to_string('email/demande_avis_google_email.html', {
+            'client_name':reservation.client.name,
+            
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return JsonResponse({"message": "mail de demande d'avis google envoyé."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 def checklist_mail_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
