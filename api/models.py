@@ -970,11 +970,18 @@ class Reservation(models.Model):
         ('annule', 'Annulé')
     ]
 
+    CHECKLIST_CHOICES = [
+        ('oui', 'oui'),
+        ('non', 'non')
+    ]
+
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=10, unique=True, editable=False, default='')
     country_code = models.CharField(max_length=10, unique=True, editable=False, default='')
     numero_lieu = models.CharField(max_length=10, editable=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    check_list = models.CharField(max_length=10, choices=CHECKLIST_CHOICES)
+
     create_date = models.DateTimeField(default=datetime.now)
     etat_reservation = models.CharField(max_length=10, choices=ETAT_RESERVATION_CHOICES, default='reserve')
     date_heure_debut = models.DateTimeField(default=datetime.now)

@@ -69,6 +69,8 @@ def avis_google_mail_view(request):
             html_message=html_message,
             fail_silently=False,
         )
+        reservation.check_list = "oui"
+        reservation.save()
         return JsonResponse({"message": "mail de demande d'avis google envoyé."}, status=200)
 
     except Exception as e:
