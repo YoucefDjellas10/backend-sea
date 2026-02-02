@@ -60,6 +60,7 @@ class TauxChange(models.Model):
 class Zone(models.Model):
     id = models.AutoField(db_column='id', primary_key=True)
     name = models.CharField(max_length=255, verbose_name="Nom de la zone")
+    avis_google = models.CharField(max_length=255, verbose_name="Avis Google")
     transmission_point = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='transmission_point', related_name='zones_transmission') 
 
     class Meta:

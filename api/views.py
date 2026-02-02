@@ -58,6 +58,7 @@ def avis_google_mail_view(request):
         expediteur = settings.EMAIL_HOST_USER
         html_message = render_to_string('email/demande_avis_google_email.html', {
             'client_name':reservation.client.name,
+            'lien':reservation.zone.avis_google
             
         })
         send_mail(
