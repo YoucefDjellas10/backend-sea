@@ -753,7 +753,7 @@
                                         color: #edecec;
                                       "
                                     >
-                                      <strong>{{ clien_name }}</strong>
+                                      <strong>{{ client_name }}</strong>
                                     </h1>
                                   </td>
                                 </tr>
@@ -810,7 +810,7 @@
                                     >
                                       Votre voiture de location est prête !
                                     <br/>
-                                      Référence:" {{ reference }}"
+                                      Référence:" {{ referance }}"
                                     </p>
                                   </td>
                                 </tr>
@@ -1016,7 +1016,7 @@
                                       "
                                     >
                                    <mark style="background-color: #fff3cd; border-radius:4px ; padding: 1px;"> 
-<strong>→ Reste à payer :</strong> {{ rest_payer }} €</mark> en espèces a la prise <br/>
+<strong>→ Reste à payer :</strong> {{ reste_paye }} €</mark> en espèces a la prise <br/>
   <mark style="background-color: #fff3cd; border-radius:4px ; padding: 1px;"> 
 <strong>→ La caution:</strong> {{ caution }} € </mark>
 Espèces ou empreinte bancaire
@@ -1628,7 +1628,7 @@ Espèces ou empreinte bancaire
                                       "
                                       class="p_option"
                                     >
-                                      - Durée : {{ duree }}
+                                      - Durée : {{ durree }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2006,7 +2006,7 @@ Espèces ou empreinte bancaire
                                         font-size: 14px;
                                       "
                                     >
-                                      - Heure prise : {{ heur_depart }}<br />
+                                      - Heure prise : {{ heure_depart }}<br />
                                     </p>
                                   </td>
                                 </tr>
@@ -2057,12 +2057,12 @@ Espèces ou empreinte bancaire
                                       "
                                       class="p_option_s"
                                     > 
-                                      - Point de rendez-vous :<a href="#"> <span 
+                                      - Point de rendez-vous :<a href="{{ lieu_depart_id }}"> <span 
   style="color:#0000ee; text-decoration:none; transition:all 0.15s linear;" 
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
 >
- <u> {{ address_one }}</u>
+ <u> {{ adresse_one }}</u>
 </span></a>
 
                                     </p>
@@ -2080,7 +2080,7 @@ Espèces ou empreinte bancaire
                                       "
                                       class="p_option_s"
                                     >
-                                      - Agent de livraison N° <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="14" height="14" style="vertical-align: middle; margin-right: 8px;">: {{ lieu_depart_mobile }}
+                                      - Agent de livraison N° <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="14" height="14" style="vertical-align: middle; margin-right: 8px;">: {{ mobile_one }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2337,7 +2337,7 @@ Espèces ou empreinte bancaire
                                       "
                                       class="p_option"
                                     >
-                                      - Retour : {{ date_retour }}
+                                      - Retour : {{ date_retoure }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2363,7 +2363,7 @@ Espèces ou empreinte bancaire
                                         font-size: 14px;
                                       "
                                     >
-                                      - Heure retour: {{ heure_fin }}<br />
+                                      - Heure retour: {{ haure_retour }}<br />
                                     </p>
                                   </td>
                                 </tr>
@@ -2414,12 +2414,12 @@ Espèces ou empreinte bancaire
                                       "
                                       class="p_option_s"
                                     > 
-                                      - Point de rendez-vous :<a href="#"> <span 
+                                      - Point de rendez-vous :<a href="{{ lieu_retour_id }}"> <span 
   style="color:#0000ee; text-decoration:none; transition:all 0.15s linear;" 
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
 >
- <u> {{ address_two }}</u>
+ <u> {{ adresse_two }}</u>
 </span></a>
 
                                     </p>
@@ -2437,7 +2437,7 @@ Espèces ou empreinte bancaire
                                       "
                                       class="p_option_s"
                                     >
-                                      -  Agent Restitution  N°  <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="14" height="14" style="vertical-align: middle; margin-right: 8px;">: {{ lieu_retour_mobile }}
+                                      -  Agent Restitution  N°  <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="14" height="14" style="vertical-align: middle; margin-right: 8px;">: {{ mobile_two }}
                                     </p>
                                     
                                   </td>

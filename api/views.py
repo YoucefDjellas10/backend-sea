@@ -74,7 +74,7 @@ def checklist_mail_view(request):
             "adresse_two":reservation.lieu_retour.address,
             'client': reservation.client.nom,
             'client_prenom':reservation.client.prenom,
-            'durrée':reservation.duree_dereservation,
+            'durree':reservation.duree_dereservation,
             'model_name':reservation.model_name,
             'reste_paye':reservation.reste_payer,
             'caution':reservation.opt_protection_caution,
