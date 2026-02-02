@@ -44,7 +44,13 @@ def checklist_mail_view(request):
                 status=400
             )
 
-        reservation = Reservation.objects.get(id=reservation_id)
+        try:
+            reservation = Reservation.objects.get(id=int(reservation_id))
+        except (Reservation.DoesNotExist, ValueError):
+            return JsonResponse(
+                {"error": f"Aucune réservation trouvée pour id={reservation_id}"},
+                status=404
+            )
 
         date_heure_depart = reservation.date_heure_debut
         date_heure_retour = reservation.date_heure_fin
