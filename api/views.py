@@ -53,7 +53,6 @@ def avis_google_mail_view(request):
                 status=404
             )
         
-
         sujet = "Demande avis google"
         expediteur = settings.EMAIL_HOST_USER
         html_message = render_to_string('email/demande_avis_google_email.html', {
@@ -69,8 +68,6 @@ def avis_google_mail_view(request):
             html_message=html_message,
             fail_silently=False,
         )
-        reservation.check_list = "oui"
-        reservation.save()
         return JsonResponse({"message": "mail de demande d'avis google envoyé."}, status=200)
 
     except Exception as e:
@@ -141,6 +138,8 @@ def checklist_mail_view(request):
             html_message=html_message,
             fail_silently=False,
         )
+        reservation.check_list = "oui"
+        reservation.save()
         return JsonResponse({"message": "mail de relance envoyé."}, status=200)
 
     except Exception as e:
