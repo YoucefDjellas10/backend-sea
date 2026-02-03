@@ -3962,6 +3962,11 @@ def add_reservation_post_view(request):
             reste_payer = float(last_total),
             exchange_amount = float(change),
             country_code = pays_drapeau,
+            check_list = "non",
+            avis_google = "non",
+            avis_tustpilot = "non",
+            avis_tripadvisor = "non",
+            update_category = "non",
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
