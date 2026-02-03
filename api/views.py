@@ -52,7 +52,7 @@ def avis_tripadvisor_mail_view(request):
                 status=404
             )
         
-        sujet = "Demande avis Trustpilot"
+        sujet = "Demande avis Tripadvisor"
         expediteur = settings.EMAIL_HOST_USER
         html_message = render_to_string('email/demande_avis_tripadvisor_email.html', {
             'client_name':reservation.client.name,            
