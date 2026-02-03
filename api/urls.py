@@ -87,5 +87,7 @@ urlpatterns += [
     path("relance-mail/", relance_mail_view, name="relance_mail_view"),
     path("checklist-mail/", checklist_mail_view, name="checklist_mail_view"),
     path("avis-google-mail/", avis_google_mail_view, name="avis_google_mail_view"),
+    path("avis-trustpilot-mail/", avis_trustpilot_mail_view, name="avis_trustpilot_mail_view"),
+    path("avis-tripadvisor-mail/", avis_tripadvisor_mail_view, name="avis_tripadvisor_mail_view"),
 
 ]

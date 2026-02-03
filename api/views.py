@@ -35,6 +35,79 @@ from utils.client_info import ClientInfoExtractor
 
 logger = logging.getLogger(__name__)
 
+def avis_tripadvisor_mail_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        if not reservation_id:
+            return JsonResponse(
+                {"error": "reservation_id manquant dans la requête"},
+                status=400
+            )
+
+        try:
+            reservation = Reservation.objects.get(id=int(reservation_id))
+        except (Reservation.DoesNotExist, ValueError):
+            return JsonResponse(
+                {"error": f"Aucune réservation trouvée pour id={reservation_id}"},
+                status=404
+            )
+        
+        sujet = "Demande avis Trustpilot"
+        expediteur = settings.EMAIL_HOST_USER
+        html_message = render_to_string('email/demande_avis_tripadvisor_email.html', {
+            'client_name':reservation.client.name,            
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        reservation.avis_tripadvisor = "oui"
+        reservation.save()
+        return JsonResponse({"message": "mail de demande d'avis google envoyé."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def avis_trustpilot_mail_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        if not reservation_id:
+            return JsonResponse(
+                {"error": "reservation_id manquant dans la requête"},
+                status=400
+            )
+
+        try:
+            reservation = Reservation.objects.get(id=int(reservation_id))
+        except (Reservation.DoesNotExist, ValueError):
+            return JsonResponse(
+                {"error": f"Aucune réservation trouvée pour id={reservation_id}"},
+                status=404
+            )
+        
+        sujet = "Demande avis Trustpilot"
+        expediteur = settings.EMAIL_HOST_USER
+        html_message = render_to_string('email/demande_avis_trustpilote_email.html', {
+            'client_name':reservation.client.name,            
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        reservation.avis_tustpilot = "oui"
+        reservation.save()
+        return JsonResponse({"message": "mail de demande d'avis google envoyé."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 def avis_google_mail_view(request):
     try:
