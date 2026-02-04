@@ -764,6 +764,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 promotion_value = 0
                 percentage = 0 
 
+                print("[[[[[[[[[[[[[[[[[[[ la ]]]]]]]]]]]]]]]]]]]")
+
                 if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
                     promotion_value = promotions.reduction
                 elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
