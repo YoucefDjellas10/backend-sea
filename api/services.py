@@ -799,8 +799,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         promotion_value = 0
                                     
                 if record.client :
-                    print("[[[[[[[[[[[[[[[[[[[ la ]]]]]]]]]]]]]]]]]]]")
+                    
                     if record.client.reduction > 0:
+                        print("[[[[[[[[[[[[[[[[[[[ la ]]]]]]]]]]]]]]]]]]]")
                         client_pr = record.client.reduction if record.client.reduction is not None else 0
 
                     else:
