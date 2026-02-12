@@ -2791,6 +2791,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
+            credit_amount = verify_value[0].get('credit_amount')
             diff_prix = float(new_total) - float(old_total) if (float(new_total) - float(old_total)) >0 else 0
             session_id = None
             payment_url = None
@@ -4988,7 +4989,7 @@ def verify_and_calculate_view(request):
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
-
+        
 def ma_reservation_view(request):
     ref = request.GET.get("ref")
     email = request.GET.get("email")
