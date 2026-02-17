@@ -1682,13 +1682,16 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     total_primary = 0
     montant_promotion = 0
     montant_code_prime = 0
+
+    # Chercher les promotions qui chevauchent la période de location
     promotions = Promotion.objects.filter(
         debut_visibilite__lte=today,
         fin_visibilite__gte=today,
-        date_debut__lte=date_depart,
-        date_fin__gte=date_retour,
+        date_debut__lte=date_retour,  # La promo commence avant ou pendant la location
+        date_fin__gte=date_depart,     # La promo finit après ou pendant la location
         active_passive=True
     ).first()
+
     promotion_name = promotions.name if promotions is not None else None
     promotion_value = 0
     model_one = None
@@ -1697,38 +1700,23 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     model_four = None
     model_five = None
 
-    if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
-        promotion_value = promotions.reduction
-    elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-        if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_one :
-            promotion_value = promotions.reduction
-        else :
-            promotion_value = 0
-    elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
-        promotion_value = promotions.reduction
-        if promotions.model_one :
-            model_one = promotions.model_one
-        else :
-            model_one = None
-        if promotions.model_two :
-            model_two = promotions.model_two
-        else :
-            model_two = None
-        if promotions.model_three :
-            model_three = promotions.model_three
-        else :
-            model_three = None
-        if promotions.model_four :
-            model_four = promotions.model_four
-        else :
-            model_four = None
-        if promotions.model_five :
-            model_five = promotions.model_five
-        else :
-            model_five = None
-    elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
-        if lieu_depart.zone == promotions.zone_one :
-            promotion_value = promotions.reduction
+    if promotions:
+        debut_chevauchement = max(promotions.date_debut, date_depart)
+        fin_chevauchement = min(promotions.date_fin, date_retour)
+        jours_promo = (fin_chevauchement - debut_chevauchement).days + 1  
+        
+        promotion_base = promotions.reduction
+        promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+        
+        if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
+            promotion_value = promotion_proportionnelle
+        elif promotions.tout_modele == "oui" and promotions.tout_zone == "non":
+            if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_two or lieu_depart.zone == promotions.zone_three :
+                promotion_value = promotion_proportionnelle
+            else :
+                promotion_value = 0
+        elif (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
+            promotion_value = promotion_proportionnelle
             if promotions.model_one :
                 model_one = promotions.model_one
             else :
@@ -1749,53 +1737,76 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 model_five = promotions.model_five
             else :
                 model_five = None
-        elif lieu_depart.zone == promotions.zone_two :
-            promotion_value = promotions.reduction
-            if promotions.model_one :
-                model_one = promotions.model_one
+        elif (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
+            if lieu_depart.zone == promotions.zone_one :
+                promotion_value = promotion_proportionnelle
+                if promotions.model_one :
+                    model_one = promotions.model_one
+                else :
+                    model_one = None
+                if promotions.model_two :
+                    model_two = promotions.model_two
+                else :
+                    model_two = None
+                if promotions.model_three :
+                    model_three = promotions.model_three
+                else :
+                    model_three = None
+                if promotions.model_four :
+                    model_four = promotions.model_four
+                else :
+                    model_four = None
+                if promotions.model_five :
+                    model_five = promotions.model_five
+                else :
+                    model_five = None
+            elif lieu_depart.zone == promotions.zone_two :
+                promotion_value = promotion_proportionnelle
+                if promotions.model_one :
+                    model_one = promotions.model_one
+                else :
+                    model_one = None
+                if promotions.model_two :
+                    model_two = promotions.model_two
+                else :
+                    model_two = None
+                if promotions.model_three :
+                    model_three = promotions.model_three
+                else :
+                    model_three = None
+                if promotions.model_four :
+                    model_four = promotions.model_four
+                else :
+                    model_four = None
+                if promotions.model_five :
+                    model_five = promotions.model_five
+                else :
+                    model_five = None
+            elif lieu_depart.zone == promotions.zone_three :
+                promotion_value = promotion_proportionnelle
+                if promotions.model_one :
+                    model_one = promotions.model_one
+                else :
+                    model_one = None
+                if promotions.model_two :
+                    model_two = promotions.model_two
+                else :
+                    model_two = None
+                if promotions.model_three :
+                    model_three = promotions.model_three
+                else :
+                    model_three = None
+                if promotions.model_four :
+                    model_four = promotions.model_four
+                else :
+                    model_four = None
+                if promotions.model_five :
+                    model_five = promotions.model_five
+                else :
+                    model_five = None
             else :
-                model_one = None
-            if promotions.model_two :
-                model_two = promotions.model_two
-            else :
-                model_two = None
-            if promotions.model_three :
-                model_three = promotions.model_three
-            else :
-                model_three = None
-            if promotions.model_four :
-                model_four = promotions.model_four
-            else :
-                model_four = None
-            if promotions.model_five :
-                model_five = promotions.model_five
-            else :
-                model_five = None
-        elif lieu_depart.zone == promotions.zone_three :
-            promotion_value = promotions.reduction
-            if promotions.model_one :
-                model_one = promotions.model_one
-            else :
-                model_one = None
-            if promotions.model_two :
-                model_two = promotions.model_two
-            else :
-                model_two = None
-            if promotions.model_three :
-                model_three = promotions.model_three
-            else :
-                model_three = None
-            if promotions.model_four :
-                model_four = promotions.model_four
-            else :
-                model_four = None
-            if promotions.model_five :
-                model_five = promotions.model_five
-            else :
-                model_five = None
-        else :
-            promotion_value = 0
-            
+                promotion_value = 0
+
     date_annulation = None
     annulation = ConditionAnnulation.objects.filter(id=1).first()
     if annulation:

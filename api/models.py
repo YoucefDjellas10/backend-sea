@@ -2017,3 +2017,54 @@ class ReservationCorrection(models.Model):
     class Meta:
         verbose_name = 'reservation correction'
         db_table = 'reservation_correction'
+
+
+
+class GestionCaution(models.Model):
+
+    STATUS_RESERVATION_CHOICES = [
+        ('reserve', 'Réservée'),
+        ('en_cours', 'En cours'),
+        ('termine', 'Terminée'),
+    ]
+
+    STATUS_CHOICES = [
+        ('depose', 'Déposée'),
+        ('rembourse', 'Remboursée'),
+        ('pas_rembourse', 'Pas de remboursement'),
+        ('partiel_rembourse', 'Partiellement Remboursée'),
+    ]
+
+    reservation = models.ForeignKey(
+        'Reservation',
+        on_delete=models.CASCADE,
+        related_name='cautions'
+    )
+
+    date_heure_debut = models.DateTimeField()
+    date_heure_fin = models.DateTimeField()
+    date_de_reservation = models.DateTimeField()
+    nbr_jour_reservation = models.IntegerField()
+    caution = models.IntegerField()
+    status_reservation = models.CharField(
+        max_length=20,
+        choices=STATUS_RESERVATION_CHOICES
+    )
+    status = models.CharField(
+        max_length=30,
+        choices=STATUS_CHOICES,
+        blank=True,
+        null=True
+    )
+    montant_rembourse = models.IntegerField(
+        blank=True,
+        null=True
+    )
+    date_creation = models.DateTimeField()
+    
+    def __str__(self):
+        return f"Caution - {self.reservation}"
+    
+    class Meta:
+        verbose_name = 'gestion des cautions'
+        db_table = 'gestion_caution'
