@@ -3297,126 +3297,137 @@ def add_reservation_post_view(request):
 
             if reservations_existantes:
                 return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
+
             promotions = Promotion.objects.filter(
-                date_debut__lte=date_depart,
-                date_fin__gte=date_retour,
+                date_debut__lte=date_retour_obj, 
+                date_fin__gte=date_depart_obj,     
                 active_passive=True
             ).first()
 
-            if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
-                promo_value = promotions.reduction
-            elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-                if lieu_depart_obj.zone == promotions.zone_one or lieu_depart_obj.zone == promotions.zone_one or lieu_depart_obj.zone == promotions.zone_one :
-                    promo_value = promotions.reduction
-                else :
-                    promo_value = 0
-            elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
-                if promotions.model_one == vehicule.modele:
-                    model_one = promotions.model_one
-                    promo_value = promotions.reduction
-                else :
-                    model_one = None
-                if promotions.model_two == vehicule.modele:
-                    model_two = promotions.model_two
-                    promo_value = promotions.reduction
-                else :
-                    model_two = None
-                if promotions.model_three == vehicule.modele:
-                    model_three = promotions.model_three
-                    promo_value = promotions.reduction
-                else :
-                    model_three = None
-                if promotions.model_four == vehicule.modele:
-                    model_four = promotions.model_four
-                    promo_value = promotions.reduction
-                else :
-                    model_four = None
-                if promotions.model_five == vehicule.modele:
-                    model_five = promotions.model_five
-                    promo_value = promotions.reduction
-                else :
-                    model_five = None
-            elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
-                if lieu_depart_obj.zone == promotions.zone_one :
+            promo_value = 0
+
+            if promotions:
+                debut_chevauchement = max(promotions.date_debut, date_depart_obj)
+                fin_chevauchement = min(promotions.date_fin, date_retour_obj)
+                jours_promo = (fin_chevauchement - debut_chevauchement).days + 1  
+                
+                promotion_base = promotions.reduction
+                promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+                
+                if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
+                    promo_value = promotion_proportionnelle
+                elif promotions.tout_modele == "oui" and promotions.tout_zone == "non":
+                    if lieu_depart_obj.zone == promotions.zone_one or lieu_depart_obj.zone == promotions.zone_two or lieu_depart_obj.zone == promotions.zone_three :
+                        promo_value = promotion_proportionnelle
+                    else :
+                        promo_value = 0
+                elif (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
                     if promotions.model_one == vehicule.modele:
                         model_one = promotions.model_one
-                        promo_value = promotions.reduction
+                        promo_value = promotion_proportionnelle
                     else :
                         model_one = None
                     if promotions.model_two == vehicule.modele:
                         model_two = promotions.model_two
-                        promo_value = promotions.reduction
+                        promo_value = promotion_proportionnelle
                     else :
                         model_two = None
                     if promotions.model_three == vehicule.modele:
                         model_three = promotions.model_three
-                        promo_value = promotions.reduction
+                        promo_value = promotion_proportionnelle
                     else :
                         model_three = None
                     if promotions.model_four == vehicule.modele:
                         model_four = promotions.model_four
-                        promo_value = promotions.reduction
+                        promo_value = promotion_proportionnelle
                     else :
                         model_four = None
                     if promotions.model_five == vehicule.modele:
                         model_five = promotions.model_five
-                        promo_value = promotions.reduction
+                        promo_value = promotion_proportionnelle
                     else :
                         model_five = None
-                elif lieu_depart_obj.zone == promotions.zone_two :
-                    if promotions.model_one == vehicule.modele:
-                        model_one = promotions.model_one
-                        promo_value = promotions.reduction
+                elif (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
+                    if lieu_depart_obj.zone == promotions.zone_one :
+                        if promotions.model_one == vehicule.modele:
+                            model_one = promotions.model_one
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_one = None
+                        if promotions.model_two == vehicule.modele:
+                            model_two = promotions.model_two
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_two = None
+                        if promotions.model_three == vehicule.modele:
+                            model_three = promotions.model_three
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_three = None
+                        if promotions.model_four == vehicule.modele:
+                            model_four = promotions.model_four
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_four = None
+                        if promotions.model_five == vehicule.modele:
+                            model_five = promotions.model_five
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_five = None
+                    elif lieu_depart_obj.zone == promotions.zone_two :
+                        if promotions.model_one == vehicule.modele:
+                            model_one = promotions.model_one
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_one = None
+                        if promotions.model_two == vehicule.modele:
+                            model_two = promotions.model_two
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_two = None
+                        if promotions.model_three == vehicule.modele:
+                            model_three = promotions.model_three
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_three = None
+                        if promotions.model_four == vehicule.modele:
+                            model_four = promotions.model_four
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_four = None
+                        if promotions.model_five == vehicule.modele:
+                            model_five = promotions.model_five
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_five = None
+                    elif lieu_depart_obj.zone == promotions.zone_three :
+                        if promotions.model_one == vehicule.modele:
+                            model_one = promotions.model_one
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_one = None
+                        if promotions.model_two == vehicule.modele:
+                            model_two = promotions.model_two
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_two = None
+                        if promotions.model_three == vehicule.modele:
+                            model_three = promotions.model_three
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_three = None
+                        if promotions.model_four == vehicule.modele:
+                            model_four = promotions.model_four
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_four = None
+                        if promotions.model_five == vehicule.modele:
+                            model_five = promotions.model_five
+                            promo_value = promotion_proportionnelle
+                        else :
+                            model_five = None
                     else :
-                        model_one = None
-                    if promotions.model_two == vehicule.modele:
-                        model_two = promotions.model_two
-                        promo_value = promotions.reduction
-                    else :
-                        model_two = None
-                    if promotions.model_three == vehicule.modele:
-                        model_three = promotions.model_three
-                        promo_value = promotions.reduction
-                    else :
-                        model_three = None
-                    if promotions.model_four == vehicule.modele:
-                        model_four = promotions.model_four
-                        promo_value = promotions.reduction
-                    else :
-                        model_four = None
-                    if promotions.model_five == vehicule.modele:
-                        model_five = promotions.model_five
-                        promo_value = promotions.reduction
-                    else :
-                        model_five = None
-                elif lieu_depart_obj.zone == promotions.zone_three :
-                    if promotions.model_one == vehicule.modele:
-                        model_one = promotions.model_one
-                        promo_value = promotions.reduction
-                    else :
-                        model_one = None
-                    if promotions.model_two == vehicule.modele:
-                        model_two = promotions.model_two
-                        promo_value = promotions.reduction
-                    else :
-                        model_two = None
-                    if promotions.model_three == vehicule.modele:
-                        model_three = promotions.model_three
-                        promo_value = promotions.reduction
-                    else :
-                        model_three = None
-                    if promotions.model_four == vehicule.modele:
-                        model_four = promotions.model_four
-                        promo_value = promotions.reduction
-                    else :
-                        model_four = None
-                    if promotions.model_five == vehicule.modele:
-                        model_five = promotions.model_five
-                        promo_value = promotions.reduction
-                    else :
-                        model_five = None
-                else :
-                    promo_value = 0
+                        promo_value = 0
             else:
                 promo_value = 0
                 
