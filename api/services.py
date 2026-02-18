@@ -1683,12 +1683,11 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     montant_promotion = 0
     montant_code_prime = 0
 
-    # Chercher les promotions qui chevauchent la période de location
     promotions = Promotion.objects.filter(
         debut_visibilite__lte=today,
         fin_visibilite__gte=today,
-        date_debut__lte=date_retour,  # La promo commence avant ou pendant la location
-        date_fin__gte=date_depart,     # La promo finit après ou pendant la location
+        date_debut__lte=date_retour, 
+        date_fin__gte=date_depart,    
         active_passive=True
     ).first()
 
@@ -1703,10 +1702,17 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     if promotions:
         debut_chevauchement = max(promotions.date_debut, date_depart)
         fin_chevauchement = min(promotions.date_fin, date_retour)
-        jours_promo = (fin_chevauchement - debut_chevauchement).days + 1  
+        
+        jours_promo = (fin_chevauchement - debut_chevauchement).days
         
         promotion_base = promotions.reduction
-        promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+        
+        if jours_promo >= total_days:
+            promotion_proportionnelle = promotion_base
+        elif total_days > 0:
+            promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+        else:
+            promotion_proportionnelle = 0
         
         if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
             promotion_value = promotion_proportionnelle
