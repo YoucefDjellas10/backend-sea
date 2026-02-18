@@ -3297,7 +3297,6 @@ def add_reservation_post_view(request):
 
             if reservations_existantes:
                 return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
-
             promotions = Promotion.objects.filter(
                 date_debut__lte=date_retour_obj, 
                 date_fin__gte=date_depart_obj,     
@@ -3307,12 +3306,23 @@ def add_reservation_post_view(request):
             promo_value = 0
 
             if promotions:
+                # Calculer le chevauchement entre la période de promo et la période de location
                 debut_chevauchement = max(promotions.date_debut, date_depart_obj)
                 fin_chevauchement = min(promotions.date_fin, date_retour_obj)
-                jours_promo = (fin_chevauchement - debut_chevauchement).days + 1  
                 
+                # Calculer les jours de la même manière que total_days (sans +1)
+                jours_promo = (fin_chevauchement - debut_chevauchement).days
+                
+                # Calculer la promotion proportionnelle
                 promotion_base = promotions.reduction
-                promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+                
+                # Si toute la location est dans la promo, on garde 100% de la réduction
+                if jours_promo >= total_days:
+                    promotion_proportionnelle = promotion_base
+                elif total_days > 0:
+                    promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+                else:
+                    promotion_proportionnelle = 0
                 
                 if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
                     promo_value = promotion_proportionnelle
