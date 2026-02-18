@@ -2186,7 +2186,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
                     result.append({
                         "promotion": promotion,
-                        "percentage": percentage,
+                        "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
@@ -2286,7 +2286,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 if vehicle.categorie.id == base_b_category :
                     result.append({
                         "promotion": promotion,
-                        "percentage": percentage,
+                        "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
@@ -2386,7 +2386,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 if vehicle.categorie.id == base_c_category :
                     result.append({
                         "promotion": promotion,
-                        "percentage": percentage,
+                        "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
@@ -2813,7 +2813,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
                     result.append({
                         "promotion": promotion,
-                        "percentage": percentage,
+                        "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
@@ -2914,7 +2914,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 if vehicle.categorie.id == base_b_category :
                     result.append({
                         "promotion": promotion,
-                        "percentage": percentage,
+                        "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
@@ -3014,7 +3014,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 if vehicle.categorie.id == base_c_category :
                     result.append({
                         "promotion": promotion,
-                        "percentage": percentage,
+                        "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
