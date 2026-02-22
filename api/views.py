@@ -200,7 +200,7 @@ def checklist_mail_view(request):
             'client': reservation.client.nom,
             'client_prenom':reservation.client.prenom,
             'duree':reservation.duree_dereservation,
-            'model_name':reservation.modele.name,
+            'model_name':reservation.model_name,
             'reste_paye':reservation.reste_payer,
             'caution':reservation.opt_protection_caution,
             "date_depart_char" : reservation.date_depart_char,
