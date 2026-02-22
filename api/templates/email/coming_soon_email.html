@@ -753,7 +753,7 @@
                                         color: #edecec;
                                       "
                                     >
-                                      <strong>{{ clien_name }}</strong>
+                                      <strong>{{ client_name }}</strong>
                                     </h1>
                                   </td>
                                 </tr>
@@ -810,7 +810,7 @@
                                     >
                                       Votre voiture de location est prête !
                                     <br/>
-                                      Référence:" {{ reference }}"
+                                      Référence:" {{ referance }}"
                                     </p>
                                   </td>
                                 </tr>
@@ -1019,7 +1019,7 @@
 
 
 
-<mark style="background-color: #fff3cd; padding: 1px; border-radius: 4px;"><strong>→Reste à payer :</strong> {{ rest_payer }} €</mark> en espèces a la prise <br/><mark style="background-color: #fff3cd; padding: 1px; border-radius: 4px;"><strong>→ La caution :</strong> {{ caution }} €</mark> <span style="font-style: italic; font-weight: 600;">
+<mark style="background-color: #fff3cd; padding: 1px; border-radius: 4px;"><strong>→Reste à payer :</strong> {{ reste_paye }} €</mark> en espèces a la prise <br/><mark style="background-color: #fff3cd; padding: 1px; border-radius: 4px;"><strong>→ La caution :</strong> {{ caution }} €</mark> <span style="font-style: italic; font-weight: 600;">
 Espèces ou   Empreinte bancaire</span>
                                  
                                       
@@ -1651,7 +1651,7 @@ Espèces ou   Empreinte bancaire</span>
                                       class="p_option_s"
                                     >
                                       - Reste à payer :
-                                      <strong>{{ rest_payer }}€ </strong
+                                      <strong>{{ reste_paye }}€ </strong
                                       ><span style="color: #ff5e00"
                                         >en espèces&nbsp;</span
                                       >
@@ -2001,7 +2001,7 @@ Espèces ou   Empreinte bancaire</span>
                                         font-size: 14px;
                                       "
                                     >
-                                      - Heure prise : {{ heur_depart }}<br />
+                                      - Heure prise : {{ heure_depart }}<br />
                                     </p>
                                   </td>
                                 </tr>
@@ -2057,7 +2057,7 @@ Espèces ou   Empreinte bancaire</span>
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
 >
- <u> {{ address_one }}</u>
+ <u> {{ lieu_depart_id }}</u>
 </span></a>
 
                                     </p>
@@ -2075,7 +2075,7 @@ Espèces ou   Empreinte bancaire</span>
                                       "
                                       class="p_option_s"
                                     >
-                                    -  Contact  + N°<img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; ">: {{ lieu_depart_mobile }}
+                                    -  Contact  + N°<img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; ">: {{ mobile_one }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2332,7 +2332,7 @@ Espèces ou   Empreinte bancaire</span>
                                       "
                                       class="p_option"
                                     >
-                                      - Retour : {{ date_retour }}
+                                      - Retour : {{ date_retoure }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2358,7 +2358,7 @@ Espèces ou   Empreinte bancaire</span>
                                         font-size: 14px;
                                       "
                                     >
-                                      - Heure retour: {{ heure_fin }}<br />
+                                      - Heure retour: {{ haure_retour }}<br />
                                     </p>
                                   </td>
                                 </tr>
@@ -2414,7 +2414,7 @@ Espèces ou   Empreinte bancaire</span>
   onmouseover="this.style.color='#2aa858'; this.style.textDecoration='underline';" 
   onmouseout="this.style.color='#0000ee'; this.style.textDecoration='none';"
 >
- <u> {{ address_two }}</u>
+ <u> {{ lieu_retour_id }}</u>
 </span></a>
 
                                     </p>
@@ -2432,7 +2432,7 @@ Espèces ou   Empreinte bancaire</span>
                                       "
                                       class="p_option_s"
                                     >
-                                      -  Contact  + N°  <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; ">: {{ lieu_retour_mobile }}
+                                      -  Contact  + N°  <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; ">: {{ mobile_two }}
                                     </p>
                                     
                                   </td>
@@ -2995,7 +2995,7 @@ Espèces ou   Empreinte bancaire</span>
                                         width: auto;
                                       "
                                       ><a
-                                        href="https://www.safarelamir.com/info/conditions-de-location.html"
+                                        href="https://api.safarelamir.com/confirmation-download/?resrevation_id={{id}}"
                                         class="es-button es-button-1714830192326"
                                         target="_blank"
                                         style="
