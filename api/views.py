@@ -174,6 +174,18 @@ def checklist_mail_view(request):
         date_fin = date_heure_retour.strftime("%d %B %Y")
         heure_fin = date_heure_retour.strftime("%H:%M")
 
+        fake_request = RequestFactory().post(
+            '/caution-link/',
+            data=json.dumps({
+                "ref": reservation.name,
+                "montant_caution": reservation.opt_protection_caution,
+            }),
+            content_type='application/json'
+        )
+        response = create_caution_payment_link_permanent(fake_request)
+        response_data = json.loads(response.content)
+        url = response_data.get("payment_url")
+
         sujet = f"Checklist finale SAFAR EL AMIR - Bonjour { reservation.client.name } : Votre checklist finale — Bientôt là​ !"
         expediteur = settings.EMAIL_HOST_USER
         html_message = render_to_string('email/coming_soon_email.html', {
@@ -203,7 +215,7 @@ def checklist_mail_view(request):
             'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
             'lieu_retour':reservation.lieu_retour.name,
             'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
-
+            'url': url,
         })
         send_mail(
             sujet,
@@ -6315,17 +6327,9 @@ def liberer_caution(reservation_id):
     except Exception as e:
         return {"error": str(e)}
 
-# ========================================
-# 1. CRÉER UN LIEN DE PAIEMENT POUR CAUTION
-# ========================================
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_caution_payment_link_permanent(request):
-    """
-    Crée un lien de paiement PERMANENT pour la caution.
-    Le lien ne expire pas et peut être partagé.
-    """
     try:
         data = json.loads(request.body)
         ref = data.get("ref")
