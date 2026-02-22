@@ -2061,6 +2061,43 @@ class GestionCaution(models.Model):
         null=True
     )
     date_creation = models.DateTimeField()
+
+    #fields extra 
+
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="ID du PaymentIntent Stripe"
+    )
+    stripe_charge_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="ID du Charge Stripe"
+    )
+    stripe_refund_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="ID du Refund Stripe"
+    )
+    paiement_encaisse = models.BooleanField(
+        default=False,
+        help_text="Indique si le paiement a été encaissé"
+    )
+    date_encaissement = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date d'encaissement du paiement"
+    )
+    date_remboursement = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date du remboursement"
+    )
+
+    #end extra fields 
     
     def __str__(self):
         return f"Caution - {self.reservation}"

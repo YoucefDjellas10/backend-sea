@@ -89,5 +89,6 @@ urlpatterns += [
     path("avis-google-mail/", avis_google_mail_view, name="avis_google_mail_view"),
     path("avis-trustpilot-mail/", avis_trustpilot_mail_view, name="avis_trustpilot_mail_view"),
     path("avis-tripadvisor-mail/", avis_tripadvisor_mail_view, name="avis_tripadvisor_mail_view"),
+    path("caution-link/", create_caution_payment_link_permanent, name="create_caution_payment_link_permanent"),
 
 ]

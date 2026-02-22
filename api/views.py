@@ -6321,63 +6321,63 @@ def liberer_caution(reservation_id):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def create_caution_payment_link(request):
+def create_caution_payment_link_permanent(request):
+    """
+    Crée un lien de paiement PERMANENT pour la caution.
+    Le lien ne expire pas et peut être partagé.
+    """
     try:
         data = json.loads(request.body)
-        gestion_caution_id = data.get("gestion_caution_id")
+        ref = data.get("ref")
         montant_caution = data.get("montant_caution")
-        customer_email = data.get("email")
         description = data.get("description", "Caution de garantie")
         
-        if not all([gestion_caution_id, montant_caution, customer_email]):
+        if not all([ref, montant_caution]):
             return JsonResponse({
-                "error": "Champs requis manquants: gestion_caution_id, montant_caution, email"
-            }, status=400)
-        
-        try:
-            gestion_caution = GestionCaution.objects.get(id=gestion_caution_id)
-        except GestionCaution.DoesNotExist:
-            return JsonResponse({"error": "Caution introuvable"}, status=404)
-        
-        if gestion_caution.paiement_encaisse:
-            return JsonResponse({
-                "error": "Cette caution a déjà été payée"
+                "error": "Champs requis manquants: ref, montant_caution"
             }, status=400)
         
         montant_centimes = int(float(montant_caution) * 100)
         
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
+        # 1. Créer d'abord un produit
+        product = stripe.Product.create(
+            name=f"Caution - Réservation {ref}",
+            description=description,
+        )
+        
+        # 2. Créer un prix pour ce produit
+        price = stripe.Price.create(
+            product=product.id,
+            unit_amount=montant_centimes,
+            currency="eur",
+        )
+        
+        # 3. Créer le lien de paiement permanent
+        payment_link = stripe.PaymentLink.create(
             line_items=[
                 {
-                    "price_data": {
-                        "currency": "eur",
-                        "product_data": {
-                            "name": f"Caution - Réservation {gestion_caution.reservation.name}",
-                            "description": description,
-                        },
-                        "unit_amount": montant_centimes,
-                    },
+                    "price": price.id,
                     "quantity": 1,
                 },
             ],
-            mode="payment",
-            success_url=f"https://safarelamir.com/caution-success?id={gestion_caution_id}",
-            cancel_url=f"https://safarelamir.com/caution-cancel?id={gestion_caution_id}",
-            customer_email=customer_email,
             metadata={
                 "type": "caution",
-                "gestion_caution_id": str(gestion_caution_id),
-                "reservation_id": str(gestion_caution.reservation.id),
+                "ref": str(ref),
                 "montant_caution": str(montant_caution),
+            },
+            after_completion={
+                "type": "redirect",
+                "redirect": {
+                    "url": "https://safarelamir.com/caution-success"
+                }
             }
         )
         
         return JsonResponse({
             "success": True,
-            "session_id": checkout_session.id,
-            "payment_url": checkout_session.url,
-            "message": "Lien de paiement créé avec succès"
+            "payment_link_id": payment_link.id,
+            "payment_url": payment_link.url,  # Lien permanent
+            "message": "Lien de paiement permanent créé avec succès"
         }, status=200)
         
     except Exception as e:
