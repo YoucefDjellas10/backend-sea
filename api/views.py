@@ -4326,6 +4326,8 @@ def stripe_webhook_reservation_(request):
                     heure_depart_char_ = reservation.heure_depart_char if reservation.heure_depart_char else None,
                     heure_retour_char_ = reservation.heure_retour_char if reservation.heure_retour_char else None,
                     num_vol = reservation.num_vol if reservation.num_vol else None,
+                    payer_type = 'espece',
+                    type_caution = 'en_ligne',
 
                 ) 
                 livraison.save()
@@ -4375,6 +4377,8 @@ def stripe_webhook_reservation_(request):
                     heure_depart_char_ = reservation.heure_depart_char if reservation.heure_depart_char else None,
                     heure_retour_char_ = reservation.heure_retour_char if reservation.heure_retour_char else None,
                     num_vol = reservation.num_vol if reservation.num_vol else None,
+                    payer_type = 'espece',
+                    type_caution = 'en_ligne',
                 ) 
                 restitution.save()
 
