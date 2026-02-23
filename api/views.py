@@ -4561,7 +4561,9 @@ def create_caution_payment_link_permanent(request):
             return JsonResponse({
                 "error": "Champs requis manquants: ref, montant_caution"
             }, status=400)
-        
+        reservation = Reservation.objects.get(name=ref)
+        email = reservation.email
+
         montant_centimes = int(float(montant_caution) * 100)
         
         product = stripe.Product.create(
@@ -4598,7 +4600,7 @@ def create_caution_payment_link_permanent(request):
         return JsonResponse({
             "success": True,
             "payment_link_id": payment_link.id,
-            "payment_url": payment_link.url, 
+            "payment_url": f"{payment_link.url}?prefilled_email={email}", 
             "message": "Lien de paiement permanent créé avec succès"
         }, status=200)
         
