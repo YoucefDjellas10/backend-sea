@@ -4483,11 +4483,246 @@ def stripe_webhook_reservation_(request):
                 fail_silently=False,
             )
             print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
+        elif type_id == "caution":
+            ref = session.get("metadata", {}).get("ref")
+            montant_caution = session.get("metadata", {}).get("montant_caution")
+            payment_intent_id = session.get("payment_intent")
+            stripe_charge_id = None
+            
+            if payment_intent_id:
+                payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+                stripe_charge_id = payment_intent.get("latest_charge")
+            
+            try:
+                reservation = Reservation.objects.get(name=ref)
+
+                livraisons = Livraison.objects.filter(reservation=reservation)
+                for lv in livraisons:
+                    lv.type_caution = 'depose'
+                    lv.save()
+
+                caution = GestionCaution.objects.create(
+                    reservation=reservation,
+                    date_heure_debut=reservation.date_heure_debut,
+                    date_heure_fin=reservation.date_heure_fin,
+                    date_de_reservation=reservation.create_date,
+                    nbr_jour_reservation=reservation.nbr_jour_reservation,
+                    caution=int(float(montant_caution)) if montant_caution else 0,
+                    status_reservation='reserve',
+                    status='depose',
+                    date_creation=now(),
+                    stripe_payment_intent_id=payment_intent_id,
+                    stripe_charge_id=stripe_charge_id,
+                    paiement_encaisse=True,
+                    date_encaissement=now(),
+                )
+
+                try:
+                    sujet = f"Caution encaissée - Réservation N°{reservation.name}"
+                    expediteur = settings.EMAIL_HOST_USER
+
+                    html_message = render_to_string('email/deposit_confirmed_email.html', {
+                        'client': reservation.client.name,
+                        'referance': reservation.name,
+                        'montant_caution': montant_caution,
+                    })
+
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [reservation.email],
+                        html_message=html_message,
+                        fail_silently=True,
+                    )
+                except Exception as email_error:
+                    print(f"⚠️ Erreur envoi email: {email_error}")
+
+                print(f"✅ Caution créée pour la réservation: {ref}")
+
+            except Reservation.DoesNotExist:
+                print(f"❌ Réservation introuvable: {ref}")
+                return JsonResponse({"error": "Reservation not found"}, status=404)
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
 
     return JsonResponse({"status": "success"}, status=200)
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_caution_payment_link_permanent(request):
+    try:
+        data = json.loads(request.body)
+        ref = data.get("ref")
+        montant_caution = data.get("montant_caution")
+        description = data.get("description", "Caution de garantie")
+        
+        if not all([ref, montant_caution]):
+            return JsonResponse({
+                "error": "Champs requis manquants: ref, montant_caution"
+            }, status=400)
+        
+        montant_centimes = int(float(montant_caution) * 100)
+        
+        product = stripe.Product.create(
+            name=f"Caution - Réservation {ref}",
+            description=description,
+        )
+        
+        price = stripe.Price.create(
+            product=product.id,
+            unit_amount=montant_centimes,
+            currency="eur",
+        )
+        
+        payment_link = stripe.PaymentLink.create(
+            line_items=[
+                {
+                    "price": price.id,
+                    "quantity": 1,
+                },
+            ],
+            metadata={
+                "type": "caution",
+                "ref": str(ref),
+                "montant_caution": str(montant_caution),
+            },
+            after_completion={
+                "type": "redirect",
+                "redirect": {
+                    "url": "https://safarelamir.com/"
+                }
+            }
+        )
+        
+        return JsonResponse({
+            "success": True,
+            "payment_link_id": payment_link.id,
+            "payment_url": payment_link.url, 
+            "message": "Lien de paiement permanent créé avec succès"
+        }, status=200)
+        
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def refund_caution(request):
+    try:
+        data = json.loads(request.body)
+        gestion_caution_id = data.get("gestion_caution_id")
+        montant_remboursement = data.get("montant_remboursement")  
+        raison = data.get("raison", "Remboursement de caution")
+        
+        if not gestion_caution_id:
+            return JsonResponse({
+                "error": "Le champ 'gestion_caution_id' est requis"
+            }, status=400)
+        
+        try:
+            gestion_caution = GestionCaution.objects.get(id=gestion_caution_id)
+        except GestionCaution.DoesNotExist:
+            return JsonResponse({"error": "Caution introuvable"}, status=404)
+        
+        if not gestion_caution.paiement_encaisse:
+            return JsonResponse({
+                "error": "Cette caution n'a pas encore été encaissée"
+            }, status=400)
+        
+        if gestion_caution.status == 'rembourse':
+            return JsonResponse({
+                "error": "Cette caution a déjà été remboursée totalement"
+            }, status=400)
+        
+        if not gestion_caution.stripe_charge_id:
+            return JsonResponse({
+                "error": "Aucun ID de charge Stripe trouvé pour cette caution"
+            }, status=400)
+        
+        if montant_remboursement is None:
+            montant_a_rembourser = gestion_caution.caution
+            if gestion_caution.montant_rembourse:
+                montant_a_rembourser -= gestion_caution.montant_rembourse
+        else:
+            montant_a_rembourser = float(montant_remboursement)
+        
+        if montant_a_rembourser <= 0:
+            return JsonResponse({
+                "error": "Le montant à rembourser doit être supérieur à 0"
+            }, status=400)
+        
+        montant_deja_rembourse = gestion_caution.montant_rembourse or 0
+        if (montant_a_rembourser + montant_deja_rembourse) > gestion_caution.caution:
+            return JsonResponse({
+                "error": f"Le montant total à rembourser dépasse la caution initiale ({gestion_caution.caution}€)"
+            }, status=400)
+        
+        montant_centimes = int(montant_a_rembourser * 100)
+        
+        try:
+            refund = stripe.Refund.create(
+                charge=gestion_caution.stripe_charge_id,
+                amount=montant_centimes,
+                reason="requested_by_customer",
+                metadata={
+                    "gestion_caution_id": str(gestion_caution_id),
+                    "raison": raison,
+                }
+            )
+            
+            total_rembourse = (gestion_caution.montant_rembourse or 0) + montant_a_rembourser
+            
+            gestion_caution.stripe_refund_id = refund.id
+            gestion_caution.montant_rembourse = int(total_rembourse)
+            gestion_caution.date_remboursement = timezone.now()
+            
+            if total_rembourse >= gestion_caution.caution:
+                gestion_caution.status = 'rembourse'
+            else:
+                gestion_caution.status = 'partiel_rembourse'
+            
+            gestion_caution.save()
+            
+            try:
+                sujet = f"Remboursement de caution - Réservation N°{gestion_caution.reservation.name}"
+                expediteur = settings.EMAIL_HOST_USER
+                
+                html_message = render_to_string('email/caution_remboursee_email.html', {
+                    'client': gestion_caution.reservation.client.nom,
+                    'referance': gestion_caution.reservation.name,
+                    'montant_rembourse': montant_a_rembourser,
+                    'caution_totale': gestion_caution.caution,
+                    'remboursement_total': total_rembourse >= gestion_caution.caution,
+                })
+                
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),
+                    expediteur,
+                    [gestion_caution.reservation.email],
+                    html_message=html_message,
+                    fail_silently=True,
+                )
+            except Exception as email_error:
+                print(f"⚠️ Erreur envoi email: {email_error}")
+            
+            return JsonResponse({
+                "success": True,
+                "refund_id": refund.id,
+                "montant_rembourse": montant_a_rembourser,
+                "total_rembourse": total_rembourse,
+                "status": gestion_caution.status,
+                "message": "Remboursement effectué avec succès"
+            }, status=200)
+            
+        except stripe.error.StripeError as e:
+            return JsonResponse({
+                "error": f"Erreur Stripe: {str(e)}"
+            }, status=400)
+        
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
 @csrf_exempt
 def create_payment_link(request):
     try:
@@ -6049,561 +6284,3 @@ class HistoriqueSoldeViewset(viewsets.ViewSet):
         taux_change = self.queryset.get(pk=pk)
         taux_change.delete()
         return Response(status=204)
-
-
-@csrf_exempt
-def create_caution_authorization(request):
-    """
-    Crée une session Stripe pour autoriser un paiement de caution sans le capturer immédiatement.
-    Le hold reste valide pendant 30 jours.
-    """
-    try:
-        if request.method != "POST":
-            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
-
-        data = json.loads(request.body)
-        
-        reservation_id = data.get("reservation_id")
-        montant_caution = data.get("montant_caution")  
-        customer_email = data.get("email")
-        token = data.get("token")
-        currency = data.get("currency", "eur")
-    
-        reservation_name = data.get("reservation_name", "test")
-        vehicule_model = data.get("vehicule_model", "V1")
-
-        if not all([reservation_id, montant_caution, customer_email]):
-            return JsonResponse({"error": "Missing required fields: reservation_id, montant_caution, email"}, status=400)
-
-        montant_caution = int(montant_caution)
-
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": currency,
-                        "product_data": {
-                            "name": f"Caution - Réservation {reservation_name}",
-                            "description": f"Autorisation de caution pour {vehicule_model}. Ce montant sera bloqué mais non débité.",
-                            "images": data.get("images", []),
-                        },
-                        "unit_amount": montant_caution,
-                    },
-                    "quantity": 1,
-                },
-            ],
-            mode="payment",
-            payment_intent_data={
-                "capture_method": "manual", 
-                "statement_descriptor": "CAUTION LOCATION",
-            },
-            success_url=f"https://safarelamir.com",
-            cancel_url=f"https://safarelamir.com",
-            customer_email=customer_email,
-            metadata={
-                "reservation_id": str(reservation_id),
-                "type": "caution",
-                "montant_caution": str(montant_caution),
-                "reservation_name": reservation_name,
-            }
-        )
-
-        return JsonResponse({
-            "session_id": checkout_session.id, 
-            "url": checkout_session.url,
-            "message": "Session de caution créée avec succès"
-        }, status=200)
-        
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-
-@csrf_exempt
-def stripe_webhook_caution(request):
-    """
-    Webhook pour gérer les événements de caution (autorisation, capture, annulation).
-    """
-    payload = request.body
-    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError:
-        return JsonResponse({"error": "Invalid payload"}, status=400)
-    except stripe.error.SignatureVerificationError:
-        return JsonResponse({"error": "Invalid signature"}, status=400)
-
-    # Gestion de l'autorisation de la caution
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        type_id = session.get("metadata", {}).get("type")
-        
-        if type_id == "caution":
-            reservation_id = session.get("metadata", {}).get("reservation_id")
-            montant_caution = session.get("metadata", {}).get("montant_caution")
-            payment_intent_id = session.get("payment_intent")
-
-            try:
-                reservation = Reservation.objects.get(id=reservation_id)
-                
-                # Enregistrement de l'autorisation de caution
-                reservation.caution_autorisee = True
-                reservation.caution_payment_intent_id = payment_intent_id
-                reservation.caution_montant = Decimal(montant_caution) / 100  # Conversion centimes -> euros
-                reservation.caution_date_autorisation = timezone.now()
-                reservation.save()
-
-                # Création d'un enregistrement de paiement pour traçabilité
-                Payment.objects.create(
-                    reservation=reservation,
-                    vehicule=reservation.vehicule,
-                    modele=reservation.modele,
-                    zone=reservation.lieu_depart.zone if reservation.lieu_depart else None,
-                    montant=Decimal(montant_caution) / 100,
-                    montant_dzd=0,
-                    montant_eur_dzd=0,
-                    montant_dzd_eur=0,
-                    note=f"Caution autorisée (non capturée) - Payment Intent: {payment_intent_id}",
-                    mode_paiement="carte_hold",
-                    total_encaisse=0,  # Pas encore encaissé
-                )
-
-                # Envoi d'un email de confirmation
-                sujet = f"Autorisation de caution confirmée - Réservation N°{reservation.name}"
-                expediteur = settings.EMAIL_HOST_USER
-
-                html_message = render_to_string('email/caution_autorisee_email.html', {
-                    'client': reservation.client.nom,
-                    'client_prenom': reservation.client.prenom,
-                    'referance': reservation.name,
-                    'montant_caution': reservation.caution_montant,
-                    'model_name': reservation.model_name,
-                })
-
-                send_mail(
-                    sujet,
-                    strip_tags(html_message),
-                    expediteur,
-                    [reservation.email],
-                    html_message=html_message,
-                    fail_silently=False,
-                )
-
-                print(f"✅ Caution autorisée pour réservation ID: {reservation_id} - PaymentIntent: {payment_intent_id}")
-
-            except Reservation.DoesNotExist:
-                print(f"❌ Réservation introuvable: {reservation_id}")
-                return JsonResponse({"error": "Reservation not found"}, status=404)
-
-    # Gestion de la capture de la caution (si dommages)
-    elif event["type"] == "payment_intent.succeeded":
-        payment_intent = event["data"]["object"]
-        payment_intent_id = payment_intent["id"]
-        
-        try:
-            reservation = Reservation.objects.get(caution_payment_intent_id=payment_intent_id)
-            reservation.caution_capturee = True
-            reservation.caution_date_capture = timezone.now()
-            reservation.save()
-
-            print(f"💰 Caution capturée pour réservation ID: {reservation.id}")
-
-        except Reservation.DoesNotExist:
-            print(f"⚠️ Aucune réservation trouvée pour PaymentIntent: {payment_intent_id}")
-
-    # Gestion de l'annulation de la caution
-    elif event["type"] == "payment_intent.canceled":
-        payment_intent = event["data"]["object"]
-        payment_intent_id = payment_intent["id"]
-        
-        try:
-            reservation = Reservation.objects.get(caution_payment_intent_id=payment_intent_id)
-            reservation.caution_liberee = True
-            reservation.caution_date_liberation = timezone.now()
-            reservation.save()
-
-            print(f"🔓 Caution libérée pour réservation ID: {reservation.id}")
-
-        except Reservation.DoesNotExist:
-            print(f"⚠️ Aucune réservation trouvée pour PaymentIntent: {payment_intent_id}")
-
-    return JsonResponse({"status": "success"}, status=200)
-
-
-# FONCTIONS UTILITAIRES POUR GÉRER LA CAUTION
-
-def capturer_caution(reservation_id, montant_a_capturer=None):
-    """
-    Capture la caution (en cas de dommages) - À appeler manuellement ou via une API.
-    
-    Args:
-        reservation_id: ID de la réservation
-        montant_a_capturer: Montant en euros (si None, capture le montant total autorisé)
-    """
-    try:
-        reservation = Reservation.objects.get(id=reservation_id)
-        
-        if not reservation.caution_payment_intent_id:
-            return {"error": "Aucune caution autorisée pour cette réservation"}
-        
-        if reservation.caution_capturee:
-            return {"error": "Caution déjà capturée"}
-
-        # Montant en centimes
-        if montant_a_capturer:
-            amount_to_capture = int(montant_a_capturer * 100)
-        else:
-            amount_to_capture = int(reservation.caution_montant * 100)
-
-        # Capture via l'API Stripe
-        payment_intent = stripe.PaymentIntent.capture(
-            reservation.caution_payment_intent_id,
-            amount_to_capture=amount_to_capture
-        )
-
-        reservation.caution_capturee = True
-        reservation.caution_montant_capture = Decimal(amount_to_capture) / 100
-        reservation.caution_date_capture = timezone.now()
-        reservation.save()
-
-        return {"success": True, "payment_intent": payment_intent}
-
-    except Reservation.DoesNotExist:
-        return {"error": "Réservation introuvable"}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-def liberer_caution(reservation_id):
-    """
-    Libère la caution (annule l'autorisation) - À appeler à la fin de la location sans dommages.
-    
-    Args:
-        reservation_id: ID de la réservation
-    """
-    try:
-        reservation = Reservation.objects.get(id=reservation_id)
-        
-        if not reservation.caution_payment_intent_id:
-            return {"error": "Aucune caution autorisée pour cette réservation"}
-        
-        if reservation.caution_capturee:
-            return {"error": "Caution déjà capturée, impossible de libérer"}
-        
-        if reservation.caution_liberee:
-            return {"error": "Caution déjà libérée"}
-
-        # Annulation via l'API Stripe
-        payment_intent = stripe.PaymentIntent.cancel(
-            reservation.caution_payment_intent_id
-        )
-
-        reservation.caution_liberee = True
-        reservation.caution_date_liberation = timezone.now()
-        reservation.save()
-
-        # Email de confirmation
-        sujet = f"Caution libérée - Réservation N°{reservation.name}"
-        expediteur = settings.EMAIL_HOST_USER
-
-        html_message = render_to_string('email/caution_liberee_email.html', {
-            'client': reservation.client.nom,
-            'client_prenom': reservation.client.prenom,
-            'referance': reservation.name,
-            'montant_caution': reservation.caution_montant,
-        })
-
-        send_mail(
-            sujet,
-            strip_tags(html_message),
-            expediteur,
-            [reservation.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
-
-        return {"success": True, "payment_intent": payment_intent}
-
-    except Reservation.DoesNotExist:
-        return {"error": "Réservation introuvable"}
-    except Exception as e:
-        return {"error": str(e)}
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def create_caution_payment_link_permanent(request):
-    try:
-        data = json.loads(request.body)
-        ref = data.get("ref")
-        montant_caution = data.get("montant_caution")
-        description = data.get("description", "Caution de garantie")
-        
-        if not all([ref, montant_caution]):
-            return JsonResponse({
-                "error": "Champs requis manquants: ref, montant_caution"
-            }, status=400)
-        
-        montant_centimes = int(float(montant_caution) * 100)
-        
-        # 1. Créer d'abord un produit
-        product = stripe.Product.create(
-            name=f"Caution - Réservation {ref}",
-            description=description,
-        )
-        
-        # 2. Créer un prix pour ce produit
-        price = stripe.Price.create(
-            product=product.id,
-            unit_amount=montant_centimes,
-            currency="eur",
-        )
-        
-        # 3. Créer le lien de paiement permanent
-        payment_link = stripe.PaymentLink.create(
-            line_items=[
-                {
-                    "price": price.id,
-                    "quantity": 1,
-                },
-            ],
-            metadata={
-                "type": "caution",
-                "ref": str(ref),
-                "montant_caution": str(montant_caution),
-            },
-            after_completion={
-                "type": "redirect",
-                "redirect": {
-                    "url": "https://safarelamir.com/caution-success"
-                }
-            }
-        )
-        
-        return JsonResponse({
-            "success": True,
-            "payment_link_id": payment_link.id,
-            "payment_url": payment_link.url,  # Lien permanent
-            "message": "Lien de paiement permanent créé avec succès"
-        }, status=200)
-        
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-# ========================================
-# 2. WEBHOOK STRIPE POUR VÉRIFIER LE PAIEMENT
-# ========================================
-
-@csrf_exempt
-def stripe_webhook_caution(request):
-
-    payload = request.body
-    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-    
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError:
-        return JsonResponse({"error": "Invalid payload"}, status=400)
-    except stripe.error.SignatureVerificationError:
-        return JsonResponse({"error": "Invalid signature"}, status=400)
-    
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        type_id = session.get("metadata", {}).get("type")
-        
-        if type_id == "caution":
-            gestion_caution_id = session.get("metadata", {}).get("gestion_caution_id")
-            payment_intent_id = session.get("payment_intent")
-            
-            try:
-                gestion_caution = GestionCaution.objects.get(id=gestion_caution_id)
-                
-                payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-                charge_id = payment_intent.charges.data[0].id if payment_intent.charges.data else None
-                
-                gestion_caution.paiement_encaisse = True
-                gestion_caution.stripe_payment_intent_id = payment_intent_id
-                gestion_caution.stripe_charge_id = charge_id
-                gestion_caution.date_encaissement = timezone.now()
-                gestion_caution.status = 'depose'
-                gestion_caution.save()
-                
-                print(f"✅ Caution encaissée - ID: {gestion_caution_id}, PaymentIntent: {payment_intent_id}")
-                
-                try:
-                    sujet = f"Caution encaissée - Réservation N°{gestion_caution.reservation.name}"
-                    expediteur = settings.EMAIL_HOST_USER
-                    
-                    html_message = render_to_string('email/caution_encaissee_email.html', {
-                        'client': gestion_caution.reservation.client.nom,
-                        'referance': gestion_caution.reservation.name,
-                        'montant_caution': gestion_caution.caution,
-                    })
-                    
-                    send_mail(
-                        sujet,
-                        strip_tags(html_message),
-                        expediteur,
-                        [gestion_caution.reservation.email],
-                        html_message=html_message,
-                        fail_silently=True,
-                    )
-                except Exception as email_error:
-                    print(f"⚠️ Erreur envoi email: {email_error}")
-                
-            except GestionCaution.DoesNotExist:
-                print(f"❌ Caution introuvable: {gestion_caution_id}")
-                return JsonResponse({"error": "Caution not found"}, status=404)
-    
-    elif event["type"] == "charge.refunded":
-        charge = event["data"]["object"]
-        charge_id = charge["id"]
-        
-        try:
-            gestion_caution = GestionCaution.objects.get(stripe_charge_id=charge_id)
-            
-            montant_rembourse_centimes = charge["amount_refunded"]
-            montant_rembourse_euros = montant_rembourse_centimes / 100
-            
-            if montant_rembourse_centimes == charge["amount"]:
-                gestion_caution.status = 'rembourse'
-            else:
-                gestion_caution.status = 'partiel_rembourse'
-            
-            gestion_caution.montant_rembourse = int(montant_rembourse_euros)
-            gestion_caution.date_remboursement = timezone.now()
-            gestion_caution.save()
-            
-            print(f"💰 Remboursement effectué - Caution ID: {gestion_caution.id}, Montant: {montant_rembourse_euros}€")
-            
-        except GestionCaution.DoesNotExist:
-            print(f"⚠️ Aucune caution trouvée pour charge: {charge_id}")
-    
-    return JsonResponse({"status": "success"}, status=200)
-
-
-# ========================================
-# 3. REMBOURSER UNE CAUTION (TOTAL OU PARTIEL)
-# ========================================
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def refund_caution(request):
-    try:
-        data = json.loads(request.body)
-        gestion_caution_id = data.get("gestion_caution_id")
-        montant_remboursement = data.get("montant_remboursement")  
-        raison = data.get("raison", "Remboursement de caution")
-        
-        if not gestion_caution_id:
-            return JsonResponse({
-                "error": "Le champ 'gestion_caution_id' est requis"
-            }, status=400)
-        
-        try:
-            gestion_caution = GestionCaution.objects.get(id=gestion_caution_id)
-        except GestionCaution.DoesNotExist:
-            return JsonResponse({"error": "Caution introuvable"}, status=404)
-        
-        if not gestion_caution.paiement_encaisse:
-            return JsonResponse({
-                "error": "Cette caution n'a pas encore été encaissée"
-            }, status=400)
-        
-        if gestion_caution.status == 'rembourse':
-            return JsonResponse({
-                "error": "Cette caution a déjà été remboursée totalement"
-            }, status=400)
-        
-        if not gestion_caution.stripe_charge_id:
-            return JsonResponse({
-                "error": "Aucun ID de charge Stripe trouvé pour cette caution"
-            }, status=400)
-        
-        if montant_remboursement is None:
-            montant_a_rembourser = gestion_caution.caution
-            if gestion_caution.montant_rembourse:
-                montant_a_rembourser -= gestion_caution.montant_rembourse
-        else:
-            montant_a_rembourser = float(montant_remboursement)
-        
-        if montant_a_rembourser <= 0:
-            return JsonResponse({
-                "error": "Le montant à rembourser doit être supérieur à 0"
-            }, status=400)
-        
-        montant_deja_rembourse = gestion_caution.montant_rembourse or 0
-        if (montant_a_rembourser + montant_deja_rembourse) > gestion_caution.caution:
-            return JsonResponse({
-                "error": f"Le montant total à rembourser dépasse la caution initiale ({gestion_caution.caution}€)"
-            }, status=400)
-        
-        montant_centimes = int(montant_a_rembourser * 100)
-        
-        try:
-            refund = stripe.Refund.create(
-                charge=gestion_caution.stripe_charge_id,
-                amount=montant_centimes,
-                reason="requested_by_customer",
-                metadata={
-                    "gestion_caution_id": str(gestion_caution_id),
-                    "raison": raison,
-                }
-            )
-            
-            total_rembourse = (gestion_caution.montant_rembourse or 0) + montant_a_rembourser
-            
-            gestion_caution.stripe_refund_id = refund.id
-            gestion_caution.montant_rembourse = int(total_rembourse)
-            gestion_caution.date_remboursement = timezone.now()
-            
-            if total_rembourse >= gestion_caution.caution:
-                gestion_caution.status = 'rembourse'
-            else:
-                gestion_caution.status = 'partiel_rembourse'
-            
-            gestion_caution.save()
-            
-            try:
-                sujet = f"Remboursement de caution - Réservation N°{gestion_caution.reservation.name}"
-                expediteur = settings.EMAIL_HOST_USER
-                
-                html_message = render_to_string('email/caution_remboursee_email.html', {
-                    'client': gestion_caution.reservation.client.nom,
-                    'referance': gestion_caution.reservation.name,
-                    'montant_rembourse': montant_a_rembourser,
-                    'caution_totale': gestion_caution.caution,
-                    'remboursement_total': total_rembourse >= gestion_caution.caution,
-                })
-                
-                send_mail(
-                    sujet,
-                    strip_tags(html_message),
-                    expediteur,
-                    [gestion_caution.reservation.email],
-                    html_message=html_message,
-                    fail_silently=True,
-                )
-            except Exception as email_error:
-                print(f"⚠️ Erreur envoi email: {email_error}")
-            
-            return JsonResponse({
-                "success": True,
-                "refund_id": refund.id,
-                "montant_rembourse": montant_a_rembourser,
-                "total_rembourse": total_rembourse,
-                "status": gestion_caution.status,
-                "message": "Remboursement effectué avec succès"
-            }, status=200)
-            
-        except stripe.error.StripeError as e:
-            return JsonResponse({
-                "error": f"Erreur Stripe: {str(e)}"
-            }, status=400)
-        
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)

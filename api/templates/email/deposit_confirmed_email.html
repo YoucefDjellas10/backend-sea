@@ -89,13 +89,13 @@
       <h6 style="margin: 0; line-height: 100%;text-align: right;font-size: 9px;"> SAFAR EL AMIR </h6>
       
       <h3 style="line-height: 130%;margin-top: 18px;margin-bottom: 0px; font-size: 16px;text-align:center;" >Empreinte bancaire Confirmée </h3>
-      <h4 style="line-height: 120%;margin-bottom: 5px;font-size: 13px;"> Réservation N° : 57896</h4>
+      <h4 style="line-height: 120%;margin-bottom: 5px;font-size: 13px;"> Réservation N° : {{ referance }}</h4>
     </div> 
     <div class="content">
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse;">
         <tr>
           <td valign="top" style="font-size: 14px; padding-right: 5px;padding-top: 15px;">
-            <h2>Bonjour 👋,</h2>
+            <h2>Bonjour {{ client }} 👋,</h2>
             <p>
               Nous vous confirmons que
               <strong style="
@@ -109,17 +109,19 @@
         </tr>
       </table>
       <div class="caution-box">
-        <strong>Caution : 600€ - par empreinte bancaire</strong>
+        <strong>Caution : {{ montant_caution }}€ - par empreinte débitée </strong>
       </div>
       <div style="text-align: center;">
-        <a href="https://safar-el-amir.com/espace-client" class="btn">Accéder à mon espace client</a>
+        <a href="https://safarelamir.com"  target="_blank" class="btn">Accéder à mon espace client</a>
       </div>
     </div>
     <div class="info-box">
-      <ol style="line-height: 145%;">
-       <li>➡️ Aucune somme n’a été débitée de votre compte. Le montant est simplement bloqué temporairement jusqu’à la restitution du véhicule.</li>
-       <li>➡️ <span style="color: #1a73e8;">Vous n'avez aucune action à faire.</span> Ce système est 100% sécurisé, sans frais bancaires, et l'empreinte se libérera automatiquement dans un délai de 5 jours après restitution conforme (carburant, état, délais).</li>
-      </ol>
+
+    <ol style="line-height: 145%;">
+  <li>➡️ Le montant de la caution est simplement encaissé temporairement sur le compte de SAFAR EL AMIR afin de garantir la location du véhicule.</li>
+  <li>➡️ <span style="color: #1a73e8;">Vous n'avez aucune action à effectuer.</span> Ce système est 100 % sécurisé, sans frais bancaires, et la caution vous sera automatiquement remboursée en intégralité sous 10 jours ouvrés après restitution conforme (état, carburant, kilométrage et ponctualité).</li>
+    </ol>
+
     </div>
     <div class="footer">
       <img  src="https://img.mailinblue.com/9020115/images/content_library/original/682304ae26f8e2d685a49b39.png" width="155" alt="SAFAR EL AMIR">
