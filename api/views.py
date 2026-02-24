@@ -1027,10 +1027,10 @@ def confirme_reservation_view(request):
             lv_type = "livraison",
             action_lieu=reservation.lieu_depart.name,
             action_date=reservation.date_heure_debut,
-            date_depart_char_ = reservation.date_depart_char if reservation.date_depart_char else None,
-            date_retour_char_ = reservation.date_retour_char if reservation.date_retour_char else None,
-            heure_depart_char_ = reservation.heure_depart_char if reservation.heure_depart_char else None,
-            heure_retour_char_ = reservation.heure_retour_char if reservation.heure_retour_char else None,
+            date_depart_char_lv = reservation.date_depart_char if reservation.date_depart_char else None,
+            date_retour_char_lv = reservation.date_retour_char if reservation.date_retour_char else None,
+            heure_depart_char_lv = reservation.heure_depart_char if reservation.heure_depart_char else None,
+            heure_retour_char_lv = reservation.heure_retour_char if reservation.heure_retour_char else None,
             num_vol = reservation.num_vol if reservation.num_vol else None,
         ) 
         livraison.save()
@@ -1075,10 +1075,10 @@ def confirme_reservation_view(request):
             lv_type = "restitution",
             action_lieu=reservation.lieu_retour.name,
             action_date=reservation.date_heure_fin,
-            date_depart_char_ = reservation.date_depart_char if reservation.date_depart_char else None,
-            date_retour_char_ = reservation.date_retour_char if reservation.date_retour_char else None,
-            heure_depart_char_ = reservation.heure_depart_char if reservation.heure_depart_char else None,
-            heure_retour_char_ = reservation.heure_retour_char if reservation.heure_retour_char else None,
+            date_depart_char_lv = reservation.date_depart_char if reservation.date_depart_char else None,
+            date_retour_char_lv = reservation.date_retour_char if reservation.date_retour_char else None,
+            heure_depart_char_lv = reservation.heure_depart_char if reservation.heure_depart_char else None,
+            heure_retour_char_lv = reservation.heure_retour_char if reservation.heure_retour_char else None,
             num_vol = reservation.num_vol if reservation.num_vol else None,
         ) 
         restitution.save()
@@ -4321,10 +4321,10 @@ def stripe_webhook_reservation_(request):
                     lv_type = "livraison",
                     action_lieu=reservation.lieu_depart.name,
                     action_date=reservation.date_heure_debut,
-                    date_depart_char_ = reservation.date_depart_char if reservation.date_depart_char else None,
-                    date_retour_char_ = reservation.date_retour_char if reservation.date_retour_char else None,
-                    heure_depart_char_ = reservation.heure_depart_char if reservation.heure_depart_char else None,
-                    heure_retour_char_ = reservation.heure_retour_char if reservation.heure_retour_char else None,
+                    date_depart_char_lv = reservation.date_depart_char if reservation.date_depart_char else None,
+                    date_retour_char_lv = reservation.date_retour_char if reservation.date_retour_char else None,
+                    heure_depart_char_lv = reservation.heure_depart_char if reservation.heure_depart_char else None,
+                    heure_retour_char_lv = reservation.heure_retour_char if reservation.heure_retour_char else None,
                     num_vol = reservation.num_vol if reservation.num_vol else None,
                     payer_type = 'espece',
                     type_caution = 'en_ligne',
@@ -4372,10 +4372,10 @@ def stripe_webhook_reservation_(request):
                     lv_type = "restitution",
                     action_lieu=reservation.lieu_retour.name,
                     action_date=reservation.date_heure_fin,
-                    date_depart_char_ = reservation.date_depart_char if reservation.date_depart_char else None,
-                    date_retour_char_ = reservation.date_retour_char if reservation.date_retour_char else None,
-                    heure_depart_char_ = reservation.heure_depart_char if reservation.heure_depart_char else None,
-                    heure_retour_char_ = reservation.heure_retour_char if reservation.heure_retour_char else None,
+                    date_depart_char_lv = reservation.date_depart_char if reservation.date_depart_char else None,
+                    date_retour_char_lv = reservation.date_retour_char if reservation.date_retour_char else None,
+                    heure_depart_char_lv = reservation.heure_depart_char if reservation.heure_depart_char else None,
+                    heure_retour_char_lv = reservation.heure_retour_char if reservation.heure_retour_char else None,
                     num_vol = reservation.num_vol if reservation.num_vol else None,
                     payer_type = 'espece',
                     type_caution = 'en_ligne',
@@ -4516,6 +4516,7 @@ def stripe_webhook_reservation_(request):
                     paiement_encaisse=True,
                     date_encaissement=now(),
                 )
+                caution.save()
 
                 try:
                     sujet = f"Caution encaissée - Réservation N°{reservation.name}"
@@ -5420,7 +5421,7 @@ def lieux_list(request):
 
 class LieuxViewset(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
-    queryset = Lieux.objects.all()
+    queryset = Lieux.objects.all().order_by('id')
     serializer_class = LieuxSerializer
 
     def list(self, request):

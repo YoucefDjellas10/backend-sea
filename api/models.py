@@ -99,6 +99,7 @@ class Lieux(models.Model):
     mobile = models.CharField(max_length=20, verbose_name="Mobile")
 
     class Meta:
+        ordering = ['id']
         db_table = 'lieux'
         managed = False
 
@@ -1388,23 +1389,23 @@ class Livraison(models.Model):
     )
     opt_protection =  models.CharField()
 
-    opt_carburant = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_carburant', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_carburant = models.ForeignKey(Options, on_delete=models.SET_NULL, related_name='+',db_column='opt_carburant', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_carburant_check = models.BooleanField()
-    opt_klm = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_klm', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_klm = models.ForeignKey(Options, on_delete=models.SET_NULL, related_name='+',db_column='opt_klm', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_klm_check = models.BooleanField()
-    opt_nd_driver = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_nd_driver', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_nd_driver = models.ForeignKey(Options, on_delete=models.SET_NULL, related_name='+',db_column='opt_nd_driver', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_nd_driver_check = models.BooleanField()
-    opt_sb_a = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_a', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_sb_a = models.ForeignKey(Options, on_delete=models.SET_NULL, related_name='+',db_column='opt_sb_a', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_sb_a_check = models.BooleanField()
-    opt_sb_b = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_b', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_sb_b = models.ForeignKey(Options, on_delete=models.SET_NULL, related_name='+',db_column='opt_sb_b', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_sb_b_check = models.BooleanField()
-    opt_sb_c = models.ForeignKey(Options, on_delete=models.SET_NULL,db_column='opt_sb_c', null=True, blank=True, verbose_name='Lieu de Départ')
+    opt_sb_c = models.ForeignKey(Options, on_delete=models.SET_NULL, related_name='+',db_column='opt_sb_c', null=True, blank=True, verbose_name='Lieu de Départ')
     opt_sb_c_check = models.BooleanField()
 
-    date_depart_char_ = models.CharField(null=True, blank=True)
-    date_retour_char_ = models.CharField(null=True, blank=True)
-    heure_depart_char_ = models.CharField(null=True, blank=True)
-    heure_retour_char_ = models.CharField(null=True, blank=True)
+    date_depart_char_lv = models.CharField(null=True, blank=True, db_column='date_depart_char_')
+    date_retour_char_lv = models.CharField(null=True, blank=True, db_column='date_retour_char_')
+    heure_depart_char_lv = models.CharField(null=True, blank=True, db_column='heure_depart_char_')
+    heure_retour_char_lv = models.CharField(null=True, blank=True, db_column='heure_retour_char_')
     num_vol = models.CharField()
 
     opt_protection_caution = models.IntegerField(null=True, blank=True)
@@ -1635,7 +1636,7 @@ class Prolongation(models.Model):
         on_delete=models.CASCADE,
         verbose_name='effectuer_par',
         db_column='effectuer_par',
-        related_name='prolongationss'
+        related_name='retours_avance'
     )
     
     stage = models.CharField(
@@ -1888,9 +1889,9 @@ class RetourAvance(models.Model):
     
     name = models.CharField(max_length=255, verbose_name='Nom', null=True, blank=True)
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, db_column='reservation', verbose_name='Reservation')
-    lieu_depart = models.ForeignKey(Lieux, on_delete=models.CASCADE, db_column='lieu_depart', verbose_name='lieu_depart')
+    lieu_depart = models.ForeignKey(Lieux, on_delete=models.CASCADE, related_name='+', db_column='lieu_depart', verbose_name='lieu_depart')
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, db_column='zone', verbose_name='zone')
-    lieu_retour = models.ForeignKey(Lieux, on_delete=models.CASCADE, db_column='lieu_retour', verbose_name='lieu_retour')
+    lieu_retour = models.ForeignKey(Lieux, on_delete=models.CASCADE, related_name='+', db_column='lieu_retour', verbose_name='lieu_retour')
     
     date_retour_avance = models.DateTimeField(
         verbose_name='Date de retour avance', 
