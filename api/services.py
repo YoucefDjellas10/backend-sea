@@ -2068,21 +2068,51 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             if vehicle.modele.id in modeles_ajoutes:
                 continue
 
-            tarif = Tarifs.objects.filter(
-                modele=vehicle.modele,  
-                nbr_de__lte=total_days, 
+            
+            tarifs_periodiques = Tarifs.objects.filter(
+                modele=vehicle.modele,
+                nbr_de__lte=total_days,
                 nbr_au__gte=total_days,
                 zone=lieu_depart.zone
             ).filter(
-                Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
-            ).first()
+                Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) |
+                Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) |
+                Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) |
+                Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart)
+            )
 
-            if tarif:
-                prix_jour = float(tarif.prix) * taux_change
+            # Construire une liste de (date_debut_periode, date_fin_periode, prix) depuis tous les tarifs trouvés
+            periodes_prix = []
+            for t in tarifs_periodiques:
+                for debut_field, fin_field in [
+                    ('date_depart_one', 'date_fin_one'),
+                    ('date_depart_two', 'date_fin_two'),
+                    ('date_depart_three', 'date_fin_three'),
+                    ('date_depart_four', 'date_fin_four'),
+                ]:
+                    debut = getattr(t, debut_field)
+                    fin = getattr(t, fin_field)
+                    if debut and fin and debut <= date_retour and fin >= date_depart:
+                        periodes_prix.append((debut, fin, t.prix))
+
+            # Calculer le coût total en fonction du chevauchement de chaque période
+            cout_total_tarif = 0
+            jours_couverts = 0
+
+            for debut, fin, prix in periodes_prix:
+                chevauchement_debut = max(debut, date_depart)
+                chevauchement_fin = min(fin, date_retour)
+                jours = (chevauchement_fin - chevauchement_debut).days
+                if jours > 0:
+                    jours_couverts += jours
+                    cout_total_tarif += jours * float(prix) * taux_change # multiplier par taux_change si DZ
+
+            tarif = len(periodes_prix) > 0  # joue le rôle du "if tarif:"
+
+            if tarif and jours_couverts > 0:
+                prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
                 total_primary = total
+                
                 supplements_valeur = Supplement.objects.filter(valeur__gt=0)
                 
                 for supplement in supplements_valeur:
@@ -2092,7 +2122,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     if duration > supplement.reatrd:
                         total_primary += (prix_jour * supplement.valeur) / 100
 
-                total_brut = total_primary + (prix_jour * total_days)
+                total_brut = total_primary + cout_total_tarif 
                 prix_unitaire = total_brut / total_days
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
