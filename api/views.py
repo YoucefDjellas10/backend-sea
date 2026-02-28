@@ -4539,6 +4539,7 @@ def stripe_webhook_reservation_(request):
                     lv.type_caution = 'depose'
                     lv.save()
 
+
                 caution = GestionCaution.objects.create(
                     reservation=reservation,
                     date_heure_debut=reservation.date_heure_debut,
