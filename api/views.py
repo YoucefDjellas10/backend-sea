@@ -3453,35 +3453,67 @@ def add_reservation_post_view(request):
             else:
                 promo_value = 0
                 
-            tarif = Tarifs.objects.filter(
-               ( Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)),
+            tarifs_periodiques = Tarifs.objects.filter(
                 Q(nbr_de__lte=total_days, nbr_au__gte=total_days),
                 modele=vehicule.modele,
-                zone=depart.zone 
-            ).first()
+                zone=depart.zone
+            ).filter(
+                Q(date_depart_one__lte=date_retour_obj, date_fin_one__gte=date_depart_obj) |
+                Q(date_depart_two__lte=date_retour_obj, date_fin_two__gte=date_depart_obj) |
+                Q(date_depart_three__lte=date_retour_obj, date_fin_three__gte=date_depart_obj) |
+                Q(date_depart_four__lte=date_retour_obj, date_fin_four__gte=date_depart_obj)
+            )
 
-            if tarif :
-                prix_jour = tarif.prix
-                total += prix_jour * total_days
-                if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
-                    last_total = (100-client_red_pr) * total / 100
-                elif promo_value > client_red_pr:
-                    last_total = Decimal((100-promo_value) * total / 100)
-                else : 
-                    last_total = total
-                if client_solde > 0:
-                    last_total = total - client_solde
-                    client.solde_consomer = client.solde_consomer or 0
-                    client.solde_total = client.solde_total or 0
-                    client.solde = 0.00
-                    client.solde_consomer += client_solde if client_solde else 0
-                    client.solde_total += client_solde if client_solde else 0
-                    client.save()
-            else:
+            # Construire les périodes avec leurs prix
+            periodes_prix = []
+            for t in tarifs_periodiques:
+                for debut_field, fin_field in [
+                    ('date_depart_one', 'date_fin_one'),
+                    ('date_depart_two', 'date_fin_two'),
+                    ('date_depart_three', 'date_fin_three'),
+                    ('date_depart_four', 'date_fin_four'),
+                ]:
+                    debut = getattr(t, debut_field)
+                    fin = getattr(t, fin_field)
+                    if debut and fin and debut <= date_retour_obj and fin >= date_depart_obj:
+                        periodes_prix.append((debut, fin, t.prix))
+
+            if not periodes_prix:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
+
+            # Calculer le coût total pondéré par période
+            cout_total_tarif = Decimal(0)
+            jours_couverts = 0
+
+            for debut, fin, prix in periodes_prix:
+                chevauchement_debut = max(debut, date_depart_obj)
+                chevauchement_fin = min(fin, date_retour_obj)
+                jours = (chevauchement_fin - chevauchement_debut).days
+                if jours > 0:
+                    jours_couverts += jours
+                    cout_total_tarif += Decimal(str(prix)) * jours
+
+            if jours_couverts == 0:
+                return JsonResponse({"error": "tarifs invalides."}, status=400)
+
+            prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
+            total += cout_total_tarif
+
+            if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
+                last_total = (100 - client_red_pr) * total / 100
+            elif promo_value > client_red_pr:
+                last_total = Decimal((100 - promo_value) * total / 100)
+            else:
+                last_total = total
+
+            if client_solde > 0:
+                last_total = total - client_solde
+                client.solde_consomer = client.solde_consomer or 0
+                client.solde_total = client.solde_total or 0
+                client.solde = 0.00
+                client.solde_consomer += client_solde if client_solde else 0
+                client.solde_total += client_solde if client_solde else 0
+                client.save()
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         last_total = Decimal(last_total)
