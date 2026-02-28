@@ -4208,7 +4208,9 @@ def create_payment_session_reservation(request):
 def stripe_webhook_reservation_(request):
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    print("SECRET UTILISÉ:", settings.STRIPE_WEBHOOK_SECRET)
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET 
+
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -4520,7 +4522,11 @@ def stripe_webhook_reservation_(request):
             montant_caution = session.get("metadata", {}).get("montant_caution")
             payment_intent_id = session.get("payment_intent")
             stripe_charge_id = None
-            
+            print("#######################################")
+            print("ref :",ref)
+            print("montant_caution :",montant_caution)
+            print("payment_intent_id :", payment_intent_id)
+
             if payment_intent_id:
                 payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
                 stripe_charge_id = payment_intent.get("latest_charge")

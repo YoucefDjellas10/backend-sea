@@ -2048,7 +2048,8 @@ class GestionCaution(models.Model):
     reservation = models.ForeignKey(
         'Reservation',
         on_delete=models.CASCADE,
-        related_name='cautions'
+        related_name='cautions',
+        db_column='reservation'
     )
 
     date_heure_debut = models.DateTimeField()
