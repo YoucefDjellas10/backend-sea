@@ -1408,7 +1408,6 @@ def rechercher_vehicules_disponibles(lieu_depart_id, lieu_retour_id, date_depart
     except ObjectDoesNotExist as e:
         print(f"Erreur: {e}")
         return []
-
 def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour):
 
     date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
@@ -1416,12 +1415,13 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
 
     total_days = (date_retour - date_depart).days
 
+    # 🔴 CHANGEMENT IMPORTANT ICI : on accepte tout tarif dont AU MOINS UN intervalle chevauche la période
     tarifs = Tarifs.objects.filter(
         Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
-            Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-            Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-            Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-            Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
+            Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) |
+            Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) |
+            Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) |
+            Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart)
         )
     )
 
@@ -1431,6 +1431,7 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
         total = 0
         prix_unitaire = 0
 
+        # Tous les intervalles possibles
         intervalles = [
             (record.date_depart_one, record.date_fin_one),
             (record.date_depart_two, record.date_fin_two),
@@ -1438,8 +1439,10 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
             (record.date_depart_four, record.date_fin_four),
         ]
 
+        # 🔁 Calcul du total en fonction des jours dans chaque intervalle
         for start, end in intervalles:
             if start and end:
+                # Chevauchement ?
                 if date_depart <= end and date_retour >= start:
                     overlap_start = max(date_depart, start)
                     overlap_end = min(date_retour, end)
@@ -1447,12 +1450,14 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
 
                     if overlap_days > 0:
                         total += overlap_days * record.prix
-                        prix_unitaire = record.prix  
+                        prix_unitaire = record.prix  # dernier prix appliqué (utile pour les suppléments)
 
+        # Frais de livraison
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         for frais in frais_livraison:
             total += frais.montant if frais else 0
 
+        # Supplements
         supplements = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
@@ -1467,8 +1472,8 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
             if duration > supplement.reatrd:
                 total += (prix_unitaire * supplement.valeur) / 100
 
-        if total > 0:
-            prix_par_jour = total / total_days if total_days > 0 else 0
+        if total > 0 and total_days > 0:
+            prix_par_jour = total / total_days
             resultats.append({
                 "modele_id": record.modele.id,
                 "total": total,
