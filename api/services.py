@@ -2068,17 +2068,13 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             if vehicle.modele.id in modeles_ajoutes:
                 continue
 
-            tarif = Tarifs.objects.filter(
-                modele=vehicle.modele,  
-                nbr_de__lte=total_days, 
-                nbr_au__gte=total_days,
-                zone=lieu_depart.zone
-            ).filter(
-                Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
-            ).first()
+            tarif = Tarifs.objects.filter( modele=vehicle.modele, nbr_de__lte=total_days, 
+                                          nbr_au__gte=total_days, zone=lieu_depart.zone 
+                                          ).filter( 
+                                              Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) | 
+                                              Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) | 
+                                              Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) | 
+                                              Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart) ).first()
 
             if tarif:
                 prix_jour = float(tarif.prix) * taux_change
@@ -2092,8 +2088,27 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     if duration > supplement.reatrd:
                         total_primary += (prix_jour * supplement.valeur) / 100
 
-                total_brut = total_primary + (prix_jour * total_days)
+                # Calcul multi‑intervalle
+                total_brut = total_primary
+                intervals = [
+                    (tarif.date_depart_one, tarif.date_fin_one),
+                    (tarif.date_depart_two, tarif.date_fin_two),
+                    (tarif.date_depart_three, tarif.date_fin_three),
+                    (tarif.date_depart_four, tarif.date_fin_four),
+                ]
+
+                for start, end in intervals:
+                    if start and end:
+                        if date_depart <= end and date_retour >= start:
+                            overlap_start = max(date_depart, start)
+                            overlap_end = min(date_retour, end)
+                            overlap_days = (overlap_end - overlap_start).days
+
+                            if overlap_days > 0:
+                                total_brut += overlap_days * float(tarif.prix) * taux_change
+
                 prix_unitaire = total_brut / total_days
+
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
                     percentage = client_pr
@@ -2696,17 +2711,16 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             if vehicle.modele.id in modeles_ajoutes:
                 continue
 
-            tarif = Tarifs.objects.filter(
-                modele=vehicle.modele,  
-                nbr_de__lte=total_days, 
-                nbr_au__gte=total_days,
-                zone=lieu_depart.zone
-            ).filter(
-                Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
-            ).first()
+            
+            tarif = Tarifs.objects.filter( 
+                modele=vehicle.modele, nbr_de__lte=total_days, 
+                nbr_au__gte=total_days, zone=lieu_depart.zone 
+            ).filter( 
+                Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) | 
+                Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) | 
+                Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) | 
+                Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart) ).first()
+
 
             if tarif:
                 prix_jour = tarif.prix 
@@ -2719,7 +2733,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     if duration > supplement.reatrd:
                         total_primary += float((prix_jour * supplement.valeur) / 100 )
                         
-                total_brut = total_primary + (prix_jour * total_days)
+                # Calcul multi‑intervalle
+                total_brut = total_primary
+                intervals = [
+                    (tarif.date_depart_one, tarif.date_fin_one),
+                    (tarif.date_depart_two, tarif.date_fin_two),
+                    (tarif.date_depart_three, tarif.date_fin_three),
+                    (tarif.date_depart_four, tarif.date_fin_four),
+                ]
+
+                for start, end in intervals:
+                    if start and end:
+                        if date_depart <= end and date_retour >= start:
+                            overlap_start = max(date_depart, start)
+                            overlap_end = min(date_retour, end)
+                            overlap_days = (overlap_end - overlap_start).days
+
+                            if overlap_days > 0:
+                                total_brut += overlap_days * float(tarif.prix) * taux_change
+
                 prix_unitaire = total_brut / total_days
 
                 if int(client_pr) > promotion_value :
