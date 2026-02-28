@@ -1409,7 +1409,6 @@ def rechercher_vehicules_disponibles(lieu_depart_id, lieu_retour_id, date_depart
         print(f"Erreur: {e}")
         return []
 
-
 def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour):
 
     date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
@@ -1432,42 +1431,23 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
         total = 0
         prix_unitaire = 0
 
-        # Calcul des jours de réservation et ajout du tarif
-        if record.date_depart_one and record.date_fin_one:
-            if date_depart <= record.date_fin_one and date_retour >= record.date_depart_one:
-                overlap_start = max(date_depart, record.date_depart_one)
-                overlap_end = min(date_retour, record.date_fin_one)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
+        intervalles = [
+            (record.date_depart_one, record.date_fin_one),
+            (record.date_depart_two, record.date_fin_two),
+            (record.date_depart_three, record.date_fin_three),
+            (record.date_depart_four, record.date_fin_four),
+        ]
 
-        if record.date_depart_two and record.date_fin_two:
-            if date_depart <= record.date_fin_two and date_retour >= record.date_depart_two:
-                overlap_start = max(date_depart, record.date_depart_two)
-                overlap_end = min(date_retour, record.date_fin_two)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
+        for start, end in intervalles:
+            if start and end:
+                if date_depart <= end and date_retour >= start:
+                    overlap_start = max(date_depart, start)
+                    overlap_end = min(date_retour, end)
+                    overlap_days = (overlap_end - overlap_start).days
 
-        if record.date_depart_three and record.date_fin_three:
-            if date_depart <= record.date_fin_three and date_retour >= record.date_depart_three:
-                overlap_start = max(date_depart, record.date_depart_three)
-                overlap_end = min(date_retour, record.date_fin_three)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
-
-        if record.date_depart_four and record.date_fin_four:
-            if date_depart <= record.date_fin_four and date_retour >= record.date_depart_four:
-                overlap_start = max(date_depart, record.date_depart_four)
-                overlap_end = min(date_retour, record.date_fin_four)
-                overlap_days = (overlap_end - overlap_start).days
-                if overlap_days > 0:
-                    total += overlap_days * record.prix
-                    prix_unitaire = record.prix
+                    if overlap_days > 0:
+                        total += overlap_days * record.prix
+                        prix_unitaire = record.prix  
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         for frais in frais_livraison:
@@ -1480,11 +1460,8 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
         for supplement in supplements:
             total += supplement.montant if supplement else 0
 
-        for supplement in supplements:
-
-            start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
-            end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
-
+            start_hour = float(heure_depart[:2]) + float(heure_depart[3:]) / 60
+            end_hour = float(heure_retour[:2]) + float(heure_retour[3:]) / 60
             duration = end_hour - start_hour
 
             if duration > supplement.reatrd:
