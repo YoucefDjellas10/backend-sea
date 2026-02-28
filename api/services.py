@@ -1479,6 +1479,8 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
                 "total": total,
                 "prix": prix_par_jour
             })
+    
+    print('Resultats ',resultats)
 
     return resultats
 
