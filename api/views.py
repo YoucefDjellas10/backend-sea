@@ -3507,7 +3507,7 @@ def add_reservation_post_view(request):
             prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
             total += cout_total_tarif
 
-            print("###########################")
+            
 
             if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                 last_total = (100 - client_red_pr) * total / 100
@@ -3515,7 +3515,7 @@ def add_reservation_post_view(request):
                 last_total = Decimal((100 - promo_value) * total / 100)
             else:
                 last_total = total
-
+            print("###########################")
             if client_solde > 0:
                 last_total = total - client_solde
                 client.solde_consomer = client.solde_consomer or 0
