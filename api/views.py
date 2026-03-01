@@ -3512,10 +3512,12 @@ def add_reservation_post_view(request):
             if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                 last_total = (100 - client_red_pr) * total / 100
             elif promo_value > client_red_pr:
+                print("###########################")
                 last_total = Decimal((100 - promo_value) * total / 100)
             else:
                 last_total = total
-            print("###########################")
+
+
             if client_solde > 0:
                 last_total = total - client_solde
                 client.solde_consomer = client.solde_consomer or 0
