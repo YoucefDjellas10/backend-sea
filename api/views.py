@@ -3491,7 +3491,7 @@ def add_reservation_post_view(request):
             cout_total_tarif = Decimal(0)
             jours_couverts = 0
 
-            print("###########################")
+            
 
             for debut, fin, prix in periodes_prix:
                 chevauchement_debut = max(debut, date_depart_obj)
@@ -3500,7 +3500,7 @@ def add_reservation_post_view(request):
                 if jours > 0:
                     jours_couverts += jours
                     cout_total_tarif += Decimal(str(prix)) * jours
-
+            print("###########################")
             if jours_couverts == 0:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
 
