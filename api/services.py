@@ -1583,7 +1583,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                 buffer_depart_hours = 1
 
             else:
-                buffer_depart_hours = 4
+                buffer_depart_hours = 5
 
         except Exception:
             buffer_depart_hours = 1
