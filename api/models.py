@@ -2045,6 +2045,7 @@ class GestionCaution(models.Model):
         ('partiel_rembourse', 'Partiellement Remboursée'),
     ]
 
+    name = models.CharField(max_length=255, blank=True, null=True)
     reservation = models.ForeignKey(
         'Reservation',
         on_delete=models.CASCADE,
