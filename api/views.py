@@ -3468,6 +3468,8 @@ def add_reservation_post_view(request):
                 Q(date_depart_four__lte=date_retour_obj, date_fin_four__gte=date_depart_obj)
             )
 
+            print("###########################")
+
             # Construire les périodes avec leurs prix
             periodes_prix = []
             for t in tarifs_periodiques:
