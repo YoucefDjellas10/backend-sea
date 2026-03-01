@@ -3500,12 +3500,14 @@ def add_reservation_post_view(request):
                 if jours > 0:
                     jours_couverts += jours
                     cout_total_tarif += Decimal(str(prix)) * jours
-            print("###########################")
+            
             if jours_couverts == 0:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
 
             prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
             total += cout_total_tarif
+
+            print("###########################")
 
             if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                 last_total = (100 - client_red_pr) * total / 100
