@@ -1517,11 +1517,11 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                 elif zone_depart and zone_depart.id in [1, 2, 16]:
                     buffer_retour_hours = 1
 
-                elif ld.id == 4 or lr.id == 4:
+                elif ld.id == 4 and lr.id == 4:
                     buffer_retour_hours = 1
 
                 else:
-                    buffer_retour_hours = 4
+                    buffer_retour_hours = 5
 
         except Exception:
             buffer_retour_hours = 1
