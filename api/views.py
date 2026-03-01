@@ -4016,6 +4016,7 @@ def add_reservation_post_view(request):
             create_date=timezone.now(),
             status="en_attend",
             etat_reservation="reserve",
+            type_caution="espece",
             date_heure_debut = date_heure_debut ,
             date_heure_fin = date_heure_fin,
             date_depart_char = date_debut_char,
