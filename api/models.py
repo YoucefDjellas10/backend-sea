@@ -1006,7 +1006,10 @@ class Reservation(models.Model):
     matricule = models.CharField(max_length=50, editable=False, null=True, blank=True)
     numero = models.CharField(max_length=50, editable=False, null=True, blank=True)
 
-
+    type_caution = models.CharField(max_length=20, choices=[
+        ('espece', 'Espèce'),
+        ('depose', 'Déposée'),
+    ], verbose_name='Type caution', null=True, blank=True)
     model_name = models.CharField(max_length=50, editable=False, null=True, blank=True)
     marketing_text_fr = models.CharField(max_length=50, editable=False, null=True, blank=True)
     photo_link_nd = models.CharField(max_length=50, editable=False, null=True, blank=True)

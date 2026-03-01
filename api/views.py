@@ -4534,6 +4534,9 @@ def stripe_webhook_reservation_(request):
             try:
                 reservation = Reservation.objects.get(name=ref)
 
+                reservation.type_caution = "depose"
+                reservation.save()
+
                 livraisons = Livraison.objects.filter(reservation=reservation)
                 for lv in livraisons:
                     lv.type_caution = 'depose'
