@@ -3468,7 +3468,7 @@ def add_reservation_post_view(request):
                 Q(date_depart_four__lte=date_retour_obj, date_fin_four__gte=date_depart_obj)
             )
 
-            print("###########################")
+            
 
             # Construire les périodes avec leurs prix
             periodes_prix = []
@@ -3572,6 +3572,8 @@ def add_reservation_post_view(request):
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
         duration = end_hour - start_hour
+
+        print("###########################")
         
         if duration > ecart.reatrd:
             ecart_montant = (prix_jour * ecart.valeur) / 100
