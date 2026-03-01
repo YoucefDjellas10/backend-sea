@@ -1496,27 +1496,102 @@ def check_client(id):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-
-def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone):
+def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id=None, lieu_retour_id=None):
     date_heure_debut = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
     date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
 
+    buffer_retour_hours = 1  
+
+    if lieu_depart_id and lieu_retour_id:
+        try:
+            ld = Lieux.objects.filter(id=lieu_depart_id).first()
+            lr = Lieux.objects.filter(id=lieu_retour_id).first()
+
+            if ld and lr:
+                zone_depart = ld.zone
+                zone_retour = lr.zone
+
+                if zone_depart and zone_retour and zone_depart.id != zone_retour.id:
+                    buffer_retour_hours = 24
+
+                elif zone_depart and zone_depart.id in [1, 2, 16]:
+                    buffer_retour_hours = 1
+
+                elif ld.id == 4 or lr.id == 4:
+                    buffer_retour_hours = 1
+
+                else:
+                    buffer_retour_hours = 4
+
+        except Exception:
+            buffer_retour_hours = 1
+
+    buffer_retour = timedelta(hours=buffer_retour_hours)
+
+    buffer_depart_defaut = timedelta(hours=1)
+
+    date_heure_debut_avec_buffer = date_heure_debut - buffer_depart_defaut
+    date_heure_fin_avec_buffer = date_heure_fin + buffer_retour
+
     reserved_vehicles = Reservation.objects.filter(
-        Q(date_heure_debut__lt=date_heure_fin, date_heure_fin__gt=date_heure_debut),  
-        etat_reservation__in=["reserve", "loue"],status="confirmee"  
+        Q(date_heure_debut__lt=date_heure_fin_avec_buffer,
+          date_heure_fin__gt=date_heure_debut_avec_buffer),
+        etat_reservation__in=["reserve", "loue"],
+        status="confirmee"
     ).values_list("vehicule_id", flat=True)
 
     blocked_vehicles = BlockCar.objects.filter(
         Q(date_from__lte=date_heure_fin.date(), date_to__gte=date_heure_debut.date())
     ).values_list("vehicule_id", flat=True)
 
-    available_vehicles = Vehicule.objects.filter(
-        active_test=True,  
+    candidates = Vehicule.objects.filter(
+        active_test=True,
         date_debut_service__lte=date_heure_debut.date(),
-        zone_id=int(zone) 
+        zone_id=int(zone)
     ).exclude(
         id__in=list(reserved_vehicles) + list(blocked_vehicles)
-    )  
+    )
+
+    available_vehicles = []
+
+    for vehicle in candidates:
+        derniere_res = Reservation.objects.filter(
+            vehicule=vehicle,
+            etat_reservation__in=["reserve", "loue"],
+            status="confirmee",
+            date_heure_fin__lt=date_heure_debut
+        ).order_by('-date_heure_fin').first()
+
+        if not derniere_res:
+            available_vehicles.append(vehicle)
+            continue
+
+        try:
+            ld_res = derniere_res.lieu_depart
+            lr_res = derniere_res.lieu_retour
+
+            zone_depart_res = ld_res.zone if ld_res else None
+            zone_retour_res = lr_res.zone if lr_res else None
+
+            if zone_depart_res and zone_retour_res and zone_depart_res.id != zone_retour_res.id:
+                buffer_depart_hours = 24
+
+            elif zone_depart_res and zone_depart_res.id in [1, 2, 16]:
+                buffer_depart_hours = 1
+
+            elif (ld_res and ld_res.id == 4) or (lr_res and lr_res.id == 4):
+                buffer_depart_hours = 1
+
+            else:
+                buffer_depart_hours = 4
+
+        except Exception:
+            buffer_depart_hours = 1
+
+        buffer_depart = timedelta(hours=buffer_depart_hours)
+
+        if derniere_res.date_heure_fin + buffer_depart <= date_heure_debut:
+            available_vehicles.append(vehicle)
 
     return available_vehicles
 
