@@ -3491,6 +3491,8 @@ def add_reservation_post_view(request):
             cout_total_tarif = Decimal(0)
             jours_couverts = 0
 
+            print("###########################")
+
             for debut, fin, prix in periodes_prix:
                 chevauchement_debut = max(debut, date_depart_obj)
                 chevauchement_fin = min(fin, date_retour_obj)
@@ -3573,7 +3575,7 @@ def add_reservation_post_view(request):
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
         duration = end_hour - start_hour
 
-        print("###########################")
+        
         
         if duration > ecart.reatrd:
             ecart_montant = (prix_jour * ecart.valeur) / 100
