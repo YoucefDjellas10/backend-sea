@@ -4541,6 +4541,7 @@ def stripe_webhook_reservation_(request):
 
 
                 caution = GestionCaution.objects.create(
+                    name=reservation.name,
                     reservation=reservation,
                     date_heure_debut=reservation.date_heure_debut,
                     date_heure_fin=reservation.date_heure_fin,
