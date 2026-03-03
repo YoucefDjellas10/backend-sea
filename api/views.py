@@ -5568,7 +5568,9 @@ class ModeleViewset(viewsets.ViewSet):
     serializer_class = ModeleSerializer
 
     def list(self, request):
-        queryset = Modele.objects.all()
+        queryset = Modele.objects.filter(
+            vehicule__active_test=True
+        ).distinct()
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
