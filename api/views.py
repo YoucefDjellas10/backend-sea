@@ -4557,49 +4557,44 @@ def stripe_webhook_reservation_(request):
                     lv.type_caution = 'depose'
                     lv.save()
 
-                
-                caution_existe = GestionCaution.objects.filter(reservation=reservation).first
+                caution = GestionCaution.objects.create(
+                    name=reservation.name,
+                    reservation=reservation,
+                    date_heure_debut=reservation.date_heure_debut,
+                    date_heure_fin=reservation.date_heure_fin,
+                    date_de_reservation=reservation.create_date,
+                    nbr_jour_reservation=reservation.nbr_jour_reservation,
+                    caution=int(float(montant_caution)) if montant_caution else 0,
+                    status_reservation='reserve',
+                    status='depose',
+                    date_creation=now(),
+                    stripe_payment_intent_id=payment_intent_id,
+                    stripe_charge_id=stripe_charge_id,
+                    paiement_encaisse=True,
+                    date_encaissement=now(),
+                )
+                caution.save()
 
-                if not caution_existe :
+                try:
+                    sujet = f"Caution encaissée - Réservation N°{reservation.name}"
+                    expediteur = settings.EMAIL_HOST_USER
 
-                    caution = GestionCaution.objects.create(
-                        name=reservation.name,
-                        reservation=reservation,
-                        date_heure_debut=reservation.date_heure_debut,
-                        date_heure_fin=reservation.date_heure_fin,
-                        date_de_reservation=reservation.create_date,
-                        nbr_jour_reservation=reservation.nbr_jour_reservation,
-                        caution=int(float(montant_caution)) if montant_caution else 0,
-                        status_reservation='reserve',
-                        status='depose',
-                        date_creation=now(),
-                        stripe_payment_intent_id=payment_intent_id,
-                        stripe_charge_id=stripe_charge_id,
-                        paiement_encaisse=True,
-                        date_encaissement=now(),
+                    html_message = render_to_string('email/deposit_confirmed_email.html', {
+                        'client': reservation.client.name,
+                        'referance': reservation.name,
+                        'montant_caution': montant_caution,
+                    })
+
+                    send_mail(
+                        sujet,
+                        strip_tags(html_message),
+                        expediteur,
+                        [reservation.email],
+                        html_message=html_message,
+                        fail_silently=True,
                     )
-                    caution.save()
-
-                    try:
-                        sujet = f"Caution encaissée - Réservation N°{reservation.name}"
-                        expediteur = settings.EMAIL_HOST_USER
-
-                        html_message = render_to_string('email/deposit_confirmed_email.html', {
-                            'client': reservation.client.name,
-                            'referance': reservation.name,
-                            'montant_caution': montant_caution,
-                        })
-
-                        send_mail(
-                            sujet,
-                            strip_tags(html_message),
-                            expediteur,
-                            [reservation.email],
-                            html_message=html_message,
-                            fail_silently=True,
-                        )
-                    except Exception as email_error:
-                        print(f"⚠️ Erreur envoi email: {email_error}")
+                except Exception as email_error:
+                    print(f"⚠️ Erreur envoi email: {email_error}")
 
                 print(f"✅ Caution créée pour la réservation: {ref}")
 
