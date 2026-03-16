@@ -41,7 +41,7 @@ def vip_reduction(country_code):
             moins_cher.append({
                 "currency": "DZ" if country_code == "DZ" else "EUR",
                 "model_name":modele.name,
-                "model_prix":final_prix * taux_change if country_code == "DZ" else final_prix,
+                "model_prix":final_prix,
                 "marketing_text_fr":modele.marketing_text_fr,
                 "nombre_de_place":modele.nombre_deplace,
                 "nombre_de_bagages":modele.nombre_de_bagage,
