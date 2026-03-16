@@ -4626,9 +4626,8 @@ def create_caution_payment_link_permanent(request):
         
         product = stripe.Product.create(
             name=f"Caution - Réservation {ref}",
-            description=description,
+            description=description
         )
-        
         price = stripe.Price.create(
             product=product.id,
             unit_amount=montant_centimes,

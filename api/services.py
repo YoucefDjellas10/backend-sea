@@ -608,14 +608,19 @@ def mes_reservations(client_id,country_code):
                 "date_dapart": reservation.date_heure_debut,
                 "date_retour": reservation.date_heure_fin,
                 "duree": reservation.nbr_jour_reservation,
-                "caution": reservation.opt_protection_caution * taux_change if country_code =="DZ" else reservation.opt_protection_caution,
-                "total": reservation.total_reduit_euro * taux_change if country_code =="DZ" else reservation.total_reduit_euro,
+                "caution": int(reservation.opt_protection_caution) * int(taux_change) if country_code =="DZ" else int(reservation.opt_protection_caution),
+                "total": float(reservation.total_reduit_euro) * float(taux_change) if country_code =="DZ" else float(reservation.total_reduit_euro),
                 "create_date": reservation.create_date,
                 "status": reservation.status,
                 "model_name": reservation.model_name,
                 "photo_link": reservation.photo_link,
                 "marketing_text_fr": reservation.marketing_text_fr,
                 "can_be_modified": can_be_modified,
+                "type_caution":reservation.type_caution,
+                "date_depart_char": reservation.date_depart_char,
+                "date_retour_char": reservation.date_retour_char,
+                "heure_depart_char": reservation.heure_depart_char,
+                "heure_retour_char": reservation.heure_retour_char,
             })
 
         result.sort(key=lambda x: x["date_dapart"], reverse=True)
