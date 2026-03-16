@@ -1204,7 +1204,7 @@ def ma_reservation_detail(ref, email, country_code):
                     'date_retour_char' : ma_reservation.date_retour_char,
                     'heure_depart_char' : ma_reservation.heure_depart_char,
                     'heure_retour_char' : ma_reservation.heure_retour_char,
-                    'mobile': ma_reservation.numero_lieu,
+                    'mobile': ma_reservation.lieu_depart.mobile,
                     'status': ma_reservation.status,
                     'opt_payment': ma_reservation.opt_payment_name,
                     'opt_payment_price': ma_reservation.opt_payment_price,
