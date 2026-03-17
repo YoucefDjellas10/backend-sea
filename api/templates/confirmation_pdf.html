@@ -3,214 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrat - {{ REF }}</title>
+    <title>Document</title>
+    <style>ul {
+  list-style: none; 
+  padding-left: 1em; 
+}
+
+ul li::before {
+  content: "‣"; 
+  margin-right: 0.5em; 
+  color: #092b6b; 
+}
+
+        @page {
+  margin: 1px 14px; 
+}
+    </style>
 </head>
-<body>
-        <header >  <table style="width: 100%; border-collapse: collapse; border: 1px solid #fff; margin-bottom: 10px;background-color: hsla(0, 0%, 100%, 0);">
-        <tr>
-            <td style=" padding: 0;">
-                <img src="https://i.ibb.co/fd5zQ5m4/cartedevisitenew.png" alt="Carte de visite" style="width: 5cm; height: auto;">
-            </td>
-            <td style="width: 40%; text-align: center; padding: 0;">
-                <p style="font-size: 9px; margin: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.3;">                <span style="font-size: 7px;"> R.C n° 31/00-0106810B03  A.I  31283781012  I.F 000331010681043  </span>
-<br>                    EURL SAFAR EL AMIR</p>
-            </td>
-            <td style="width: 30%; text-align: right; padding: 0;">
-                <p style="font-size: 10px; margin: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.4;">
-                    Service Livraison : {{ SERVICE }}<br>
-                    Service Réservation : +213 560 65 93 09
-                </p>
-            </td>
-        </tr>
-    
-        <tr>
-            <td colspan="3" style="text-align: center;">
-                <h4 style="margin: 0; font-family:Verdana, Geneva, Tahoma, sans-serif; color: #1d3c44">  CONTRAT DE LOCATION <br/><em>N° {{ REF }}</em>  </h4>
-            </td>
-        </tr>
-    </table>
-
-
-        </header>
-
-<main 
-style="text-align: justify; background-image: url('https://i.ibb.co/JWXhXwHm/filigran0identit-2.jpg'); background-size: cover; background-position: center;">
-
-    <table style="width: 100%; border-collapse: collapse; border: none; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 10px; line-height: 1.7;">
-
-    <!-- Ligne 1 -->
-    <tr><td >  <strong style="color:  #1d3c44;">  ✔         Identité du client :
-       {{ NOM }} {{ PRÉNOM }}
-        - Né le
-  {{ DATE_DE_NAISSANCE }}
-                    </strong>   </td></tr>
-
-
-    <!-- Ligne 2 -->
-    <tr><td >  <strong style="color:  #1d3c44;"> ✔                Permis de conduire délivré le {{ DATE_PERMIS }}
-        <t t-esc="o.client.date_de_permis"/>
-                    </strong> </td></tr>
-
-
-    <!-- Ligne 3 -->
-    <tr><td >    <strong style="color:  #1d3c44;">  ✔     
-        2ème conducteur :</strong>
-        <t t-esc="o.nom_nd_condicteur"/>
-       {{ NOM_2EME_CONDUCTEUR }} {{ Prenom_2EME_CONDUCTEUR }} {{ DATE_PERMIS_2EME }}.                  </td></tr>
-
-
-    <!-- Ligne 4 -->
-    <tr><td > <strong style="color:  #1d3c44;"> ✔          Durée de location :</strong> Du {{ DATE_DEPART }} à {{ HEURE_DEPART }} Au {{ DATE_RETOUR }} à {{ HEUERE_RETOUR }}                 </td></tr>
-
-
-    <!-- Ligne 5 -->
-    <tr><td ><strong style="color:  #1d3c44;">    ✔     Références du véhicule : </strong>{{ NOM_VEHICULE }} Immatriculation : {{ MATRICULE }}                     </td></tr>
-
-
-    <!-- Ligne 6 -->
-    <tr><td >  <strong style="color:  #1d3c44;">
-        ✔      Montant de la location :</strong>( {{ TOTAL }} Dinars algériens ) a été réglé.                      </td></tr>
-
-
-    <!-- Ligne 7 -->
-    <tr><td ><strong style="color:  #1d3c44;"> ✔       Caution :</strong> Le client doit déposer sa pièce d'identité originale valide + {{ CAUTION }} Dz de  caution.                      </td></tr>
-
-
-    <!-- Ligne 8 -->
-    <tr><td >  <strong style="color:  #1d3c44;"> ✔         Carburant :</strong> Votre véhicule est fourni avec le plein et doit être rendu avec le plein. Sinon, vous devrez  régler 3000 Dz de frais.                </td></tr>
-
-
-    <!-- Ligne 9 -->
-    <tr><td ><strong style="color:  #1d3c44;">  ✔     Prolongation : </strong>Aucune demande de prolongation n'est garantie sauf si une autorisation    préalable de Safar El Amir est obtenue. <br/> Toute prolongation non autorisée est soumise à une
-        pénalité de 25000 Dz en plus du montant de la prolongation                      </td></tr>
-
-
-    <!-- Ligne 10 -->
-    <tr><td > <strong style="color:  #1d3c44;"> ✔        Restitution avant délai :   </strong>Un remboursement des jours restants est accordé uniquement si le véhicule est restitué plus de 4 jours avant la date de fin de location. Le montant remboursé équivaut à 50 % des jours non utilisés. Ce montant sera crédité sur votre compte SAFAR EL AMIR pour une prochaine location.   Aucun remboursement en espèces ou par virement bancaire ne pourra être effectué.</td></tr>
-
-
-    <!-- Ligne 11 -->
-    <tr><td >  <strong style="color:  #1d3c44;"> ✔     Heure et lieu de restitution :</strong> Le véhicule doit être restitué à l’heure et au lieu indiqués sur votre réservation. Un retard supérieur à 1 heure entraînera des frais. Toute modification de l’heure de restitution peut également générer des frais supplémentaires.
-         </td></tr>
-
-    <!-- Ligne 12 -->
-    <tr><td > <strong style="color:  #1d3c44;">  ✔         Cas de Sinistre : </strong>Le client s'engage à prendre en charge tout dégât constaté sur le véhicule, qu’il en soit responsable ou non, selon le constat établi par nos agents lors de la restitution. Le barème des dégradations est joint aux papiers du véhicule. <br/>
-Dans tous les cas, le montant réclamé ne peut en aucun cas dépasser le montant de la caution déposée. <br/> Nb :Les réparations du véhicule de location ne peuvent en aucun cas être effectuées par le locataire. Toute tentative de réparation par le locataire entraînera la perte des
-            protections souscrites et de la caution. <br/>
-        En cas d’accident entraînant la mise hors service du véhicule, le contrat de location prendra fin immédiatement, sans préavis. Le locataire s’engage à informer SAFAR EL AMIR dans les plus brefs délais et à remplir tous les documents relatifs à l’incident (constat amiable, rapport de police, etc.).        </td></tr>
-
-
-    <!-- Ligne 13 -->
-     <tr><td > <strong style="color:  #1d3c44;"> ✔        Assurances :</strong> 
-        
-        Pour votre tranquillité, une couverture basique est incluse. Les dommages sont soumis à une franchise correspondant au montant de votre caution, et une assistance est disponible à tout moment.  Seuls le ou les conducteurs mentionnés sur le contrat bénéficient de l'assurance. Tout prêt  ou sous-location à d'autres personnes est strictement interdit. En cas de sinistre survenant    alors que le conducteur est en état d'ivresse ou n'est pas mentionné sur le contrat, le locataire sera tenu de rembourser intégralement les dommages du véhicule.                   </td></tr>
-
-
-    <!-- Ligne 14 -->
-    <tr><td >  <strong style="color:  #1d3c44;">  {{ PROTECTION_NAME }}</strong>    {{ DESCRIPTION_PROTECTION }} </td></tr>
-
-
-
-   <!--  <tr><td >  <strong style="color:  #1d3c44;">  ✔      Assurance Protection :  Standard:</strong>    Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d’une caution réduite par rapport à la protection Basique. </td></tr>
-
- -->
-
- 
-
-
-    <!-- Ligne 15 -->
-    <tr>
-        <td > <strong style="color:  #1d3c44;"> ✔          Rapatriement et dépannage :</strong>Si le véhicule rencontre une panne, à l’exception de celles dues à une usure normale, le client prendra en charge les frais de dépannage pour le rapatriement vers nos garages. Aucun véhicule de substitution ou de remplacement ne sera    fourni.  </td>
-    </tr>
-
-
-    <!-- Ligne 16 -->
-    <tr>
-    <td > <strong style="color:  #1d3c44;">✔            Kilométrage :</strong>
-        Si vous n'avez pas souscrit à l'option de kilométrage illimité, veuillez noter que le kilométrage est limité à 250 km par jour ! Dépasser cette limite vous coûtera jusqu’à 85 DA par km. Les clients VIP bénéficient d'un quota de 275 km par jour.</td></tr>
-
-
-    <!-- Ligne 17 -->
-    <tr>      
-    <td>
-    <strong style="color: #1d3c44;">✔ Contravention :</strong> Pendant la période de location, le client est seul responsable des contraventions et amendes encourues.
-    </td>    
-    </tr>
-
-    <!-- Ligne 18 -->
-    <tr><td >  <strong style="color:  #1d3c44;">  ✔  Utilisation du véhicule : </strong> Le locataire s'engage à :  <br/>
-        <p style="padding-left: 4px; margin: 0;">- Ne pas utiliser le véhicule pour des activités illégales ou douteuses, en violation
-        de la loi nationale.
-        <br/>- Ne pas conduire le véhicule sous l'influence de l'alcool, de drogues ou de tout autre  produit stupéfiant.
-        <br/>- Ne pas transporter de boissons alcoolisées, de drogues ou de tout autre produit stupéfiant dans le véhicule.        </p>          
-    </td></tr>
-
-
-    <!-- Ligne 19 -->
-    <tr><td >
-        <strong style="color:  #1d3c44;"> ✔           Conséquences en cas de non-respect du contrat : SAFAR EL AMIR se réserve le droit de:  </strong>
-        <br/>
-        <p style="padding-left: 4px; margin: 0;">         - Résilier le contrat de location avec effet immédiat, sans aucun remboursement pour les jours restants.
-       <br/>- Bloquer la caution en vue du paiement des frais (sinistre, retard, nettoyage,pénalités, prolongation).
-       <br/>- Refuser de louer un véhicule au locataire à l'avenir. </p>                
-    
-    </td></tr>
-
-
-    <!-- Ligne 20 -->
-    <tr><td >
+<body style="box-sizing: 0; margin: 0;font-family: Arial, Helvetica, sans-serif;letter-spacing: 0.2px;background-image: url(https://i.ibb.co/JWXhXwHm/filigran0identit-2.jpg);background-repeat: no-repeat;background-color: #ffffff;background-size: contain;color: #1f1f1f; ">
+   
   
-        
-    </td></tr>
+   <table style="width: 100%; border-color:#ffffff ; margin: 0;">
+                                <tr>
+                                    <th>
+                                        <img src="https://i.ibb.co/fd5zQ5m4/cartedevisitenew.png"
+                                          style="width: 150px; margin: 0;display: block;align-items: end;"
+                                          alt="Logo"/>
 
-<tr>
-    <td style="color: #1d3c44;">Si les frais (sinistre, retard, nettoyage, pénalités,prolongation) ne sont pas réglés au moment de la restitution,
-je soussigné {{ NOM }} {{ PRÉNOM }} - Né le {{ DATE_DE_NAISSANCE }}, en ma qualité de client, autorise pleinement Safar El Amir, en sa qualité de loueur, en vertu de
-ce contrat à débiter ces frais à hauteur maximale de la caution de ma carte N° xxxx xxxx xxxx xxxx.</td>
-</tr>
+                                    </th>
+                                    <th><h6 style="text-align: right">  <t t-esc="o.lieu_depart.address"/> - Algérie
+                                            <br/> Service Livraison : {{ SERVICE }}</h6>
+                                    </th>
+                                    </tr>
+                            </table>
+ 
+                            <h1 style="color: #092b6b; font-size:x-large; text-align: center;line-height: 1;">CONFIRMATION DE
+                                RESERVATION N=º {{ REF }}
+                                <br/>
+                                <t t-esc="o.name"/>
+
+                            </h1>
+
+                            <h3 style="font-size: 18px; color: #092b6b;line-height:0.6; margin: 8px 0;">Informations Conducteur:</h3>
+
+
+                            <table class="tftable" border="1" style="border-collapse: collapse;font-size: 12px;">
+                                <tr>
+                                    <th style="background-color: rgb(203,230,255);  ;padding: 6px 10px  ; border-left:4px solid rgb(203,230,255) ;border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
+                                        <span style="font-weight: 600;font-size: larger;">
+                                            Conducteur Principal: {{ NOM }} {{ PRÉNOM }}
+
+                                        </span>
+                                    </th>
+                                    <th style="color:#ffffff">-</th>
+                                    <th style="background-color: rgb(255,173,173);   ;padding:6px 10px  ; border-left:2px solid rgb(255,173,173); border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
+                                        <span style="font-weight: 600;font-size: larger;">
+                                            2ème conducteur: {{ NOM_2EME_CONDUCTEUR }} {{ Prenom_2EME_CONDUCTEUR }}
+
+
+                                        </span>
+                                    </th>
+                                </tr>
+
+                                <tr>
+                                    <td style="padding: 2px 0px 4px 15px;; border-left:2px solid #74b0ff ;    ">
+                                        <h8> Date de naissance: {{ DATE_DE_NAISSANCE }} 
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style=" border-left: 2px solid #ff7474;padding: 2px 0px 4px 15px;">
+                                        <h8>Date de naissance : {{ DATE_DE_NAISSANCE }}
+                                            
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=" padding-left: 15px  ; border-left:2px solid #74b0ff ;  ">
+                                        <h8>Date permis:{{ DATE_PERMIS }}
+
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style=" padding-left: 15px;border-left: 2px solid #ff7474;">
+                                        <h8>Date permis:{{ DATE_PERMIS_2EME }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=" padding: 2px 0px 4px 15px; border-left:2px solid #74b0ff ;    ">
+                                        <h8>N° de vol :{{ NUM_VOL }}
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style="  padding: 2px 0px 4px 15px;border-left: 2px solid #ff7474;"></td>
+                                </tr>
+
+
+                            </table>
+
+                        
+                               <hr style="border: 0.5px solid #a8adb7;margin: 12px;"/>
+
+                            <h3 style="font-size: 18px; color: #092b6b; line-height:0.6; margin: 8px 0;">Informations Location :</h3>
+
+                            <style type="text/css">
+                                .tftable {font-size:12px;color:#313131;width:100%;border-width: 1px;border-color:
+                                #ffffffb0;border-collapse: collapse;}
+                                .tftable th {font-size:12px;background-color:rgba(0,0,0,0);border-width: 1px;
+                                border-style: solid;border-color: rgba(0,0,0,0);text-align:left;}
+                                .tftable tr {background-color:rgba(0,0,0,0); }
+                                .tftable td {font-size:12px;border-width: 1px;border-style:
+                                solid;border-color: rgba(0,0,0,0);}
+                                .tftable tr:hover {background-color: rgba(0,0,0,0);}
+                            </style>
+
+                            <table class="tftable" border="1" >
+                                <tr>
+                                    <td>
+                                        <h8 style="margin-bottom: 0px;">‣ Montant total : {{ TOTAL }}€
+                                        </h8>
+                                    </td>                   
+                                    <td>
+                                        <h8 style="margin-bottom: 0px;">‣ Période de location : de {{ DATE_DEPART }} {{ HEURE_DEPART }} au {{ DATE_RETOUR }} {{ HEUERE_RETOUR }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>                   
+                                    <td>
+                                        <h8 style="margin-bottom: 0px;">‣ Modèle : {{ NOM_VEHICULE }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Acompte versé : {{ VERSER }} €</h8>
+                                    </td>                   
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Durée :  {{ DUREE_RESERVATION }}
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Reste à payer à votre arrivée : {{ RESTE_PAYE }} € Espèce</h8>
+                                    </td>                      
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Lieu heure de prise : {{ LIEU_DEPART }}  
+                                        </h8>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Mode de paiement : Espèce à la prise</h8>
+                                    </td>                                   
+                                    <td>
+                                       <h8 style="margin-bottom: 0px;">‣ Lieu heure de retour : {{ LIEU_RETOIUR }}
+                                      
+                                    </td> </tr>
+                                </table>
+
+                            
+                            <p style="font-size:12px;margin: 8px 0; background-color: #f3f3f83a;padding: 8px;line-height: 1.3;">
+                                <span style="margin: 2px;text-align: center;font-weight: 600;font-size: 16px; color: #092b6b;font-style: italic;">
+                                    ‣ Caution : {{ CAUTION }} € en espèce   </span>
+                                <br/>
+                             <strong style="color: #e5561a;font-size: 15px;line-height:1;"> Vous préférez déposer la caution par empreinte bancaire ?</strong> <br/>
+                             C’est simple : Un lien sécurisé vous attend dans l’e-mail de <strong style="color: #e5561a;">checklist finale  </strong> avant la prise du véhicule. Le montant est bloqué sur votre carte (non débité) et automatiquement libéré sous 5 jours après restitution conforme du véhicule. (carburant, état, délais, kilométrage).
+                            </p>
+                            
+<p style="color: #e5561a;text-align: right;margin: 2px;font-size:12px;text-shadow: -3px 0px 34px rgba(255,255,255,1);"> - Veuillez noter que les prix affichés en euros sont donnés à titre indicatif</p>
+                            
  
 
+                            <h3 style="font-size: 18px; color: #092b6b;margin: 0;line-height: 0.4;">Inclus / options:</h3>
+                        <table style="margin: 0;">
+                            <tr>
+                            <td style="width: 390px;"> 
+                                <ul style=" padding-left: 10px; margin: 0;font-size: 12px;">
+                                <li style="margin-bottom: 0px;">Le tarif comprend {{ klm_limit }}.</li>
+                                
+                                <li style="margin-bottom: 0px;">Protection {{ protection }} .</li>
+                                </ul>
+                            </td>
+ 
+                            <td >
+                               <!-- <ul style="border-left: 1px solid #092b6b;font-size: 12px; padding-left: 20px; margin: 0;">
+                                <li style="margin-bottom: 0px;">Kilométrage illimité.</li>
+                                <li style="margin-bottom: 0px;">Siège enfant (9–18 kg).</li>
+                                <li style="margin-bottom: 0px;">Assistance 24h/24 – 7j/7 incluse.</li>
+                                <li style="margin-bottom: 0px;">Restitution dans 14 agences au choix.</li>
+                                </ul>-->
+                            </td>
+                            </tr>
+                        </table>
 
+                            <h3 style="font-size: 17px; color: #092b6b;line-height:0.6; margin: 8px 0;">Important :</h3>
+                            <span style="font-size: 15px; color: #092b6b;"> Pour la prise du véhicule, merci de préparer les éléments
+                                suivants :</span> 
+                                
+                                <ul style="margin: 4px;font-size: 12px; margin: 0;">
+                           
+                          
+                                <li style=" margin-bottom: 4px ; ">Permis de conduire original valide (de tous les
+                                    conducteurs mentionnés sur la
+                                    réservation)
+                                </li>
+                                <li style=" margin-bottom: 4px ; ">Dépôt d'une pièce d’identité originale valide de
+                                    votre lieu de résidence.
+                                </li>
+                                <li style=" margin-bottom: 4px ; ">La caution à déposer et le reste à payer en espèces
+                                    uniquement.
+                                </li>
+                             </ul>
+                                <p style="font-size:12px;margin-top:5px ;
+                                background-color:#fffde640 ;border: 1px dashed #e5561a;padding: 6px;border-radius: 12px;">Remarque :<br/> Si toutes ces conditions ne seront pas
+                                    réunies, votre location pourrait être annulée avec des frais. Si le client ne se manifeste pas au bout d'une heure après le   rendez-vous et sans  nous en avertir du retard, la réservation serait
+                                    automatiquement annulée avec des frais.
+                               </p>
+                      
+
+                            
+                                <h3 style="font-size: 18px; color: #092b6b;line-height:0.6;margin: 15px 0px 0px 0px;">Clause :</h3>
+                            <p style="font-size:12px;">Je soussigné
+                                <span style="background-color: yellow;">
+                                    <t t-esc="o.nom"/>
+                                    <t></t>
+                                    <t t-esc="o.prenom"/>
+                                </span>
+                                , en ma qualité de client, autorise
+                                pleinement Safar El Amir à
+                                me débiter les frais d'annulation.
+
+                            </p>
+
+                            <h3 style="font-size: 17px; color: #092b6b;line-height:0.4 ; margin: 0px ">Annulation Gratuite : Conditions par
+                                Saisons
+                            </h3>
+                        <table class="tftable" style="margin: 5px 0;font-size: 12px;">
+  <tr>
+    <td class="basse-saison" style="margin: 0px;line-height: 1.3;">
+      <strong><u>Basse saison : du 1er Septembre au 30 Juin</u></strong><br/>
+      – Annulation gratuite <mark>jusqu’à 7 jours avant la prise en charge</mark>, avec remboursement intégral (hors frais bancaires).  
+      <br/>Passé ce délai, un jour de location sera facturé.
+    </td>
+
+    <td rowspan="2" class="qr-container" style="margin: 0px;line-height: 1.1;">
+        
+        <img src="https://i.ibb.co/FkgPT3sP/Whats-App-Image-2026-02-12-at-12-16-24.jpg" style="width: 85px; height: 85px; background-color: rgb(182, 182, 182); border-radius: 8px; padding: 2px;" />
+      
+    </td>
+  </tr>
+
+  <tr>
+    <td class="haute-saison" style="margin: 0px;line-height: 1.1;">
+      <strong><u>Haute saison : du 1er Juillet au 31 Août</u></strong><br/>
+      – Annulation gratuite <mark>jusqu’à 14 jours avant la prise en charge</mark>, avec remboursement intégral (hors frais bancaires).  
+      <br/>Passé ce délai, un jour de location sera facturé.
+    </td>
+  </tr>
 </table>
 
 
-
-
+                                 <p style="font-size:12px;margin: 0;background-color:#fffde640 ;border: 1px dashed #e5561a;padding: 4px 8px;border-radius: 12px;">
+Remarque : Le remboursement s'effectue dans un délai maximum de 30 jours. Pour plus de détails concernant nos
+                                            conditions de location et d’annulation, veuillez visiter ce lien : 
+                                        <a href="url_conditions_annulation" target="_blank" style="color:#6da9cf;">
+                                                Conditions d'annulation
+                                            </a>
+                                        
+                                           </p>
+                                           
+                           <hr style="border: 0.5px solid #a8adb7;margin: 12px;"/>
+                            <h3 style="font-size: 18px; color: #092b6b;line-height:0.6; margin: 8px 0;">Votre contact :</h3>
+                            <p style="font-size:12px;
+                            margin: 0; background-color: rgb(234, 247, 236);padding: 8px; border: 1px dashed #06470c; border-radius: 12px;">
+                                {{ address }}
+                            </p>
+             
  
- 
-    
-
-
-
-</main>
-
-
-
-<footer>
-
-
-
-    <table style="width: 100%; border-collapse: collapse; border: none;">
-        <tr>
-            <td style="text-align: left; vertical-align: top; padding-right: 20px;">
-                <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.3;">
-                    E.U.R.L SAFAR EL AMIR<br>
-                     <strong style="color:  #1d3c44;">Le Mar. 12/12/2023</strong>
-                </p>
-                <div style="height: 3.4cm; width: 3.8cm; background-image: url('https://i.ibb.co/Xx0DR66P/cachet-safar-el-amir1.png'); background-repeat: no-repeat; background-size: contain; background-position: center;">
-                </div>
-            </td>
-            <td style="text-align: right; vertical-align: top;">
-                <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.3;">
-                    LE LOCATAIRE<br>
-                     <strong style="color:  #1d3c44;">(Signature avec mention 'Lu et approuvé')</strong>
-                </p>
-                <img src="{{ SIGNATURE_URL }}" alt="Signature" style="max-width: 4cm; height: auto; object-fit: contain;">
-            </td>
-        </tr>
-    </table>
-    
-    
-</footer>
 </body>
 </html>
