@@ -1182,6 +1182,7 @@ def ma_reservation_detail(ref, email, country_code):
                     "email":ma_reservation.email,
                     "reste_payer":ma_reservation.reste_payer,
                     "montant_payer":ma_reservation.montant_paye,
+                    "client_category":ma_reservation.categorie_client.name,
                 })
         else :  
             if ma_reservation :
@@ -1256,6 +1257,7 @@ def ma_reservation_detail(ref, email, country_code):
                     "email":ma_reservation.email,
                     "reste_payer":ma_reservation.reste_payer,
                     "montant_payer":ma_reservation.montant_paye,
+                    "client_category":ma_reservation.categorie_client.name,
 
                 })  
 
