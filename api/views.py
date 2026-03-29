@@ -2818,6 +2818,13 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     nouvelle_date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
                     lvs = Livraison.objects.filter(reservation=reservation_obj)
+                    cautions = GestionCaution.objects.filter(reservation=reservation_obj)
+                    if cautions: 
+                        for caution in cautions: 
+                            caution.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                            caution.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                            caution.save()
+
                     if nouvelle_date_heure_fin > reservation_obj.date_heure_fin:
                         prolongation_obj = Prolongation.objects.create(
                             reservation=reservation_obj,
