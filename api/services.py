@@ -639,8 +639,6 @@ def cencel_request(ref,country_code):
         if not ma_reservation.exists():
             return {"message": "Réservation non trouvée."}
         
-            
-
         for record in ma_reservation:
             if record.status != 'confirmee':
                 return ValueError("Cette opération n'est possible que pour les réservations confirmées.")
