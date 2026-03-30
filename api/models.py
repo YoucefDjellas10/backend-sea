@@ -943,8 +943,8 @@ class Promotion(models.Model):
         return self.name or "Promotion"
 
 class AnnulerRaison(models.Model):
-    
-    name = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    name = models.IntegerField()
     name_en = models.CharField()
     name_ar = models.CharField()
     class Meta:
