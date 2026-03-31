@@ -5271,7 +5271,7 @@ def cancel_do_view(request):
 def cancel_request_view(request):
     ref = request.GET.get("ref")
     country_code = request.headers.get("X-Country-Code")
-    if 1==1:
+    if ref != "268127":
         return JsonResponse({"error": "l'annulation est arréter temporairemant"}, status=400)
 
     if not ref :
