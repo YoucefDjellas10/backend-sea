@@ -676,7 +676,7 @@ def cencel_request(ref,country_code):
                 montant_rembourse = 00.0
 
             reference = record.name
-            raisons_annulation = AnnulerRaison.objects.all()
+            raisons_annulation = AnnulerRaison.objects.filter(visible='oui')
             cancellation_reasons = [
                 {
                     "id": raison.id,

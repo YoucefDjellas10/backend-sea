@@ -947,6 +947,12 @@ class AnnulerRaison(models.Model):
     name = models.IntegerField()
     name_en = models.CharField()
     name_ar = models.CharField()
+    visible = models.CharField(
+        max_length=3,
+        choices=[('oui', 'Oui'), ('non', 'Non')],
+        default='non',
+        verbose_name="visible au clients"
+    )
     class Meta:
         db_table = 'annuler_raison'
         managed = False
