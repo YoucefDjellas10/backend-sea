@@ -760,7 +760,7 @@ def cancel__button_view(request):
                 name=reservation.name,
                 reservation=reservation,
                 amount=float(montant_ref),
-                status='en_attente',
+                status="en_attent",
                 date=datetime.now()
             )
             
