@@ -5174,6 +5174,7 @@ def cancel_do_view(request):
             livraisons.delete()
         today = date.today()
         date_reservation = reservation.date_heure_debut.date()
+        total = reservation.montant_paye
         periode_existe = Periode.objects.filter(
                 date_debut__lte=date_reservation,
                 date_fin__gte=date_reservation
@@ -5189,20 +5190,18 @@ def cancel_do_view(request):
         else : 
             un_jour = reservation.prix_jour
         
-        if reservation.opt_payment_name and un_jour == 15:
+        if total and float(total) > float(un_jour) :
             rembourssement = True
-            montant_rembourse = reservation.total_reduit_euro - 15 
-        elif not reservation.opt_payment_name and un_jour == 15:
-            rembourssement = True
-            montant_rembourse = reservation.prix_jour - 15
-        else: 
+            montant_rembourse = float(total) - float(un_jour) 
+        else:
             rembourssement = False
-            montant_rembourse = 0
+            montant_rembourse = 00.0
+        
         if rembourssement and montant_rembourse > 0:
             refund = RefundTable(
                 reservation=reservation,
                 amount=montant_rembourse,  
-                status='en_attent',
+                status="en_attent",
                 date=timezone.now()
             )
             refund.save()
@@ -5210,6 +5209,7 @@ def cancel_do_view(request):
         reservation.status = "annule"
         reservation.etat_reservation = "annule"
         reservation.annuler_raison = annuler_raison
+        reservation.cancelation_date = timezone.now()
         reservation.save()
 
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
