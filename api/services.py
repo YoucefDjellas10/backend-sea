@@ -666,18 +666,15 @@ def cencel_request(ref,country_code):
             else : 
                 print("######## periode not existed #######")
                 un_jour = record.prix_jour
-            if record.opt_payment_name and un_jour == 15:
+            if total and float(total) > float(un_jour) :
                 print("######## st conditiuon calculate #######")
                 rembourssement = True
-                montant_rembourse = total - 15 
-            elif not record.opt_payment_name and un_jour == 15:
+                montant_rembourse = float(total) - float(un_jour) 
+            else:
                 print("######## nd conditiuon calculate #######")
-                rembourssement = True
-                montant_rembourse = record.prix_jour - 15
-            else: 
-                print("######## else conditiuon calculate #######")
                 rembourssement = False
-                montant_rembourse = 0
+                montant_rembourse = 00.0
+
             reference = record.name
             raisons_annulation = AnnulerRaison.objects.all()
             cancellation_reasons = [
