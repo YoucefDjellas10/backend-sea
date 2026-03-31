@@ -639,31 +639,43 @@ def cencel_request(ref,country_code):
         if not ma_reservation.exists():
             return {"message": "Réservation non trouvée."}
         
+        print("######### start ###########")
+        
         for record in ma_reservation:
+            print("######## in loop ##########")
             if record.status != 'confirmee':
                 return ValueError("Cette opération n'est possible que pour les réservations confirmées.")
+            print("######## status confirmé #######")
             total = record.total_reduit_euro
             date_reservation = record.date_heure_debut.date()
             periode_existe = Periode.objects.filter(
                     date_debut__lte=date_reservation,
                     date_fin__gte=date_reservation
                 ).first()
+            print("######## befor existance #######")
             if periode_existe :
+                print("######## periode existanted #######")
                 annulation = ConditionAnnulation.objects.filter(id=1).first()
                 jours_restants = (date_reservation - today).days
                 if (periode_existe.saison == annulation.haute_saison and jours_restants < annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants < annulation.basse_montant):
+                    print("######## st conditiuon in existence #######")
                     un_jour = record.prix_jour
                 elif (periode_existe.saison == annulation.haute_saison and jours_restants >= annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants >= annulation.basse_montant):
+                    print("######## nd condition in existence #######")
                     un_jour = 15
             else : 
+                print("######## periode not existed #######")
                 un_jour = record.prix_jour
             if record.opt_payment_name and un_jour == 15:
+                print("######## st conditiuon calculate #######")
                 rembourssement = True
                 montant_rembourse = total - 15 
             elif not record.opt_payment_name and un_jour == 15:
+                print("######## nd conditiuon calculate #######")
                 rembourssement = True
                 montant_rembourse = record.prix_jour - 15
             else: 
+                print("######## else conditiuon calculate #######")
                 rembourssement = False
                 montant_rembourse = 0
             reference = record.name
@@ -679,6 +691,7 @@ def cencel_request(ref,country_code):
                 }
                 for raison in raisons_annulation
             ]
+            print("######## cancellation_reasons :",cancellation_reasons)
         
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
@@ -690,6 +703,7 @@ def cencel_request(ref,country_code):
             "refund_amount": montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
             "is_refundable": rembourssement
         }
+        print("######## cancellation_data :",cancellation_data)
 
         return {
             "success": True,
