@@ -715,146 +715,23 @@ def cancel__button_view(request):
         reservation_id = request.GET.get("reservation_id")
         motif_id = request.GET.get("motif")
 
-        reservation = get_object_or_404(Reservation, id=reservation_id)
+        reservation = Reservation.objects.get(id=reservation_id)
+        ref = reservation.name
 
-        if reservation.status in ["annule", "rejete"] or reservation.etat_reservation == "loue":
-            return JsonResponse({"message": "La réservation ne peut pas être annulée"}, status=400)
+        fake_body = json.dumps({
+            "ref": ref,
+            "reason": motif_id
+        }).encode("utf-8")
 
-        reservation.status = "annule"
-        reservation.etat_reservation = "annule"
-        reservation.save()
-
-        cautions = GestionCaution.objects.filter(reservation=reservation).first()
-
-        Livraison.objects.filter(reservation=reservation).delete()
-
-        days = (reservation.date_heure_debut.date() - date.today()).days
-
-        periode = Periode.objects.filter(
-            date_debut__lt=reservation.date_heure_debut.date(),
-            date_fin__gt=reservation.date_heure_fin.date()
-        ).first()
-
-        if not periode:
-            return JsonResponse({"message": "Période introuvable"}, status=400)
-
-        condition = ConditionAnnulation.objects.get(id=1)
-
-        montant_ref = None
-        if periode.saison == condition.basse_saison:
-            seuil = condition.basse_montant
-        elif periode.saison == condition.haute_saison:
-            seuil = condition.haute_montant
-        else:
-            return JsonResponse({"message": "Saison non reconnue"}, status=400)
-
-        if days >= seuil:
-            if reservation.montant_paye > reservation.prix_jour:
-                montant_ref = reservation.montant_paye - reservation.prix_jour
-        else:
-            if reservation.montant_paye >= reservation.prix_jour:
-                montant_ref = reservation.montant_paye - 15
-
-        if montant_ref:
-            remboursement = RefundTable.objects.create(
-                name=reservation.name,
-                reservation=reservation,
-                amount=float(montant_ref),
-                status="en_attent",
-                date=datetime.now()
-            )
-            
-            sujet = f"Annulation de votre reservation N°= {reservation.name}"
-            sujet_ceo = f"Annulation de  reservation N°= {reservation.name}"
-            expediteur = settings.EMAIL_HOST_USER
-            
-            html_message = render_to_string('email/annulation_email.html', {
-                "referance":reservation.name,
-                "annuler_raison":reservation.annuler_raison.name,
-                "client":reservation.client.name,
-            })
-            html_message_ceo = """
-                <p>Bonjour,</p>
-
-                <p>Une réservation vient d’être <strong>annulée</strong>.<br>
-                Voici les détails :</p>
-
-                <ul>
-                    <li><strong>Client :</strong> {reservation.client.name}</li>
-                    <li><strong>Référence :</strong> {reservation.name}</li>
-                    <li><strong>Cause d’annulation :</strong> {reservation.annuler_raison.name}</li>
-                    <li><strong>Montant a rembourser :</strong> {montant_ref}</li>
-                </ul>
-
-                <p>Ceci est une notification automatique pour information.</p>
-
-                <p>Cordialement,<br>
-                Le système Backoffice</p>
-                """
-
-            send_mail(
-                sujet,
-                strip_tags(html_message),  
-                expediteur,
-                [reservation.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-            send_mail(
-                sujet_ceo,
-                strip_tags(html_message_ceo),  
-                expediteur,
-                ["contact@safarelamir.com"],
-                html_message=html_message_ceo,
-                fail_silently=False,
-            )
-            return JsonResponse({
-                "message": "Réservation annulée avec succès, remboursement en attente",
-                "remboursement_id": remboursement.id
-            }, status=200)
-        
-        
-        sujet = f"Annulation de votre reservation N°= {reservation.name}"
-        sujet_ceo = f"Annulation de  reservation N°= {reservation.name}"
-        expediteur = settings.EMAIL_HOST_USER
-        
-        html_message_ceo = """
-                <p>Bonjour,</p>
-
-                <p>Une réservation vient d’être <strong>annulée</strong>.<br>
-                Voici les détails :</p>
-
-                <ul>
-                    <li><strong>Client :</strong> {reservation.client.name}</li>
-                    <li><strong>Référence :</strong> {reservation.name}</li>
-                    <li><strong>Cause d’annulation :</strong> {reservation.annuler_raison.name}</li>
-                    <li><strong>Pas de remboursement</strong></li>
-                </ul>
-
-                <p>Ceci est une notification automatique pour information.</p>
-
-                <p>Cordialement,<br>
-                Le système Backoffice</p>
-                """
-
-        send_mail(
-            sujet,
-            strip_tags(html_message),  
-            expediteur,
-            [reservation.email],
-            html_message=html_message,
-            fail_silently=False,
+        fake_request = RequestFactory().put(
+            "/cancel-do/",
+            data=fake_body,
+            content_type="application/json"
         )
-        send_mail(
-            sujet_ceo,
-            strip_tags(html_message_ceo),  
-            expediteur,
-            ["contact@safarelamir.com"],
-            html_message=html_message_ceo,
-            fail_silently=False,
-        )
-
-        return JsonResponse({"message": "Réservation annulée avec succès, pas de remboursement"}, status=200)
+        response = cancel_do_view(fake_request)
+        response_data = json.loads(response.content)
+        
+        return JsonResponse(response_data, status=response.status_code)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
@@ -5213,7 +5090,6 @@ def cancel_do_view(request):
         reservation.save()
 
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
-        sujet_ceo = f"Annulation de  reservation N°= {reservation.name}"
         expediteur = settings.EMAIL_HOST_USER
         
         html_message = render_to_string('email/annulation_email.html', {
@@ -5221,25 +5097,8 @@ def cancel_do_view(request):
             "annuler_raison":reservation.annuler_raison.name,
             "client":reservation.client.name,
         })
-        html_message_ceo = """
-            <p>Bonjour,</p>
-
-            <p>Une réservation vient d’être <strong>annulée</strong>.<br>
-            Voici les détails :</p>
-
-            <ul>
-                <li><strong>Client :</strong> {reservation.client.name}</li>
-                <li><strong>Référence :</strong> {reservation.name}</li>
-                <li><strong>Cause d’annulation :</strong> {reservation.annuler_raison.name}</li>
-                <li><strong>Montant a rembourser :</strong> {montant_ref}</li>
-            </ul>
-
-            <p>Ceci est une notification automatique pour information.</p>
-
-            <p>Cordialement,<br>
-            Le système Backoffice</p>
-            """
-
+        
+        
         send_mail(
             sujet,
             strip_tags(html_message),  
@@ -5249,11 +5108,11 @@ def cancel_do_view(request):
             fail_silently=False,
         )
         send_mail(
-            sujet_ceo,
-            strip_tags(html_message_ceo),  
+            sujet,
+            strip_tags(html_message),  
             expediteur,
             ["contact@safarelamir.com"],
-            html_message=html_message_ceo,
+            html_message=html_message,
             fail_silently=False,
         )
         taux = TauxChange.objects.filter(id=2).first()
