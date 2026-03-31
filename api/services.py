@@ -646,7 +646,7 @@ def cencel_request(ref,country_code):
             if record.status != 'confirmee':
                 return ValueError("Cette opération n'est possible que pour les réservations confirmées.")
             print("######## status confirmé #######")
-            total = record.total_reduit_euro
+            total = record.montant_paye
             date_reservation = record.date_heure_debut.date()
             periode_existe = Periode.objects.filter(
                     date_debut__lte=date_reservation,
