@@ -5061,11 +5061,11 @@ def cancel_do_view(request):
             annulation = ConditionAnnulation.objects.filter(id=1).first()
             jours_restants = (date_reservation - today).days
             if (periode_existe.saison == annulation.haute_saison and jours_restants < annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants < annulation.basse_montant):
-                un_jour = reservation.prix_jour
+                un_jour = reservation.prix_jour + 15
             elif (periode_existe.saison == annulation.haute_saison and jours_restants >= annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants >= annulation.basse_montant):
                 un_jour = 15
         else : 
-            un_jour = reservation.prix_jour
+            un_jour = reservation.prix_jour + 15
         
         if total and float(total) > float(un_jour) :
             rembourssement = True

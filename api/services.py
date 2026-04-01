@@ -659,13 +659,14 @@ def cencel_request(ref,country_code):
                 jours_restants = (date_reservation - today).days
                 if (periode_existe.saison == annulation.haute_saison and jours_restants < annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants < annulation.basse_montant):
                     print("######## st conditiuon in existence #######")
-                    un_jour = record.prix_jour
+                    un_jour = record.prix_jour + 15
                 elif (periode_existe.saison == annulation.haute_saison and jours_restants >= annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants >= annulation.basse_montant):
                     print("######## nd condition in existence #######")
                     un_jour = 15
-            else : 
+            else:
                 print("######## periode not existed #######")
-                un_jour = record.prix_jour
+                un_jour = record.prix_jour + 15
+                
             if total and float(total) > float(un_jour) :
                 print("######## st conditiuon calculate #######")
                 rembourssement = True
