@@ -1092,7 +1092,7 @@ def combined_document_download(request):
         "NUM_VOL": reservation.num_vol,
         "RESTE_PAYE": reservation.reste_payer,
         "VERSER": reservation.total_reduit_euro - reservation.reste_payer,
-        "klm_limit": f"{limit_klm} km (0,4 €/km supplémentaire)" if not reservation.opt_klm or not reservation.opt_klm_name else "Kilométrage illimité",
+        "klm_limit": f"{limit_klm} km " if not reservation.opt_klm or not reservation.opt_klm_name else "Kilométrage illimité",
         "protection": reservation.opt_protection.name
     }
     print("-------------------- ici 11111")
@@ -1277,7 +1277,7 @@ def confirmation_download(request):
         "NUM_VOL": livraison.num_vol,
         "RESTE_PAYE":livraison.reste_payer,
         "VERSER": livraison.total_reduit_euro - livraison.reste_payer,
-        "klm_limit": f"{limit_klm} km (0,4 €/km supplémentaire)" if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
+        "klm_limit": f"{limit_klm} km " if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
         "protection":livraison.opt_protection.name
 
     }
