@@ -5079,7 +5079,7 @@ def cancel_do_view(request):
                 reservation=reservation,
                 amount=montant_rembourse,  
                 status="en_attent",
-                date=timezone.now()
+                action_date=timezone.now()
             )
             refund.save()
 
