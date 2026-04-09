@@ -6230,3 +6230,40 @@ def caution_receipt_download(request):
     response['Content-Disposition'] = f'attachment; filename="reçu_{livraison.reservation.name}.pdf"'
 
     return response
+
+
+def cancel_receipt_download(request):
+    reservation_id = request.GET.get("reservation_id")
+
+    if not reservation_id:
+        return HttpResponse("Livraison non disponible", status=404)
+
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+
+    ref =  reservation.name
+    result = cencel_request(ref, "FR")
+
+    if not result.get("success"):
+        return HttpResponse(result.get("message", "Erreur inconnue"), status=400)
+
+    cancellation_data = result["data"]["cancellation"]
+
+    un_jour = cancellation_data["cancellation_fee"]
+    montant_rembourse = cancellation_data["refund_amount"]
+    total = reservation.montant_paye
+
+    context = {
+        "ref": ref,
+        "date_retour": reservation.date_heure_debut.date(),
+        "montant_rembourse": round(montant_rembourse, 2),
+        "un_jour": round(un_jour, 2),
+        "total":round(total, 2),
+    }
+
+    html_string = render_to_string("caution_receipt.html", context)
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename="reçu_{reservation.name}.pdf"'
+
+    return response
