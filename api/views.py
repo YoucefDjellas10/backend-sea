@@ -6204,7 +6204,6 @@ class HistoriqueSoldeViewset(viewsets.ViewSet):
         taux_change.delete()
         return Response(status=204)
 
-
 def caution_receipt_download(request):
     livraison_id = request.GET.get("livraison_id")
 
@@ -6213,19 +6212,21 @@ def caution_receipt_download(request):
 
     livraison = get_object_or_404(Livraison, id=livraison_id)
 
+    caution = float(livraison.opt_protection_caution)
+    degradation = float(livraison.degradation_limit_euro)
+
     context = {
         "ref": livraison.reservation.name,
         "date_retour": livraison.reservation.date_heure_debut.date(),
-        "caution": int(livraison.reservation.opt_protection_caution),
-        "montant_retenu": float(livraison.reservation.opt_protection_caution) - float(livraison.degradation_limit_euro),
-        "montant_remboursé": float(livraison.degradation_limit_euro),
+        "caution": round(caution, 2),
+        "montant_retenu": round(caution - degradation, 2),
+        "montant_remboursé": round(degradation, 2),
     }
 
     html_string = render_to_string("caution_receipt.html", context)
     pdf_file = HTML(string=html_string).write_pdf()
 
-    safe_name = "".join(c for c in livraison.client.name if c.isalnum() or c in (' ', '-', '_')).strip()
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    response['Content-Disposition'] = f'attachment; filename="poncarte_{safe_name}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="reçu_{livraison.reservation.name}.pdf"'
 
     return response
