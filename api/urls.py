@@ -88,5 +88,6 @@ urlpatterns += [
     path("avis-tripadvisor-mail/", avis_tripadvisor_mail_view, name="avis_tripadvisor_mail_view"),
     path("caution-link/", create_caution_payment_link_permanent, name="create_caution_payment_link_permanent"),
     path("refund-caution/", refund_caution, name="refund_caution"),
+    path("caution-receipt-download/", caution_receipt_download, name="caution_receipt_download"),
 
 ]

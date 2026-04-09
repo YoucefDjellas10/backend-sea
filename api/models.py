@@ -1423,6 +1423,8 @@ class Livraison(models.Model):
     total_payer = models.FloatField(null=True, blank=True)
     total_payer_dz = models.FloatField(null=True, blank=True)
     date_de_livraison = models.DateTimeField(null=True, blank=True)
+    degradation_limit_euro = models.FloatField(db_column="degradation_limit_euro",null=True, blank=True)
+
 
     class Meta:
         db_table = 'livraison'
