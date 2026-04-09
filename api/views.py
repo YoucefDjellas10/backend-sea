@@ -6219,8 +6219,8 @@ def caution_receipt_download(request):
         "ref": livraison.reservation.name,
         "date_retour": livraison.reservation.date_heure_debut.date(),
         "caution": round(caution, 2),
-        "montant_retenu": round(caution - degradation, 2),
-        "montant_remboursé": round(degradation, 2),
+        "montant_retenu": round(degradation, 2),
+        "montant_remboursé": round(caution - degradation, 2),
     }
 
     html_string = render_to_string("caution_receipt.html", context)
