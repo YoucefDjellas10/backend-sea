@@ -5027,8 +5027,8 @@ def mes_reservations_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
-@csrf_exempt
 @require_http_methods(["PUT"])
+@csrf_exempt
 def cancel_do_view(request):
     try:
         data = json.loads(request.body)
