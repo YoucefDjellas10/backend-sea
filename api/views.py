@@ -6212,8 +6212,8 @@ def caution_receipt_download(request):
 
     livraison = get_object_or_404(Livraison, id=livraison_id)
 
-    caution = float(livraison.opt_protection_caution)
-    degradation = float(livraison.degradation_limit_euro)
+    caution = float(livraison.opt_protection_caution) if livraison.opt_protection_caution else 0.00
+    degradation = float(livraison.degradation_limit_euro) if livraison.degradation_limit_euro else 0.00
 
     context = {
         "ref": livraison.reservation.name,
