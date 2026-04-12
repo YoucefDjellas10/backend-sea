@@ -6259,7 +6259,7 @@ def cancel_receipt_download(request):
         "total":round(total, 2),
     }
 
-    html_string = render_to_string("caution_receipt.html", context)
+    html_string = render_to_string("cancel_receipt.html", context)
     pdf_file = HTML(string=html_string).write_pdf()
 
     response = HttpResponse(pdf_file, content_type="application/pdf")
