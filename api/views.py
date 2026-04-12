@@ -5096,6 +5096,7 @@ def cancel_do_view(request):
             "referance":reservation.name,
             "annuler_raison":reservation.annuler_raison.name,
             "client":reservation.client.name,
+            "receipt_url":f"https://api.safarelamir.com/cancel-receipt-download/?reservation_id={reservation.id}"
         })
         
         
