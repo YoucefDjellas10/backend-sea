@@ -6258,7 +6258,7 @@ def cancel_receipt_download(request):
 
     context = {
         "ref": ref,
-        "date_retour": reservation.cancelation_date.date(),
+        "date_annule": reservation.cancelation_date.date(),
         "montant_rembourse": round(montant_rembourse, 2),
         "un_jour": round(un_jour, 2),
         "total":round(total, 2),
