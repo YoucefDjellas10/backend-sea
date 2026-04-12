@@ -5934,13 +5934,19 @@ class ReservationViewset(viewsets.ViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
 
+    def get_context(self, request):
+        return {
+            'request': request,
+            'country_code': request.headers.get('X-Country-Code')
+        }
+
     def list(self, request):
         queryset = Reservation.objects.all()
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.serializer_class(queryset, many=True, context=self.get_context(request))
         return Response(serializer.data)
 
     def create(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, context=self.get_context(request))
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -5949,17 +5955,22 @@ class ReservationViewset(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         reservation = self.queryset.get(pk=pk)
-        serializer = self.serializer_class(reservation)
+        serializer = self.serializer_class(reservation, context=self.get_context(request))
         return Response(serializer.data)
 
     def update(self, request, pk=None):
         reservation = self.queryset.get(pk=pk)
-        serializer = self.serializer_class(reservation,data=request.data)
+        serializer = self.serializer_class(reservation, data=request.data, context=self.get_context(request))
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=400)
+
+    def destroy(self, request, pk=None):
+        reservation = self.queryset.get(pk=pk)
+        reservation.delete()
+        return Response(status=204)
 
 
 

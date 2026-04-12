@@ -106,6 +106,7 @@ class PromotionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Promotion
         fields = "__all__"
+        
 
 
 
@@ -113,6 +114,18 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = "__all__"
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        
+        request = self.context.get('request')
+        country_code = request.headers.get('X-Country-Code') if request else None
+        
+        if country_code == 'DZ':
+            if representation.get('total_reduit_euro') is not None:
+                representation['total_reduit_euro'] = float(representation['total_reduit_euro']) * 270
+        
+        return representation
+
 
 
 class LivraisonSerializer(serializers.ModelSerializer):
