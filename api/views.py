@@ -6240,7 +6240,10 @@ def cancel_receipt_download(request):
     reservation = get_object_or_404(Reservation, id=reservation_id)
 
     ref =  reservation.name
-    result = cencel_request(ref, "FR")
+    try:
+        result = cencel_request(ref, "FR")
+    except ValueError as e:
+        return HttpResponse(str(e), status=400)
 
     if not result.get("success"):
         return HttpResponse(result.get("message", "Erreur inconnue"), status=400)
