@@ -130,6 +130,7 @@ class ReservationSerializer(serializers.ModelSerializer):
                 representation['total_revenue'] = float(representation['total_revenue']) * float(change)
                 representation['total_reduit'] = float(representation['total_reduit']) * float(change)
                 representation['total'] = float(representation['total']) * float(change)
+                representation['reste_payer'] = float(representation['reste_payer']) * float(change)
 
         
         return representation
