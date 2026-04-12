@@ -6235,13 +6235,13 @@ def cancel_receipt_download(request):
     reservation_id = request.GET.get("reservation_id")
 
     if not reservation_id:
-        return HttpResponse("Livraison non disponible", status=404)
+        return HttpResponse("Reservation non disponible", status=404)
 
     reservation = get_object_or_404(Reservation, id=reservation_id)
 
     ref =  reservation.name
     try:
-        result = cencel_request(ref, "FR")
+        result = cencel_request(ref, "ABC")
     except ValueError as e:
         return HttpResponse(str(e), status=400)
 
