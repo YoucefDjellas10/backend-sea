@@ -119,10 +119,18 @@ class ReservationSerializer(serializers.ModelSerializer):
         
         request = self.context.get('request')
         country_code = request.headers.get('X-Country-Code') if request else None
+
+        Taux = TauxChange.objects.get(id=2)
+        change = Taux.montant
         
         if country_code == 'DZ':
             if representation.get('total_reduit_euro') is not None:
-                representation['total_reduit_euro'] = float(representation['total_reduit_euro']) * 270
+                representation['total_reduit_euro'] = float(representation['total_reduit_euro']) * float(change)
+                representation['montant_paye'] = float(representation['montant_paye']) * float(change)
+                representation['total_revenue'] = float(representation['total_revenue']) * float(change)
+                representation['total_reduit'] = float(representation['total_reduit']) * float(change)
+                representation['total'] = float(representation['total']) * float(change)
+
         
         return representation
 
