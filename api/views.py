@@ -6254,6 +6254,8 @@ def cancel_receipt_download(request):
     montant_rembourse = cancellation_data["refund_amount"]
     total = reservation.montant_paye
 
+    print("cancel date : ",reservation.cancelation_date.date())
+
     context = {
         "ref": ref,
         "date_retour": reservation.cancelation_date.date(),
