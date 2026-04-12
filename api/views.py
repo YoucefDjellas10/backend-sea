@@ -1557,10 +1557,11 @@ def restitution_email_view(request):
                 expediteur = settings.EMAIL_HOST_USER
             
                 html_message = render_to_string('email/restitution_email.html', {
+                    "ref":livraison.reservation.name,
                     "clien_name" : livraison.client.name,
-                    "reviews": review,
+                    "reviews": review if review else "yes",
                     "reviews_link" : reviews_link,
-                    "reciept_link":f"https://api.safarelamir.com/reciept-download/?livraison_id={livraison_id}"
+                    "reciept_link":f"https://api.safarelamir.com/caution-receipt-download/?livraison_id={livraison_id}"
                     
                 })
                 
