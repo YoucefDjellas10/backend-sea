@@ -4492,6 +4492,47 @@ def stripe_webhook_reservation_(request):
             except Reservation.DoesNotExist:
                 print(f"❌ Réservation introuvable: {ref}")
                 return JsonResponse({"error": "Reservation not found"}, status=404)
+        elif type_id == "Complet":
+            reservation_id = session.get("metadata", {}).get("reservation_id")
+            reste_payer = session.get("metadata", {}).get("reste_payer")
+            reservation = Reservation.objects.get(id=reservation_id)
+            if not reservation:
+                return JsonResponse({"error": "reservation non trouvé"}, status=400)
+            
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
+
+            payment = Payment.objects.create(
+                reservation=reservation,
+                vehicule=reservation.vehicule,  
+                modele=reservation.modele,  
+                zone=reservation.lieu_depart.zone,  
+                total_reduit_euro=reservation.total_reduit_euro,
+                montant=reste_payer,
+                montant_dzd=0,
+                montant_eur_dzd=reste_payer * taux_change,
+                montant_dzd_eur=0,  
+                note="Complement effectué via Stripe",  
+                total_reduit_dinar=reservation.total_reduit_euro * taux_change,
+                ecart_eur=reservation.reste_payer - reste_payer,
+                ecart_da=(reservation.reste_payer - reste_payer) * taux_change,
+                mode_paiement="carte", 
+                total_encaisse = reservation.montant_paye + reste_payer,  
+            )
+            payment.save()
+
+            reservation.reste_payer -= reste_payer
+            reservation.montant_paye += reste_payer
+            reservation.total_revenue += reste_payer
+            reservation.save()
+
+            livraison = Livraison.objects.filter(reservation=reservation)
+            
+            for lv in livraison:
+                lv.total_reduit_euro -= reste_payer
+                lv.save()
+
+
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
 
