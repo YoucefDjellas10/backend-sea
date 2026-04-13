@@ -693,13 +693,17 @@ def cencel_request(ref,country_code):
         
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
+        ma_reservation = ma_reservation.first()
+
 
         cancellation_data = {
             "reference": reference,
             "currency": "DZD" if country_code == "DZ" else "EUR",
             "cancellation_fee": un_jour * taux_change if country_code == "DZ" else un_jour,
             "refund_amount": montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse,
-            "is_refundable": rembourssement
+            "is_refundable": rembourssement,
+            "amount_paid": total,
+            "caution": ma_reservation.opt_protection_caution if ma_reservation.type_caution == "depose" else 0
         }
         print("######## cancellation_data :",cancellation_data)
 
