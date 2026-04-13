@@ -6300,7 +6300,7 @@ def create_complement_payment_reservation(request):
 
         reservation = Reservation.objects.get(id=reservation_id)
 
-        product_name = reservation.name if reservation else None
+        product_name = f"Réservation N° : {reservation.name}" if reservation else None
         description = f"Réservation du {reservation.model_name} du {reservation.date_depart_char} à {reservation.heure_depart_char} au {reservation.date_retour_char} à {reservation.heure_retour_char}" if reservation else None
         quantity = 1 
         unit_amount = float(reservation.reste_payer) * 100
