@@ -6304,7 +6304,7 @@ def create_complement_payment_reservation(request):
         description = f"Réservation du {reservation.model_name} du {reservation.date_depart_char} à {reservation.heure_depart_char} au {reservation.date_retour_char} à {reservation.heure_retour_char}" if reservation else None
         quantity = 1 
         unit_amount = float(reservation.reste_payer) * 100
-        images = reservation.modele.photo_link_pay
+        images = [reservation.modele.photo_link_pay]
         customer_email = reservation.email
 
         if not all([product_name, description, unit_amount, quantity]):
