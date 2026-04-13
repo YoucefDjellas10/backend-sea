@@ -1086,12 +1086,12 @@ def combined_document_download(request):
         "NOM_VEHICULE": reservation.modele.name,
         "MATRICULE": reservation.vehicule.matricule,
         "CAUTION": reservation.opt_protection_caution,
-        "TOTAL": reservation.total_reduit_euro,
+        "TOTAL": round(reservation.total_reduit_euro, 2),
         "PROTECTION_NAME": protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
         "NUM_VOL": reservation.num_vol,
-        "RESTE_PAYE": reservation.reste_payer,
-        "VERSER": reservation.total_reduit_euro - reservation.reste_payer,
+        "RESTE_PAYE": round(reservation.reste_payer, 2),
+        "VERSER": round(reservation.total_reduit_euro - reservation.reste_payer, 2),
         "klm_limit": f"{limit_klm} km " if not reservation.opt_klm or not reservation.opt_klm_name else "Kilométrage illimité",
         "protection": reservation.opt_protection.name
     }
@@ -1123,8 +1123,8 @@ def combined_document_download(request):
         "DUREE_RESERVATION": livraison.duree_dereservation,
         "NOM_VEHICULE": livraison.modele.name,
         "MATRICULE": livraison.vehicule.matricule,
-        "CAUTION": reservation.opt_protection_caution * taux,
-        "TOTAL": reservation.total_reduit_euro * taux,
+        "CAUTION": int(reservation.opt_protection_caution) * int(taux),
+        "TOTAL": int(reservation.total_reduit_euro) * int(taux),
         "SIGNATURE_URL": signature_url,
         "PROTECTION_NAME": protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
@@ -3137,6 +3137,9 @@ def add_reservation_post_view(request):
         token = data.get("token")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE")
         pays_drapeau = country_code_to_emoji(ccountry_code)
+
+        langue = request.headers.get("X-Language")
+
         prix_jour = 0
         total = 0
         last_total = 0
