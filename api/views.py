@@ -6286,3 +6286,60 @@ def cancel_receipt_download(request):
     response['Content-Disposition'] = f'attachment; filename="reçu_{reservation.name}.pdf"'
 
     return response
+
+
+@csrf_exempt
+def create_complement_payment_reservation(request):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
+        data = json.loads(request.body)
+
+        reservation_id = data.get("reservation_id")
+
+        reservation = Reservation.objects.get(id=reservation_id)
+
+        product_name = reservation.name if reservation else None
+        description = f"Réservation du {reservation.model_name} du {reservation.date_depart_char} à {reservation.heure_depart_char} au {reservation.date_retour_char} à {reservation.heure_retour_char}" if reservation else None
+        quantity = 1 
+        unit_amount = float(reservation.reste_payer) * 100
+        images = reservation.vehicule.photo_link_pay
+        customer_email = reservation.email
+
+        if not all([product_name, description, unit_amount, quantity]):
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        unit_amount = int(unit_amount)
+        quantity = int(quantity)
+
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "eur",
+                        "product_data": {
+                            "name": product_name,
+                            "description": description,
+                            "images": images,
+                        },
+                        "unit_amount": unit_amount,
+                    },
+                    "quantity": quantity,
+                },
+            ],
+            mode="payment",
+            success_url=f"https://safarelamir.com/",
+            cancel_url="https://safarelamir.com/",
+            customer_email=customer_email,
+            metadata={
+                "reservation_id": str(reservation_id),
+                "reste_payer": str(unit_amount), 
+                "type":"Complet"
+            }
+        )
+
+        return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
