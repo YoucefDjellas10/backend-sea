@@ -122,12 +122,12 @@ class ReservationSerializer(serializers.ModelSerializer):
                 
         if country_code == 'DZ':
             if representation.get('total_reduit_euro') is not None:
-                representation['total_reduit_euro'] = float(representation['total_reduit_euro']) * float(representation['exchange_amount'])
-                representation['montant_paye'] = float(representation['montant_paye']) * float(representation['exchange_amount'])
-                representation['total_revenue'] = float(representation['total_revenue']) * float(representation['exchange_amount'])
-                representation['total_reduit'] = float(representation['total_reduit']) * float(representation['exchange_amount'])
-                representation['total'] = float(representation['total']) * float(representation['exchange_amount'])
-                representation['reste_payer'] = float(representation['reste_payer']) * float(representation['exchange_amount'])
+                representation['total_reduit_euro'] = float(representation['total_reduit_euro']) * float(representation['exchange_amount']) if representation['total_reduit_euro'] else 0
+                representation['montant_paye'] = float(representation['montant_paye']) * float(representation['exchange_amount']) if representation['montant_paye'] else 0
+                representation['total_revenue'] = float(representation['total_revenue']) * float(representation['exchange_amount']) if representation['total_revenue'] else 0
+                representation['total_reduit'] = float(representation['total_reduit']) * float(representation['exchange_amount']) if representation['total_reduit'] else 0
+                representation['total'] = float(representation['total']) * float(representation['exchange_amount']) if representation['total'] else 0
+                representation['reste_payer'] = float(representation['reste_payer']) * float(representation['exchange_amount']) if representation['reste_payer'] else 0
 
         
         return representation
