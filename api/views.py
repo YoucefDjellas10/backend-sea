@@ -6306,9 +6306,9 @@ def cancel_receipt_download(request):
 
     cancellation_data = result["data"]["cancellation"]
 
-    un_jour = cancellation_data["cancellation_fee"]
-    montant_rembourse = cancellation_data["refund_amount"]
-    total = reservation.montant_paye
+    un_jour = cancellation_data["cancellation_fee"] if cancellation_data["cancellation_fee"] and cancellation_data["cancellation_fee"] > 0 else 0.00
+    montant_rembourse = cancellation_data["refund_amount"] if cancellation_data ["refund_amount"] and cancellation_data["refund_amount"] > 0 else 0.00
+    total = reservation.montant_paye if reservation.montant_paye and reservation.montant_paye > 0 else 0.00
 
     print("cancel date : ",reservation.cancelation_date.date())
 
