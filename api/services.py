@@ -695,14 +695,14 @@ def cencel_request(ref,country_code):
         taux_change = taux.montant
         ma_reservation = ma_reservation.first()
         caution = ma_reservation.opt_protection_caution if ma_reservation.type_caution == "depose" else 0
-        refund_amount = montant_rembourse * taux_change if country_code == "DZ" else montant_rembourse
-        refund_total = refund_amount + caution
+        refund_amount = float(montant_rembourse) * float(taux_change) if country_code == "DZ" else float(montant_rembourse)
+        refund_total = float(refund_amount) + float(caution)
 
 
         cancellation_data = {
             "reference": reference,
             "currency": "DZD" if country_code == "DZ" else "EUR",
-            "cancellation_fee": un_jour * taux_change if country_code == "DZ" else un_jour,
+            "cancellation_fee": float(un_jour) * float(taux_change) if country_code == "DZ" else float(un_jour),
             "refund_amount": refund_amount,
             "refund_total": refund_total,
             "is_refundable": rembourssement,
