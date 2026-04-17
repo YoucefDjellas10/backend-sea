@@ -2892,7 +2892,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     percentage = client_pr
                     montant_code_prime = prix_jour * client_pr / 100 * total_days
-                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
                     promotion = "yes"
