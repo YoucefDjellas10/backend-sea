@@ -2892,43 +2892,43 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     percentage = client_pr
                     montant_code_prime = prix_jour * client_pr / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
                     promotion = "yes"
                     percentage = promotion_value 
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_one is not None and model_one.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_two is not None and model_two.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_three is not None and model_three.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_four is not None and model_four.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif model_five is not None and model_five.id == vehicle.modele.id :
                     promotion = "yes"
                     percentage = promotion_value
                     montant_promotion = prix_jour * promotion_value / 100 * total_days
-                    total_red = total_brut + (((100 - percentage) * prix_jour / 100) * total_days)
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 else :
                     promotion = "no"
