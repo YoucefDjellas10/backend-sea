@@ -1234,6 +1234,7 @@ class Livraison(models.Model):
     lieu_retour = models.ForeignKey('Lieux', on_delete=models.SET_NULL,db_column='lieu_retour', null=True, blank=True, related_name='retour_livraisons', verbose_name='Lieu de Retour')
     vehicule = models.ForeignKey('Vehicule', on_delete=models.SET_NULL,db_column='vehicule', null=True, blank=True, verbose_name='Véhicule')
     modele = models.ForeignKey('Modele', on_delete=models.SET_NULL, null=True,db_column='modele', blank=True, verbose_name='Modèle')
+    lieu_retour_zone = models.ForeignKey('Zone', on_delete=models.SET_NULL,db_column='lieu_retour_zone', null=True, blank=True, verbose_name=' lieu retour Zone')
 
     caution_classic = models.FloatField(verbose_name='Caution Classique', null=True, blank=True)
     caution_red = models.FloatField(verbose_name='Caution Réduite', null=True, blank=True)
