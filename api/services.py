@@ -1748,6 +1748,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         return {"message": "Return date cannot be before departure date"}
 
     total_days = (date_retour - date_depart).days
+    if not total_days or total_days < 3:
+        return {"message": "Lieu de départ introuvable"}
 
     lieu_depart = Lieux.objects.filter(id=lieu_depart_id).first()
     if not lieu_depart:
