@@ -56,6 +56,8 @@ ul li::before {
                                         </span>
                                     </th>
                                     <th style="color:#ffffff">-</th>
+                                    {% if NOM_2EME_CONDUCTEUR %}
+                
                                     <th style="background-color: rgb(255,173,173);   ;padding:6px 10px  ; border-left:2px solid rgb(255,173,173); border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
                                         <span style="font-weight: 600;font-size: larger;">
                                             2ème conducteur: {{ NOM_2EME_CONDUCTEUR }} {{ Prenom_2EME_CONDUCTEUR }}
@@ -63,6 +65,7 @@ ul li::before {
 
                                         </span>
                                     </th>
+                                    {% endif %}
                                 </tr>
 
                                 <tr>
