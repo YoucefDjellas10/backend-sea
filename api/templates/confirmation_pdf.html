@@ -203,12 +203,22 @@ ul li::before {
     color: #092b6b;
   ">
 
-    <span>✓ Le tarif comprend {{ klm_limit }}</span>
-    <span>{{ sb_a }}</span>
-    <span>{{ sb_b }}</span>
-    <span>{{ sb_c }}</span>
-    <span>{{ plein_carburant }}</span>
-    <span>{{ nd_driver }}</span>
+    <span id="span-klm">✓ Le tarif comprend {{ klm_limit }}</span>
+    <span id="span-sb-a">{{ sb_a }}</span>
+    <span id="span-sb-b">{{ sb_b }}</span>
+    <span id="span-sb-c">{{ sb_c }}</span>
+    <span id="span-carburant">{{ plein_carburant }}</span>
+    <span id="span-nd">{{ nd_driver }}</span>
+    <script>
+        ['span-klm','span-sb-a','span-sb-b','span-sb-c','span-carburant','span-nd'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var val = el.textContent.trim();
+            if (val === '' || val === 'None' || val === 'null' || val === 'False' || val === '✓ Le tarif comprend None') {
+            el.style.display = 'none';
+            }
+        });
+    </script>
     <span style="display: flex; align-items: center; gap: 4px;">✔ {{ PROTECTION_NAME }}</span>
  <span style="display: flex; align-items: center; gap: 4px;">! La protection basique est incluse </span>
   </div>
