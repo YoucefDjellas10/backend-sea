@@ -1098,11 +1098,11 @@ def combined_document_download(request):
         "VERSER": round(reservation.total_reduit_euro - reservation.reste_payer, 2),
         "klm_limit": f"{limit_klm} km " if not reservation.opt_klm or not reservation.opt_klm_name else "Kilométrage illimité",
         "protection": reservation.opt_protection.name,
-        "nd_driver": "✓ 2ème conducteur" if livraison.reservation.opt_nd_driver and livraison.reservation.opt_nd_driver_name else None,
-        "plein_carburant": "✓ Plein carburant" if livraison.reservation.opt_plein_carburant and livraison.reservation.opt_plein_carburant_name else None,
-        "sb_a": "✓ Siège enfant (3–9 kg)" if livraison.reservation.opt_siege_a and livraison.reservation.opt_siege_a_name else None,
-        "sb_b": "✓ Siège enfant (9–13 kg)" if livraison.reservation.opt_siege_b and livraison.reservation.opt_siege_b_name else None,
-        "sb_c": "✓ Siège enfant (10–18 kg)" if livraison.reservation.opt_siege_c and livraison.reservation.opt_siege_c_name else None,
+        "nd_driver": "✓ 2ème conducteur" if livraison.reservation.opt_nd_driver_name else None,
+        "plein_carburant": "✓ Plein carburant" if  livraison.reservation.opt_plein_carburant_name else None,
+        "sb_a": "✓ Siège enfant (3–9 kg)" if livraison.reservation.opt_siege_a_name else None,
+        "sb_b": "✓ Siège enfant (9–13 kg)" if livraison.reservation.opt_siege_b_name else None,
+        "sb_c": "✓ Siège enfant (10–18 kg)" if livraison.reservation.opt_siege_c_name else None,
     }
     print("-------------------- ici 11111")
     birthday_contract = None
