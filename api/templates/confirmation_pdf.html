@@ -56,7 +56,7 @@ ul li::before {
                                         </span>
                                     </th>
                                     <th style="color:#ffffff">-</th>
-                                    {% if NOM_2EME_CONDUCTEUR %}
+                                    {% if NOM_2EME_CONDUCTEUR == "" %}
                 
                                     <th style="background-color: rgb(255,173,173);   ;padding:6px 10px  ; border-left:2px solid rgb(255,173,173); border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
                                         <span style="font-weight: 600;font-size: larger;">
@@ -74,7 +74,7 @@ ul li::before {
                                         </h8>
                                     </td>
                                     <th></th>
-                                    {% if NOM_2EME_CONDUCTEUR %}
+                                    {% if NOM_2EME_CONDUCTEUR == "" %}
                                     <td style=" border-left: 2px solid #ff7474;padding: 2px 0px 4px 15px;">
                                         <h8>Date de naissance : {{ BIRTHDAY_2EME_CONDUCTEUR }}
                                             
@@ -89,7 +89,7 @@ ul li::before {
                                         </h8>
                                     </td>
                                     <th></th>
-                                    {% if NOM_2EME_CONDUCTEUR %}
+                                    {% if NOM_2EME_CONDUCTEUR == "" %}
                                     <td style=" padding-left: 15px;border-left: 2px solid #ff7474;">
                                         <h8>Date permis:{{ DATE_PERMIS_2EME }}
                                         </h8>
