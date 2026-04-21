@@ -1097,7 +1097,12 @@ def combined_document_download(request):
         "RESTE_PAYE": round(reservation.reste_payer, 2),
         "VERSER": round(reservation.total_reduit_euro - reservation.reste_payer, 2),
         "klm_limit": f"{limit_klm} km " if not reservation.opt_klm or not reservation.opt_klm_name else "Kilométrage illimité",
-        "protection": reservation.opt_protection.name
+        "protection": reservation.opt_protection.name,
+        "nd_driver": "✓ 2ème conducteur" if livraison.opt_nd_driver and livraison.opt_nd_driver_name else None,
+        "plein_carburant": "✓ Plein carburant" if livraison.opt_plein_carburant and livraison.opt_plein_carburant_name else None,
+        "sb_a": "✓ Siège enfant (3–9 kg)" if livraison.opt_siege_a and livraison.opt_siege_a_name else None,
+        "sb_b": "✓ Siège enfant (9–13 kg)" if livraison.opt_siege_b and livraison.opt_siege_b_name else None,
+        "sb_c": "✓ Siège enfant (10–18 kg)" if livraison.opt_siege_c and livraison.opt_siege_c_name else None,
     }
     print("-------------------- ici 11111")
     birthday_contract = None
@@ -1223,10 +1228,10 @@ def confirmation_download(request):
     protection_dercription = " "
 
     if protection and "MAX" in protection.option_code :
-        protection_name = " ✔      Assurance Protection :  Maximale:"
+        protection_name = "  Assurance Protection :  Maximale:"
         protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes , ainsi le bris de glace involontaire. Elle permet également de bénéficier d’une caution réduite par rapport à la protection standard."
     elif protection and "STANDART" in protection.option_code :
-        protection_name = "✔      Assurance Protection :  Standard:"
+        protection_name = "  Assurance Protection :  Standard:"
         protection_dercription = "Cette couverture inclut la protection des pneus, des vitres de portes. Elle permet également de bénéficier d’une caution réduite par rapport à la protection Basique."
     else :
         protection_name = " "
@@ -1282,7 +1287,13 @@ def confirmation_download(request):
         "RESTE_PAYE":round(float(livraison.reste_payer), 2),
         "VERSER": round(float(livraison.total_reduit_euro - livraison.reste_payer), 2),
         "klm_limit": f"{limit_klm} km " if not livraison.opt_klm or not livraison.opt_klm_name else "Kilométrage illimité",
-        "protection":livraison.opt_protection.name
+        "protection":livraison.opt_protection.name,
+        "nd_driver": "✓ 2ème conducteur" if livraison.opt_nd_driver and livraison.opt_nd_driver_name else None,
+        "plein_carburant": "✓ Plein carburant" if livraison.opt_plein_carburant and livraison.opt_plein_carburant_name else None,
+        "sb_a": "✓ Siège enfant (3–9 kg)" if livraison.opt_siege_a and livraison.opt_siege_a_name else None,
+        "sb_b": "✓ Siège enfant (9–13 kg)" if livraison.opt_siege_b and livraison.opt_siege_b_name else None,
+        "sb_c": "✓ Siège enfant (10–18 kg)" if livraison.opt_siege_c and livraison.opt_siege_c_name else None,
+
 
     }
 
