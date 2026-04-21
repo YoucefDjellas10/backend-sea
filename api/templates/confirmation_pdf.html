@@ -174,64 +174,54 @@ ul li::before {
 
                                 36 heures avant le début de votre location, vous recevez un e-mail intitulé <strong style="color: #e5561a;">checklist finale  </strong> Cet e-mail contient un lien sécurisé pour déposer votre caution. Le montant de la caution est encaissé temporairement sur le compte de SAFAR EL AMIR et automatiquement remboursée en intégralité sous 07 jours après restitution conforme du véhicule (carburant, état, délais, kilométrage). 
 
+                            </p>
+                            
+                            <p style="color: #e5561a;text-align: right;margin: 2px;font-size:12px;text-shadow: -3px 0px 34px rgba(255,255,255,1);">
+                                - Veuillez noter que les prix affichés en euros sont donnés à titre indicatif
+                                
                                 </p>
-                            
-<p style="color: #e5561a;text-align: right;margin: 2px;font-size:12px;text-shadow: -3px 0px 34px rgba(255,255,255,1);">
-     - Veuillez noter que les prix affichés en euros sont donnés à titre indicatif
-    
-    </p>
-                            
- 
+                                                        
+                                     <h3 style="font-size: 18px; color: #092b6b;margin: 0;line-height: 0.4;">Inclus / options:</h3>
+                                        <div style="padding-top: 14px;">
 
-                            <h3 style="font-size: 18px; color: #092b6b;margin: 0;line-height: 0.4;">Inclus / options:</h3>
-                    
-                            
+                            <div style="
+                                display: flex;
+                                flex-wrap: wrap;
+                                justify-content:baseline;
+                                gap: 4px 10px;
+                                font-size: 12px;
+                                line-height: 1.7;
+                                color: #092b6b;
+                            ">
 
+                            {% if klm_limit %}
+                            <span>✓ Le tarif comprend {{ klm_limit }}</span>
+                            {% endif %}
 
+                            {% if sb_a %}
+                            <span>{{ sb_a }}</span>
+                            {% endif %}
 
+                            {% if sb_b %}
+                            <span>{{ sb_b }}</span>
+                            {% endif %}
 
+                            {% if sb_c %}
+                            <span>{{ sb_c }}</span>
+                            {% endif %}
 
-                             <div style="padding-top: 14px;">
+                            {% if plein_carburant %}
+                            <span>{{ plein_carburant }}</span>
+                            {% endif %}
 
-  <div style="
-    display: flex;
-    flex-wrap: wrap;
-    justify-content:baseline;
-    gap: 4px 10px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #092b6b;
-  ">
+                            {% if nd_driver %}
+                            <span>{{ nd_driver }}</span>
+                            {% endif %}
+                                <span style="display: flex; align-items: center; gap: 4px;">✔ {{ PROTECTION_NAME }}</span>
+                            <span style="display: flex; align-items: center; gap: 4px;">! La protection basique est incluse </span>
+                            </div>
 
-    <span id="span-klm">✓ Le tarif comprend {{ klm_limit }}</span>
-    <span id="span-sb-a">{{ sb_a }}</span>
-    <span id="span-sb-b">{{ sb_b }}</span>
-    <span id="span-sb-c">{{ sb_c }}</span>
-    <span id="span-carburant">{{ plein_carburant }}</span>
-    <span id="span-nd">{{ nd_driver }}</span>
-    <script>
-        ['span-klm','span-sb-a','span-sb-b','span-sb-c','span-carburant','span-nd'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (!el) return;
-            var val = el.textContent.trim();
-            if (val === '' || val === 'None' || val === 'null' || val === 'False' || val === '✓ Le tarif comprend None') {
-            el.style.display = 'none';
-            }
-        });
-    </script>
-    <span style="display: flex; align-items: center; gap: 4px;">✔ {{ PROTECTION_NAME }}</span>
- <span style="display: flex; align-items: center; gap: 4px;">! La protection basique est incluse </span>
-  </div>
-
-</div> 
-
-
-
-
-
-
-
-
+                            </div> 
 
                             <h3 style="font-size: 17px; color: #092b6b;line-height:0.6; margin: 8px 0;">Important :</h3>
                             <span style="font-size: 15px; color: #092b6b;"> Pour la prise du véhicule, merci de préparer les éléments
