@@ -1723,7 +1723,7 @@ def free_options_f(client_id):
                 category_client.option_ten,
             ]
 
-            option_un = any(opt and "KLM" in opt.option_code for opt in options)
+            option_un = any(opt and "KLM_ILLIMITED" in opt.option_code for opt in options)
             option_deux = any(opt and "ANTICIPE" in opt.option_code for opt in options)
             option_trois= any(opt and "MAX" in opt.option_code for opt in options)
             option_quatre= any(opt and "DRIVER" in opt.option_code for opt in options)
