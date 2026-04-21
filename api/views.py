@@ -1251,7 +1251,7 @@ def confirmation_download(request):
     permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else None
     if nd_clinet :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
-        permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
+        permi_desc = f" Permis de conduire délivré le :{livraison.reservation.date_de_permis}"
     else : 
         nd_client_name = " "
         permi_desc = " "
