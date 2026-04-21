@@ -1202,6 +1202,15 @@ def ma_reservation_detail(ref, email, country_code):
                     "reste_payer":ma_reservation.reste_payer * taux_change if ma_reservation.reste_payer else 0,
                     "montant_payer":ma_reservation.montant_paye * taux_change if ma_reservation.montant_paye else 0,
                     "client_category":ma_reservation.categorie_client.name,
+                    "total_afficher": ma_reservation.total_afficher * taux_change if ma_reservation.total_afficher else 0,
+                    "is_promotion": "yes" if ma_reservation.reduction and ma_reservation.reduction > 7 else "no",
+                    "promotion_name": "Promotion",
+                    "promotion_name_ar": "تخفيض",
+                    "promotion_name_en": "Promotion",
+                    "promotion_value": ma_reservation.reduction if ma_reservation.reduction and ma_reservation.reduction > 0 else 0,
+                    "is_fidelite": "yes" if ma_reservation.reduction and ma_reservation.reduction > 0 and  ma_reservation.reduction < 8 else "no",
+                    "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) * taux_change if ma_reservation.total_reduit and ma_reservation.total else 0,
+
                 })
         else :  
             if ma_reservation :
@@ -1277,6 +1286,14 @@ def ma_reservation_detail(ref, email, country_code):
                     "reste_payer":ma_reservation.reste_payer,
                     "montant_payer":ma_reservation.montant_paye,
                     "client_category":ma_reservation.categorie_client.name,
+                    "total_afficher": ma_reservation.total_afficher,
+                    "is_promotion": "yes" if ma_reservation.reduction and ma_reservation.reduction > 7 else "no",
+                    "promotion_name": "Promotion",
+                    "promotion_name_ar": "تخفيض",
+                    "promotion_name_en": "Promotion",
+                    "promotion_value": ma_reservation.reduction if ma_reservation.reduction and ma_reservation.reduction > 0 else 0,
+                    "is_fidelite": "yes" if ma_reservation.reduction and ma_reservation.reduction > 0 and  ma_reservation.reduction < 8 else "no",
+                    "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) if ma_reservation.total_reduit and ma_reservation.total else 0,
 
                 })  
 
