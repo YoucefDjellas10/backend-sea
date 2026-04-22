@@ -4524,29 +4524,29 @@ def stripe_webhook_reservation_(request):
                 vehicule=reservation.vehicule,  
                 modele=reservation.modele,  
                 zone=reservation.lieu_depart.zone,  
-                total_reduit_euro=reservation.total_reduit_euro,
-                montant=reste_payer,
+                total_reduit_euro=float(reservation.total_reduit_euro),
+                montant=float(reste_payer),
                 montant_dzd=0,
-                montant_eur_dzd=reste_payer * taux_change,
+                montant_eur_dzd=float(reste_payer) * float(taux_change),
                 montant_dzd_eur=0,  
                 note="Complement effectué via Stripe",  
-                total_reduit_dinar=reservation.total_reduit_euro * taux_change,
-                ecart_eur=reservation.reste_payer - reste_payer,
-                ecart_da=(reservation.reste_payer - reste_payer) * taux_change,
+                total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
+                ecart_eur=float(reservation.reste_payer) - float(reste_payer),
+                ecart_da=(float(reservation.reste_payer) - float(reste_payer)) * float(taux_change),
                 mode_paiement="carte", 
-                total_encaisse = reservation.montant_paye + reste_payer,  
+                total_encaisse = float(reservation.montant_paye) + float(reste_payer),  
             )
             payment.save()
 
-            reservation.reste_payer -= reste_payer
-            reservation.montant_paye += reste_payer
-            reservation.total_revenue += reste_payer
+            reservation.reste_payer -= float(reste_payer)
+            reservation.montant_paye += float(reste_payer)
+            reservation.total_revenue += float(reste_payer)
             reservation.save()
 
             livraison = Livraison.objects.filter(reservation=reservation)
             
             for lv in livraison:
-                lv.total_reduit_euro -= reste_payer
+                lv.total_reduit_euro -= float(reste_payer)
                 lv.save()
 
 
