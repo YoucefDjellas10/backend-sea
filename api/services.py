@@ -1103,7 +1103,7 @@ def option_ma_reservation(ref, email, country_code):
     
 def ma_reservation_detail(ref, email, country_code):
     try:
-        ma_reservation =Reservation.objects.filter(name=ref, email=email).first()
+        ma_reservation =Reservation.objects.filter(name=ref).first()
 
 
         if not ma_reservation :
