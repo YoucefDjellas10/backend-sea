@@ -643,7 +643,7 @@ def cencel_request(ref,country_code):
         
         for record in ma_reservation:
             print("######## in loop ##########")
-            if record.status != 'confirmee' and country_code != "ABC":
+            if record.status != 'confirmee' and record.etat_reservation != "reserve" and country_code != "ABC":
                 return ValueError("Cette opération n'est possible que pour les réservations confirmées.")
             print("######## status confirmé #######")
             total = record.montant_paye
