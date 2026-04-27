@@ -1557,18 +1557,15 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
             lr = Lieux.objects.filter(id=lieu_retour_id).first()
 
             if ld and lr:
-                zone_depart = ld.zone
-                zone_retour = lr.zone
+                # Même lieu exact → 1h
+                if ld.id == lr.id:
+                    buffer_retour_hours = 1
 
-                if zone_depart and zone_retour and zone_depart.id != zone_retour.id:
+                # Zones différentes → 24h
+                elif ld.zone and lr.zone and ld.zone.id != lr.zone.id:
                     buffer_retour_hours = 24
 
-                elif zone_depart and zone_depart.id in [1, 2, 16]:
-                    buffer_retour_hours = 1
-
-                elif ld.id == 4 and lr.id == 4:
-                    buffer_retour_hours = 1
-
+                # Même zone, lieux différents → 5h
                 else:
                     buffer_retour_hours = 5
 
@@ -1622,11 +1619,11 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
             # Où on veut prendre le véhicule pour la nouvelle réservation
             lieu_depart_nouveau = Lieux.objects.filter(id=lieu_depart_id).first() if lieu_depart_id else None
 
-            # Même lieu exact → 1h suffit
+            # Même lieu exact → 1h
             if lieu_retour_precedent and lieu_depart_nouveau and lieu_retour_precedent.id == lieu_depart_nouveau.id:
                 buffer_depart_hours = 1
 
-            # Zones différentes → 24h (le véhicule doit être transféré)
+            # Zones différentes → 24h
             elif (lieu_retour_precedent and lieu_depart_nouveau and
                   lieu_retour_precedent.zone and lieu_depart_nouveau.zone and
                   lieu_retour_precedent.zone.id != lieu_depart_nouveau.zone.id):
@@ -1644,7 +1641,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
         if derniere_res.date_heure_fin + buffer_depart <= date_heure_debut:
             available_vehicles.append(vehicle)
 
-    return available_vehicles  
+    return available_vehicles
 
 def search_option(code, total_days, lieu_depart):
     try:
