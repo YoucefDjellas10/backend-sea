@@ -1553,6 +1553,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
 
     if lieu_depart_id and lieu_retour_id:
         try:
+            print("###################### begining  ########################")
             ld = Lieux.objects.filter(id=lieu_depart_id).first()
             lr = Lieux.objects.filter(id=lieu_retour_id).first()
 
