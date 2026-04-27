@@ -1557,15 +1557,18 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
             lr = Lieux.objects.filter(id=lieu_retour_id).first()
 
             if ld and lr:
-                # Même lieu exact → 1h
-                if ld.id == lr.id:
-                    buffer_retour_hours = 1
+                zone_depart = ld.zone
+                zone_retour = lr.zone
 
-                # Zones différentes → 24h
-                elif ld.zone and lr.zone and ld.zone.id != lr.zone.id:
+                if zone_depart and zone_retour and zone_depart.id != zone_retour.id:
                     buffer_retour_hours = 24
 
-                # Même zone, lieux différents → 5h
+                elif zone_depart and zone_depart.id in [1, 2, 16]:
+                    buffer_retour_hours = 1
+
+                elif ld.id == 4 and lr.id == 4:
+                    buffer_retour_hours = 1
+
                 else:
                     buffer_retour_hours = 5
 
@@ -1613,23 +1616,21 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
             continue
 
         try:
-            # Où est le véhicule après la dernière réservation
-            lieu_retour_precedent = derniere_res.lieu_retour
+            ld_res = derniere_res.lieu_depart
+            lr_res = derniere_res.lieu_retour
 
-            # Où on veut prendre le véhicule pour la nouvelle réservation
-            lieu_depart_nouveau = Lieux.objects.filter(id=lieu_depart_id).first() if lieu_depart_id else None
+            zone_depart_res = ld_res.zone if ld_res else None
+            zone_retour_res = lr_res.zone if lr_res else None
 
-            # Même lieu exact → 1h
-            if lieu_retour_precedent and lieu_depart_nouveau and lieu_retour_precedent.id == lieu_depart_nouveau.id:
-                buffer_depart_hours = 1
-
-            # Zones différentes → 24h
-            elif (lieu_retour_precedent and lieu_depart_nouveau and
-                  lieu_retour_precedent.zone and lieu_depart_nouveau.zone and
-                  lieu_retour_precedent.zone.id != lieu_depart_nouveau.zone.id):
+            if zone_depart_res and zone_retour_res and zone_depart_res.id != zone_retour_res.id:
                 buffer_depart_hours = 24
 
-            # Même zone, lieux différents → 5h
+            elif zone_depart_res and zone_depart_res.id in [1, 2, 16]:
+                buffer_depart_hours = 1
+
+            elif (ld_res and ld_res.id == 4) or (lr_res and lr_res.id == 4):
+                buffer_depart_hours = 1
+
             else:
                 buffer_depart_hours = 5
 
