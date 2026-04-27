@@ -1550,10 +1550,11 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
     date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
 
     buffer_retour_hours = 1  
-
+    print("###################### begining  ########################")
+    print("lieu depart : ", lieu_depart_id)
+    print("lieu de retour : ", lieu_retour_id)
     if lieu_depart_id and lieu_retour_id:
         try:
-            print("###################### begining  ########################")
             ld = Lieux.objects.filter(id=lieu_depart_id).first()
             lr = Lieux.objects.filter(id=lieu_retour_id).first()
 
