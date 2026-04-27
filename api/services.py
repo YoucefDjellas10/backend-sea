@@ -1561,26 +1561,33 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                 zone_retour = lr.zone
 
                 if zone_depart and zone_retour and zone_depart.id != zone_retour.id:
+                    print("######### Case 1 #########")
                     buffer_retour_hours = 24
 
                 elif zone_depart and zone_depart.id in [1, 2, 16]:
+                    print("######### Case 2 #########")
                     buffer_retour_hours = 1
 
                 elif ld.id == 4 and lr.id == 4:
+                    print("######### Case 3 #########")
                     buffer_retour_hours = 1
 
                 else:
+                    print("######### Case 4 #########")
                     buffer_retour_hours = 5
 
         except Exception:
+            print("######### exeption Case #########")
             buffer_retour_hours = 1
 
     buffer_retour = timedelta(hours=buffer_retour_hours)
+    print("################## buffer_retour :",buffer_retour)
 
     buffer_depart_defaut = timedelta(hours=1)
 
     date_heure_debut_avec_buffer = date_heure_debut - buffer_depart_defaut
     date_heure_fin_avec_buffer = date_heure_fin + buffer_retour
+    print("################## date_heure_fin_avec_buffer :",date_heure_fin_avec_buffer)
 
     reserved_vehicles = Reservation.objects.filter(
         Q(date_heure_debut__lt=date_heure_fin_avec_buffer,
