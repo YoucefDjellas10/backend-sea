@@ -1616,21 +1616,23 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
             continue
 
         try:
-            ld_res = derniere_res.lieu_depart
-            lr_res = derniere_res.lieu_retour
+            # Où est le véhicule après la dernière réservation
+            lieu_retour_precedent = derniere_res.lieu_retour
 
-            zone_depart_res = ld_res.zone if ld_res else None
-            zone_retour_res = lr_res.zone if lr_res else None
+            # Où on veut prendre le véhicule pour la nouvelle réservation
+            lieu_depart_nouveau = Lieux.objects.filter(id=lieu_depart_id).first() if lieu_depart_id else None
 
-            if zone_depart_res and zone_retour_res and zone_depart_res.id != zone_retour_res.id:
+            # Même lieu exact → 1h suffit
+            if lieu_retour_precedent and lieu_depart_nouveau and lieu_retour_precedent.id == lieu_depart_nouveau.id:
+                buffer_depart_hours = 1
+
+            # Zones différentes → 24h (le véhicule doit être transféré)
+            elif (lieu_retour_precedent and lieu_depart_nouveau and
+                  lieu_retour_precedent.zone and lieu_depart_nouveau.zone and
+                  lieu_retour_precedent.zone.id != lieu_depart_nouveau.zone.id):
                 buffer_depart_hours = 24
 
-            elif zone_depart_res and zone_depart_res.id in [1, 2, 16]:
-                buffer_depart_hours = 1
-
-            elif (ld_res and ld_res.id == 4) or (lr_res and lr_res.id == 4):
-                buffer_depart_hours = 1
-
+            # Même zone, lieux différents → 5h
             else:
                 buffer_depart_hours = 5
 
@@ -1642,7 +1644,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
         if derniere_res.date_heure_fin + buffer_depart <= date_heure_debut:
             available_vehicles.append(vehicle)
 
-    return available_vehicles
+    return available_vehicles  
 
 def search_option(code, total_days, lieu_depart):
     try:

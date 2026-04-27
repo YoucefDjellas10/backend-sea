@@ -4549,7 +4549,6 @@ def stripe_webhook_reservation_(request):
                 lv.total_reduit_euro -= float(reste_payer)
                 lv.save()
 
-
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
 
