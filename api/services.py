@@ -1545,14 +1545,14 @@ def check_client(id):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id, lieu_retour_id):
+def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id=None, lieu_retour_id=None):
     date_heure_debut = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
     date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
 
     buffer_retour_hours = 1  
     print("###################### begining  ########################")
     print("lieu depart : ", lieu_depart_id)
-    print("lieu de retour : ", lieu_retour_id)
+    print("lieu de retour : ",lieu_retour_id)
     if lieu_depart_id and lieu_retour_id:
         try:
             ld = Lieux.objects.filter(id=lieu_depart_id).first()
