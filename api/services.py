@@ -1988,7 +1988,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                 prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
 
-        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
+        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id, lieu_depart_id, lieu_retour_id)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id) 
@@ -2650,7 +2650,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                 prime_red = parent_sold.parrain_solde
 
-        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id)
+        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id,  lieu_depart_id, lieu_retour_id)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         if frais_livraison :
