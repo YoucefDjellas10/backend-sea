@@ -1545,7 +1545,7 @@ def check_client(id):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id=None, lieu_retour_id=None):
+def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id, lieu_retour_id):
     date_heure_debut = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
     date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
 
