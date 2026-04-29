@@ -31,9 +31,6 @@ import logging
 from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 from utils.client_info import ClientInfoExtractor
-from django.http import HttpResponseForbidden
-from django.core.signing import BadSignature, SignatureExpired
-from .utils import verify_pickup_token
 
 
 logger = logging.getLogger(__name__)
@@ -1805,23 +1802,18 @@ def get_signature_by_id(request, livraison_id):
 
 def success_pick_up_view(request):
     try:
-        token = request.GET.get("token")
+        livraison_id = request.GET.get("livraison_id")
 
-        if not token:
-            return HttpResponseForbidden("Lien invalide.")
-
-        try:
-            livraison_id = verify_pickup_token(token)
-        except SignatureExpired:
-            return HttpResponseForbidden("Ce lien a expiré.")
-        except BadSignature:
-            return HttpResponseForbidden("Lien invalide ou falsifié.")
+        
+        
+        if not livraison_id:
+            return JsonResponse({'error': 'livraison_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         livraison = get_object_or_404(Livraison, id=livraison_id)
 
         date_heure_depart = livraison.date_heure_debut
-        date_debut = date_heure_depart.strftime("%d %B %Y")
-        heure_debut = date_heure_depart.strftime("%H:%M")
+        date_debut = date_heure_depart.strftime("%d %B %Y") 
+        heure_debut = date_heure_depart.strftime("%H:%M")  
 
         photos = LivraisonIrAttachmentRel.objects.filter(livraison_id=livraison_id)
 
@@ -1830,27 +1822,28 @@ def success_pick_up_view(request):
             url = f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{p.ir_attachment_id}/'
             photos_list.append({
                 "number": i,
-                "label": f"Photo {i}",
+                "label": f"Photo {i}",   
                 "url": url
             })
 
         context = {
             'livraison': livraison,
-            'contract_number': livraison.reservation.name,
+            'contract_number': livraison.reservation.name,  
             'client_name': livraison.client.name if livraison.client and livraison.client.name else 'Client',
             'vehicle_name': livraison.modele.name if livraison.modele and livraison.modele.name else 'Véhicule',
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
             'photos': photos_list,
-            'city': livraison.lieu_depart.city.name,
-            'lieu': livraison.lieu_depart.name
+            'city':livraison.lieu_depart.city.name,
+            'lieu':livraison.lieu_depart.name
+
         }
 
         return render(request, 'photo_livraison_template.html', context)
 
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-    
+        return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 def livraison_photo_by_res(request, livraison_id, attachment_id):
     logger.info(f"Requête reçue: livraison_id={livraison_id}, attachment_id={attachment_id}")
     
