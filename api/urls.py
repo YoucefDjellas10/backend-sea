@@ -1,6 +1,5 @@
 from django.urls import path
 from .views import *
-from .utils import generate_pickup_token_view
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
