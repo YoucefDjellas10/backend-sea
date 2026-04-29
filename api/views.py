@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from .models import *
+from .utils import generate_pickup_token
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions
@@ -1802,6 +1803,14 @@ def get_signature_by_id(request, livraison_id):
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
+    
+def generate_pickup_token_view(request, livraison_id):
+    token = generate_pickup_token(livraison_id)
+    link = f"https://api.safarelamir.com/inspection-report/?token={token}"
+    return JsonResponse({
+        'token': token,
+        'link': link
+    })
 
 def success_pick_up_view(request):
     try:
