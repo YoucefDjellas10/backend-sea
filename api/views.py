@@ -1607,26 +1607,29 @@ def restitution_email_view(request):
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
-    
+
 def pick_up_mail_view(request):
     try:
         livraison_id = request.GET.get("livraison_id")
 
         livraison = Livraison.objects.get(id=livraison_id)
 
-        if not livraison or livraison is None : 
+        if not livraison or livraison is None: 
             return JsonResponse({'error': "there are not livraison with this ref"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        # ✅ Génère le token sécurisé ici directement
+        token = generate_pickup_token(livraison_id)
+        inspection_link = f"https://api.safarelamir.com/inspection-report/?token={token}"
+
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 sujet = f"Livraison réussite N = {livraison.reservation.name}"
                 expediteur = settings.EMAIL_HOST_USER
                 html_message = render_to_string('email/livraison_email.html', {
-                    "clien_name" : livraison.client.name,
-                    "photos_link": f"https://api.safarelamir.com/inspection-report/?livraison_id={livraison_id}",
-                    "contract_link":f"https://api.safarelamir.com/contract-download/?livraison_id={livraison_id}"
-                    
+                    "clien_name": livraison.client.name,
+                    "photos_link": inspection_link,  # ✅ lien sécurisé
+                    "contract_link": f"https://api.safarelamir.com/contract-download/?livraison_id={livraison_id}"
                 })
                 
                 send_mail(
@@ -1646,9 +1649,7 @@ def pick_up_mail_view(request):
                 else:
                     time.sleep(2)  
         
-            
-        else:
-            return JsonResponse({'message': "l'email n'existe pas"}, status=404)
+        return JsonResponse({'message': "l'email n'existe pas"}, status=404)
 
     except Exception as e:
         return HttpResponse(f"Erreur: {e}", status=500)
