@@ -4533,38 +4533,41 @@ def stripe_webhook_reservation_(request):
             if not reservation:
                 return JsonResponse({"error": "reservation non trouvé"}, status=400)
             
-            taux = TauxChange.objects.filter(id=2).first()
-            taux_change = taux.montant
+            if reservation.is_complement == True:
+                taux = TauxChange.objects.filter(id=2).first()
+                taux_change = taux.montant
 
-            payment = Payment.objects.create(
-                reservation=reservation,
-                vehicule=reservation.vehicule,  
-                modele=reservation.modele,  
-                zone=reservation.lieu_depart.zone,  
-                total_reduit_euro=float(reservation.total_reduit_euro),
-                montant=float(reste_payer),
-                montant_dzd=0,
-                montant_eur_dzd=float(reste_payer) * float(taux_change),
-                montant_dzd_eur=0,  
-                note="Complement effectué via Stripe",  
-                total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
-                ecart_eur=float(reservation.reste_payer) - float(reste_payer),
-                ecart_da=(float(reservation.reste_payer) - float(reste_payer)) * float(taux_change),
-                mode_paiement="carte", 
-                total_encaisse = float(reservation.montant_paye) + float(reste_payer),  
-            )
-            payment.save()
+                montant = float(reste_payer)/100
 
-            reservation.reste_payer -= float(reste_payer)
-            reservation.montant_paye += float(reste_payer)
-            reservation.total_revenue += float(reste_payer)
-            reservation.save()
+                payment = Payment.objects.create(
+                    reservation=reservation,
+                    vehicule=reservation.vehicule,  
+                    modele=reservation.modele,  
+                    zone=reservation.lieu_depart.zone,  
+                    total_reduit_euro=float(reservation.total_reduit_euro),
+                    montant=montant,
+                    montant_dzd=0,
+                    montant_eur_dzd=montant * float(taux_change),
+                    montant_dzd_eur=0,  
+                    note="Complement effectué via Stripe",  
+                    total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
+                    ecart_eur=float(reservation.reste_payer) - montant,
+                    ecart_da=(float(reservation.reste_payer) - montant) * float(taux_change),
+                    mode_paiement="carte", 
+                    total_encaisse = float(reservation.montant_paye) + montant,  
+                )
+                payment.save()
 
-            livraison = Livraison.objects.filter(reservation=reservation)
-            
-            for lv in livraison:
-                lv.total_reduit_euro -= float(reste_payer)
-                lv.save()
+                reservation.reste_payer -= montant
+                reservation.montant_paye += montant
+                reservation.total_revenue += montant
+                reservation.save()
+
+                livraison = Livraison.objects.filter(reservation=reservation)
+                
+                for lv in livraison:
+                    lv.total_reduit_euro -= montant
+                    lv.save()
 
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
