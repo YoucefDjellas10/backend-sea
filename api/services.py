@@ -1413,12 +1413,12 @@ def otp_verify(email, otp, client_id):
         
         otp_time += timedelta(hours=1)
 
-        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=7):
+        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=5):
             client.otp = None
             client.otp_created_at = None
             client.save()
             return {"success": True}
-        elif str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=7):
+        elif str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=5):
             client.otp = None
             client.otp_created_at = None
             client.save()
