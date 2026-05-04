@@ -4561,6 +4561,7 @@ def stripe_webhook_reservation_(request):
                 reservation.reste_payer -= montant
                 reservation.montant_paye += montant
                 reservation.total_revenue += montant
+                reservation.is_complement = True
                 reservation.save()
 
                 livraison = Livraison.objects.filter(reservation=reservation)
