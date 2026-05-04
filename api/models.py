@@ -993,6 +993,7 @@ class Reservation(models.Model):
     avis_tustpilot = models.CharField(max_length=10, choices=CHOICES)
     avis_tripadvisor = models.CharField(max_length=10, choices=CHOICES)
     update_category = models.CharField(max_length=10, choices=CHOICES)
+    is_complement = models.BooleanField(default=False)
 
     create_date = models.DateTimeField(default=datetime.now)
     etat_reservation = models.CharField(max_length=10, choices=ETAT_RESERVATION_CHOICES, default='reserve')
