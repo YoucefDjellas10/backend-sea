@@ -1192,6 +1192,13 @@ class Reservation(models.Model):
     
     confirmation_date = models.DateTimeField(null=True, blank=True)
     cancelation_date = models.DateTimeField(null=True, blank=True)
+    opt_klm_date = models.DateField()
+    opt_protection_date = models.DateField()
+    opt_plein_carburant_date = models.DateField()
+    opt_nd_driver_date = models.DateField()
+    opt_siege_a_date = models.DateField()
+    opt_siege_b_date = models.DateField()
+    opt_siege_c_date = models.DateField()
 
 
     class Meta:
