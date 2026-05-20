@@ -4632,6 +4632,7 @@ def create_caution_payment_link_permanent(request):
         
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
 @csrf_exempt
 @require_http_methods(["POST"])
 def refund_caution(request):
@@ -4717,7 +4718,7 @@ def refund_caution(request):
                 sujet,
                 strip_tags(html_message),
                 expediteur,
-                [gestion_caution.reservation.email],
+                ["youecf@safarelamir.com"],
                 html_message=html_message,
                 fail_silently=True,
             )
