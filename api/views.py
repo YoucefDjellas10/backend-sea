@@ -4641,6 +4641,7 @@ def refund_caution(request):
         caution_id = data.get("caution_id")
         montant_remboursement = data.get("montant_remboursement")
         raison = data.get("raison", "Remboursement de caution")
+        restitution_id = data.get("restitution_id")
 
         if not caution_id:
             return JsonResponse({"error": "Le champ 'caution_id' est requis"}, status=400)
@@ -4718,6 +4719,7 @@ def refund_caution(request):
                 'referance': gestion_caution.reservation.name,
                 'montant_rembourse': montant_remboursement,
                 'caution_totale': gestion_caution.caution,
+                'restitution_id': restitution_id,
                 'solde_restant': float(gestion_caution.caution) - total_rembourse,
                 'remboursement_total': total_rembourse >= float(gestion_caution.caution),
             })
