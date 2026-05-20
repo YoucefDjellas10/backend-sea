@@ -4653,7 +4653,7 @@ def refund_caution(request):
         except (ValueError, TypeError):
             return JsonResponse({"error": "Le montant doit être un nombre valide"}, status=400)
 
-        if montant_remboursement <= 0:
+        if montant_remboursement < 0:
             return JsonResponse({"error": "Le montant à rembourser doit être supérieur à 0"}, status=400)
 
         try:
@@ -4678,29 +4678,37 @@ def refund_caution(request):
         # --- Appel Stripe ---
         montant_centimes = int(montant_remboursement * 100)
 
-        try:
-            refund = stripe.Refund.create(
-                charge=gestion_caution.stripe_charge_id,
-                amount=montant_centimes,
-                reason="requested_by_customer",
-                metadata={
-                    "caution_id": str(caution_id),
-                    "raison": raison,
-                }
-            )
-        except stripe.error.StripeError as e:
-            return JsonResponse({"error": f"Erreur Stripe: {str(e)}"}, status=400)
-######################################################################################################################
-        # --- Mise à jour du record ---
+        if montant_centimes > 0:
+
+            try:
+                refund = stripe.Refund.create(
+                    charge=gestion_caution.stripe_charge_id,
+                    amount=montant_centimes,
+                    reason="requested_by_customer",
+                    metadata={
+                        "caution_id": str(caution_id),
+                        "raison": raison,
+                    }
+                )
+            except stripe.error.StripeError as e:
+                return JsonResponse({"error": f"Erreur Stripe: {str(e)}"}, status=400)
+
         total_rembourse = montant_deja_rembourse + montant_remboursement
 
         gestion_caution.stripe_refund_id = refund.id
         gestion_caution.montant_rembourse = total_rembourse
         gestion_caution.date_remboursement = timezone.now()
-        gestion_caution.status = 'rembourse' if total_rembourse >= float(gestion_caution.caution) else 'partiel_rembourse'
+        if total_rembourse == float(gestion_caution.caution):
+            gestion_caution.status = 'rembourse' 
+        elif total_rembourse > 0 and  total_rembourse < float(gestion_caution.caution) :
+            gestion_caution.status = 'partiel_rembourse'
+        elif total_rembourse == 0:
+            gestion_caution.status = 'pas_rembourse'
+
         gestion_caution.save()
 
-        # --- Envoi email ---
+        mail = None
+
         try:
             sujet = f"Remboursement de caution - Réservation N°{gestion_caution.reservation.name}"
             expediteur = settings.EMAIL_HOST_USER
@@ -4722,7 +4730,9 @@ def refund_caution(request):
                 html_message=html_message,
                 fail_silently=True,
             )
+            mail = "yes"
         except Exception as email_error:
+            mail = "no"
             print(f"⚠️ Erreur envoi email: {email_error}")
 
         # --- Réponse ---
@@ -4733,7 +4743,8 @@ def refund_caution(request):
             "total_rembourse": total_rembourse,
             "solde_restant": float(gestion_caution.caution) - total_rembourse,
             "status": gestion_caution.status,
-            "message": "Remboursement effectué avec succès"
+            "message": "Remboursement effectué avec succès",
+            "mail": mail
         }, status=200)
 
     except Exception as e:
