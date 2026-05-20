@@ -4715,7 +4715,7 @@ def refund_caution(request):
             expediteur = settings.EMAIL_HOST_USER
 
             html_message = render_to_string('email/caution_remboursee_email.html', {
-                'client': gestion_caution.reservation.client.nom,
+                'client': gestion_caution.reservation.client.name,
                 'referance': gestion_caution.reservation.name,
                 'montant_rembourse': montant_remboursement,
                 'caution_totale': gestion_caution.caution,
