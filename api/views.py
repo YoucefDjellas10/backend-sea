@@ -4728,7 +4728,7 @@ def refund_caution(request):
                 sujet,
                 strip_tags(html_message),
                 expediteur,
-                ["youcef@safarelamir.com"],
+                [gestion_caution.reservation.email],
                 html_message=html_message,
                 fail_silently=True,
             )
