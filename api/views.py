@@ -4713,15 +4713,18 @@ def refund_caution(request):
         try:
             sujet = f"Remboursement de caution - Réservation N°{gestion_caution.reservation.name}"
             expediteur = settings.EMAIL_HOST_USER
+            
+            solde_restant = float(gestion_caution.caution) - total_rembourse
+            remboursement_total = total_rembourse >= float(gestion_caution.caution)
 
             html_message = render_to_string('email/caution_remboursee_email.html', {
                 'client': gestion_caution.reservation.client.name,
                 'referance': gestion_caution.reservation.name,
-                'montant_rembourse': montant_remboursement,
+                'montant_rembourse':round(montant_remboursement, 2),
                 'caution_totale': gestion_caution.caution,
                 'restitution_id': restitution_id,
-                'solde_restant': float(gestion_caution.caution) - total_rembourse,
-                'remboursement_total': total_rembourse >= float(gestion_caution.caution),
+                'solde_restant': round(solde_restant, 2),
+                'remboursement_total': round(remboursement_total, 2),
             })
 
             send_mail(
