@@ -4676,7 +4676,6 @@ def refund_caution(request):
                 "error": f"Le montant demandé ({montant_remboursement}€) dépasse le solde restant à rembourser ({solde_restant}€)"
             }, status=400)
 
-        # --- Appel Stripe ---
         montant_centimes = int(montant_remboursement * 100)
 
         if montant_centimes > 0:
@@ -4713,7 +4712,7 @@ def refund_caution(request):
         try:
             sujet = f"Remboursement de caution - Réservation N°{gestion_caution.reservation.name}"
             expediteur = settings.EMAIL_HOST_USER
-            
+
             solde_restant = float(gestion_caution.caution) - total_rembourse
             remboursement_total = total_rembourse >= float(gestion_caution.caution)
 
@@ -4740,7 +4739,6 @@ def refund_caution(request):
             mail = "no"
             print(f"⚠️ Erreur envoi email: {email_error}")
 
-        # --- Réponse ---
         return JsonResponse({
             "success": True,
             "refund_id": refund.id,
