@@ -1124,7 +1124,7 @@ def ma_reservation_detail(ref, email, country_code):
             can_cancel = "no"
             can_midify = "no"
             can_modify_return = "no"
-        elif (ma_reservation.date_heure_debut).day < today:
+        elif (ma_reservation.date_heure_debut).day < date.today:
              can_cancel = "no"
              can_modify_return = "no"
              
