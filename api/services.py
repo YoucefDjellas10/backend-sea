@@ -1000,11 +1000,37 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 taux_change = taux.montant
 
                 print("!!!!!!!!!!!!!!!!!! total 55555555555555 : ",total)
+
+                old_total = float(get_total) * float(taux_change) if country_code == "DZ" else get_total
+                new_total = float(total) * float(taux_change) if country_code == "DZ" else total
                 
+                if record.opt_klm_name:
+                    current_klm_limit = 0 
+                elif not record.opt_klm_name and record.categorie_client.name == "VIP" :
+                    current_klm_limit = record.nbr_jour_reservation * 275
+                else: 
+                    current_klm_limit = record.nbr_jour_reservation * 250
+                
+                if record.opt_klm_name:
+                    new_klm_limit = 0 
+                elif not record.opt_klm_name and record.categorie_client.name == "VIP" :
+                    new_klm_limit = overlap_days * 275
+                else: 
+                    new_klm_limit = overlap_days * 250
+
                 result.append({
                     'is_available':"yes",
-                    'old_total': float(get_total) * float(taux_change) if country_code == "DZ" else get_total,
-                    'new_total':float(total) * float(taux_change) if country_code == "DZ" else total,
+                    "current_total_days": record.nbr_jour_reservation,
+                    "current_klm_limit": current_klm_limit,
+                    'new_total_days': overlap_days,
+                    "new_klm_limit": new_klm_limit,
+                    'diff_days': overlap_days - record.nbr_jour_reservation,
+                    "diff_klm_limit": new_klm_limit - new_klm_limit,
+                    'old_total': old_total,
+                    'new_total':new_total,
+                    'frais': new_total - old_total,
+                    'amount_paid':record.montant_paye,
+                    'remaining_to_pay': new_total - record.montant_paye,
                     "credit":credit,
                     "credit_amount": credit_amount
                 })
