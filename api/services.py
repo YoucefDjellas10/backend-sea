@@ -1025,7 +1025,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     'new_total_days': overlap_days,
                     "new_klm_limit": new_klm_limit,
                     'diff_days': overlap_days - record.nbr_jour_reservation,
-                    "diff_klm_limit": new_klm_limit - new_klm_limit,
+                    "diff_klm_limit": new_klm_limit - current_klm_limit,
                     'old_total': old_total,
                     'new_total':new_total,
                     'frais': new_total - old_total,
