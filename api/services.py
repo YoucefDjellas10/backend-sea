@@ -1026,7 +1026,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 if new_total < old_total:
                     if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
-                        refund_amount = (old_total - new_total) * 0.3
+                        refund_amount = (float(old_total) - float(new_total)) * 0.3
                         refund = "yes"
                     else:
                         refund = "no"
