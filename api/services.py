@@ -1016,7 +1016,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 else: 
                     new_klm_limit = overlap_days * 250
                 
-                if record.opt_payment_name and float(new_total) > float(old_total):
+                if record.opt_payment_name or float(new_total) <= float(old_total):
                     payment_required = "no"
                 else:
                     payment_required = "yes"
