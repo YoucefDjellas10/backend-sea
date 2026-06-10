@@ -1046,9 +1046,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     "diff_klm_limit": new_klm_limit - current_klm_limit,
                     'old_total': old_total,
                     'new_total':new_total,
-                    'frais': new_total - old_total,
+                    'frais': float(new_total) - float(old_total),
                     'amount_paid':record.montant_paye,
-                    'remaining_to_pay': new_total - record.montant_paye,
+                    'remaining_to_pay': float(new_total) - float(record.montant_paye),
                     "credit":credit,
                     "credit_amount": credit_amount
                 })
