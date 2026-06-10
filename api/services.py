@@ -1017,9 +1017,23 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     new_klm_limit = overlap_days * 275
                 else: 
                     new_klm_limit = overlap_days * 250
+                
+                if record.opt_payment_name:
+                    payment_required = "no"
+                else:
+                    payment_required = "yes"
+                
+                remaining_date = record.date_heure_debut.date - date.today()
+
+                if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
+                    refund = "yes"
+                else:
+                    refund = "no"
 
                 result.append({
                     'is_available':"yes",
+                    "payment_required": payment_required,
+                    "refund": refund,
                     "current_total_days": record.nbr_jour_reservation,
                     "current_klm_limit": current_klm_limit,
                     'new_total_days': overlap_days,
