@@ -1001,16 +1001,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 old_total = float(get_total) * float(taux_change) if country_code == "DZ" else get_total
                 new_total = float(total) * float(taux_change) if country_code == "DZ" else total
-                
-                if new_total < old_total:
-                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
-                        refund_amount = (float(old_total) - float(new_total)) * 0.3
-                        new_total = old_total - refund_amount
-                        refund = "yes"
-                    else:
-                        refund = "no"
-                        refund_amount = 0.0
-                        new_total = old_total
 
                 if record.opt_klm_name:
                     current_klm_limit = 0 
@@ -1032,6 +1022,16 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     payment_required = "yes"
                 
                 remaining_date = (record.date_heure_debut.date() - date.today()).days
+
+                if new_total < old_total:
+                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
+                        refund_amount = (float(old_total) - float(new_total)) * 0.3
+                        new_total = old_total - refund_amount
+                        refund = "yes"
+                    else:
+                        refund = "no"
+                        refund_amount = 0.0
+                        new_total = old_total
 
                 result.append({
                     'is_available':"yes",
