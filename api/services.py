@@ -1022,7 +1022,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 else:
                     payment_required = "yes"
                 
-                remaining_date = record.date_heure_debut.date() - date.today()
+                remaining_date = (record.date_heure_debut.date() - date.today()).days
 
                 if new_total < old_total:
                     if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
