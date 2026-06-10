@@ -994,6 +994,16 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     credit = "yes"
                     credit_amount = float(get_total) - float(total)
                 
+                if new_total < old_total:
+                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
+                        refund_amount = (float(old_total) - float(new_total)) * 0.3
+                        new_total = old_total - refund_amount
+                        refund = "yes"
+                    else:
+                        refund = "no"
+                        refund_amount = 0.0
+                        new_total = old_total
+                
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
@@ -1023,14 +1033,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     payment_required = "yes"
                 
                 remaining_date = (record.date_heure_debut.date() - date.today()).days
-
-                if new_total < old_total:
-                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
-                        refund_amount = (float(old_total) - float(new_total)) * 0.3
-                        refund = "yes"
-                    else:
-                        refund = "no"
-                        refund_amount = 0.0
 
                 result.append({
                     'is_available':"yes",
