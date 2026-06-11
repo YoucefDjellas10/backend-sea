@@ -1062,7 +1062,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         return result
 
     except Exception as e:
-        return {"message": f"Erreur: {str(e)}"}
+        import traceback
+        return {"message": f"Erreur: {str(e)}", "trace": traceback.format_exc()}
     
 def option_ma_reservation(ref, email, country_code):
     """
