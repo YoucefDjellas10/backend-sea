@@ -189,6 +189,8 @@ def checklist_mail_view(request):
         response = create_caution_payment_link_permanent(fake_request)
         response_data = json.loads(response.content)
         url = response_data.get("payment_url")
+ 
+        print("url : ", url)
 
         sujet = f"Checklist finale SAFAR EL AMIR - Bonjour { reservation.client.name } : Votre checklist finale — Bientôt là​ !"
         expediteur = settings.EMAIL_HOST_USER
@@ -221,17 +223,17 @@ def checklist_mail_view(request):
             'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
             'url': url,
         })
-        send_mail(
-            sujet,
-            strip_tags(html_message),  
-            expediteur,
-            [reservation.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
-        reservation.check_list = "oui"
-        reservation.save()
-        return JsonResponse({"message": "mail de relance envoyé."}, status=200)
+        #send_mail(
+        #    sujet,
+        #    strip_tags(html_message),  
+        #    expediteur,
+        #    [reservation.email],
+        #    html_message=html_message,
+        #    fail_silently=False,
+        #)
+        # reservation.check_list = "oui"
+        # reservation.save()
+        return JsonResponse({"message": "mail de relance envoyé.",  "url": url}, status=200)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
