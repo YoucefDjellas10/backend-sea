@@ -13,7 +13,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('BREVO_SMTP_USER')
 EMAIL_HOST_PASSWORD = config('BREVO_SMTP_KEY')
-DEFAULT_FROM_EMAIL = 'bendjillali.m@safarelamir.com'
+DEFAULT_FROM_EMAIL = 'reservation@safarelamir.com'
 ROOT_URLCONF = 'crud.urls'
 
 APPEND_SLASH = False
