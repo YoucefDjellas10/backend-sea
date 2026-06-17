@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,8 +13,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'no-replay@safarelamir.com'
-EMAIL_HOST_PASSWORD = 'zxcn yjjr eekz rhks'
+EMAIL_HOST_USER = config('BREVO_SMTP_USER')
+EMAIL_HOST_PASSWORD = config('BREVO_SMTP_KEY')
 DEFAULT_FROM_EMAIL = 'no-replay@safarelamir.com'
 ROOT_URLCONF = 'crud.urls'
 
