@@ -223,16 +223,16 @@ def checklist_mail_view(request):
             'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
             'url': url,
         })
-        #send_mail(
-        #    sujet,
-        #    strip_tags(html_message),  
-        #    expediteur,
-        #    [reservation.email],
-        #    html_message=html_message,
-        #    fail_silently=False,
-        #)
-        # reservation.check_list = "oui"
-        # reservation.save()
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        reservation.check_list = "oui"
+        reservation.save()
         return JsonResponse({"message": "mail de relance envoyé.",  "url": url}, status=200)
 
     except Exception as e:
