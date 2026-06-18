@@ -989,10 +989,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
                         total += Decimal(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else Decimal(record.opt_siege_c.prix)
                 credit = "no"
-                credit_amount = 0
+                credit_amount = 0.00
                 if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
                     credit = "yes"
-                    credit_amount = (float(get_total) - float(total))/2              
+                    credit_amount = (float(get_total) - float(total)) / 2.00              
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
