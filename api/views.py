@@ -57,7 +57,7 @@ def avis_tripadvisor_mail_view(request):
             )
         
         sujet = "Demande avis Tripadvisor"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
         html_message = render_to_string('email/demande_avis_tripadvisor_email.html', {
             'client_name':reservation.client.name,            
         })
@@ -94,7 +94,7 @@ def avis_trustpilot_mail_view(request):
             )
         
         sujet = "Demande avis Trustpilot"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
         html_message = render_to_string('email/demande_avis_trustpilote_email.html', {
             'client_name':reservation.client.name,            
         })
@@ -131,7 +131,7 @@ def avis_google_mail_view(request):
             )
         
         sujet = "Demande avis google"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
         html_message = render_to_string('email/demande_avis_google_email.html', {
             'client_name':reservation.client.name,
             'lien':reservation.zone.avis_google
@@ -193,7 +193,7 @@ def checklist_mail_view(request):
         print("url : ", url)
 
         sujet = f"Checklist finale SAFAR EL AMIR - Bonjour { reservation.client.name } : Votre checklist finale — Bientôt là​ !"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
         html_message = render_to_string('email/coming_soon_email.html', {
             'client_code':reservation.client.code_prime,
             'client_name':reservation.client.name,
@@ -244,7 +244,7 @@ def relance_mail_view(request):
 
         reservation = Reservation.objects.get(id=reservation_id)
         sujet = f"Besoin d'aide pour finaliser votre réservation ?"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
         html_message = render_to_string('email/mail_relance_email.html', {
             'client_code':reservation.client.code_prime,
             'client_name':reservation.client.name,
@@ -972,7 +972,7 @@ def confirme_reservation_view(request):
         ) 
         restitution.save()
         sujet = f"Confirmation de votre reservation N°= {reservation.name}"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
 
         html_message = render_to_string('email/confirmation_email.html', {
             "id":reservation.id,
@@ -1378,7 +1378,7 @@ def update_category_email_view(request):
             for attempt in range(max_retries):
                 try:
                     sujet = f"Mis à jours des point pour {client.name}"
-                    expediteur = settings.EMAIL_HOST_USER
+                    expediteur = settings.DEFAULT_FROM_EMAIL
                     html_message = render_to_string('email/update_driver_email.html', {
                         "clien_name" : client.name,
                         "points": client.total_points,
@@ -1408,7 +1408,7 @@ def update_category_email_view(request):
             for attempt in range(max_retries):
                 try:
                     sujet = f"Mis à jours des point pour {client.name}"
-                    expediteur = settings.EMAIL_HOST_USER
+                    expediteur = settings.DEFAULT_FROM_EMAIL
                     html_message = render_to_string('email/update_esssentiel_email.html', {
                         "clien_name" : client.name,
                         "points": client.total_points,
@@ -1438,7 +1438,7 @@ def update_category_email_view(request):
             for attempt in range(max_retries):
                 try:
                     sujet = f"Mis à jours des point pour {client.name}"
-                    expediteur = settings.EMAIL_HOST_USER
+                    expediteur = settings.DEFAULT_FROM_EMAIL
                     html_message = render_to_string('email/update_exellent_email.html', {
                         "clien_name" : client.name,
                         "points": client.total_points,
@@ -1468,7 +1468,7 @@ def update_category_email_view(request):
             for attempt in range(max_retries):
                 try:
                     sujet = f"Mis à jours des point pour {client.name}"
-                    expediteur = settings.EMAIL_HOST_USER
+                    expediteur = settings.DEFAULT_FROM_EMAIL
                     html_message = render_to_string('email/update_vip_email.html', {
                         "clien_name" : client.name,
                         "points": client.total_points,
@@ -1575,7 +1575,7 @@ def restitution_email_view(request):
         for attempt in range(max_retries):
             try:
                 sujet = f"Réstitution réussite N = {livraison.reservation.name}"
-                expediteur = settings.EMAIL_HOST_USER
+                expediteur = settings.DEFAULT_FROM_EMAIL
             
                 html_message = render_to_string('email/restitution_email.html', {
                     "ref":livraison.reservation.name,
@@ -1627,7 +1627,7 @@ def pick_up_mail_view(request):
         for attempt in range(max_retries):
             try:
                 sujet = f"Livraison réussite N = {livraison.reservation.name}"
-                expediteur = settings.EMAIL_HOST_USER
+                expediteur = settings.DEFAULT_FROM_EMAIL
                 html_message = render_to_string('email/livraison_email.html', {
                     "clien_name": livraison.client.name,
                     "photos_link": inspection_link,  # ✅ lien sécurisé
@@ -2018,7 +2018,7 @@ def unsubscribe_newsletter_view(request):
             for attempt in range(max_retries):
                 try:
                     sujet = f"Désabonnement newsletter"
-                    expediteur = settings.EMAIL_HOST_USER
+                    expediteur = settings.DEFAULT_FROM_EMAIL
                     html_message = render_to_string('email/newsletter_deconnection_email.html', {
                         "email": email
                     })
@@ -2056,7 +2056,7 @@ def create_news_letter(request):
                         email=email,
                     )
             sujet = f"Enregistrement newsletter"
-            expediteur = settings.EMAIL_HOST_USER
+            expediteur = settings.DEFAULT_FROM_EMAIL
 
             html_message = render_to_string('email/newsletter_email.html', {
                 "email":email
@@ -2075,7 +2075,7 @@ def create_news_letter(request):
             email_exist.subscribe = "oui"
             email_exist.save()
             sujet = f"Enregistrement newsletter"
-            expediteur = settings.EMAIL_HOST_USER
+            expediteur = settings.DEFAULT_FROM_EMAIL
 
             html_message = render_to_string('email/newsletter_email.html', {
                 "email":email
@@ -2803,7 +2803,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 reservation_obj.save()
 
                 sujet = f"Confirmation de votre reservation N°= {reservation_obj.name}"
-                expediteur = settings.EMAIL_HOST_USER
+                expediteur = settings.DEFAULT_FROM_EMAIL
 
                 html_message = render_to_string('email/confirmation_email.html', {
                     "id":reservation_obj.id,
@@ -4193,7 +4193,7 @@ def stripe_webhook_reservation_(request):
                 taux_change = taux.montant
 
                 sujet = f"Confirmation de votre reservation N°= {reservation.name}"
-                expediteur = settings.EMAIL_HOST_USER
+                expediteur = settings.DEFAULT_FROM_EMAIL
 
                 html_message = render_to_string('email/confirmation_email.html', {
                     "id":reservation.id,
@@ -4420,7 +4420,7 @@ def stripe_webhook_reservation_(request):
                 lv.total_reduit_euro = reservation.reste_payer if reservation.reste_payer else lv.total_reduit_euro
 
             sujet = f"Confirmation de votre reservation N°= {reservation.name}"
-            expediteur = settings.EMAIL_HOST_USER
+            expediteur = settings.DEFAULT_FROM_EMAIL
 
             html_message = render_to_string('email/confirmation_email.html', {
                 "id":reservation.id,
@@ -4504,7 +4504,7 @@ def stripe_webhook_reservation_(request):
 
                 try:
                     sujet = f"Caution encaissée - Réservation N°{reservation.name}"
-                    expediteur = settings.EMAIL_HOST_USER
+                    expediteur = settings.DEFAULT_FROM_EMAIL
 
                     html_message = render_to_string('email/deposit_confirmed_email.html', {
                         'client': reservation.client.name,
@@ -4713,7 +4713,7 @@ def refund_caution(request):
 
         try:
             sujet = f"Remboursement de caution - Réservation N°{gestion_caution.reservation.name}"
-            expediteur = settings.EMAIL_HOST_USER
+            expediteur = settings.DEFAULT_FROM_EMAIL
 
             solde_restant = float(gestion_caution.caution) - total_rembourse
             remboursement_total = total_rembourse >= float(gestion_caution.caution)
@@ -5189,7 +5189,7 @@ def cancel_do_view(request):
         reservation.save()
 
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
         
         html_message = render_to_string('email/annulation_email.html', {
             "referance":reservation.name,

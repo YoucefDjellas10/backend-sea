@@ -996,7 +996,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
-                
+
 
                 print("!!!!!!!!!!!!!!!!!! total 55555555555555 : ",total)
 
@@ -1387,7 +1387,7 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
         for attempt in range(max_retries):
             try:
                 sujet = f"enregistrement de compte & activation"
-                expediteur = settings.EMAIL_HOST_USER
+                expediteur = settings.DEFAULT_FROM_EMAIL
                 html_message = render_to_string('email/create_account.html', {
                     "nom": nom,
                     "prenom": prenom
@@ -1429,7 +1429,7 @@ def otp_send(email):
         client.save()
 
         sujet = f"Votre code OTP {otp_code}"
-        expediteur = settings.EMAIL_HOST_USER
+        expediteur = settings.DEFAULT_FROM_EMAIL
 
         html_message = render_to_string('email/otp_email.html', {
             'client': client.nom,
