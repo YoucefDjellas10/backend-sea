@@ -992,7 +992,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 credit_amount = 0
                 if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
                     credit = "yes"
-                    credit_amount = float(get_total) - float(total)              
+                    credit_amount = (float(get_total) - float(total))/2              
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
