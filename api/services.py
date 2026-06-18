@@ -1437,7 +1437,6 @@ def otp_send(email):
             'otp_code': otp_code,
         })
         try:
-
             send_mail(
                 sujet,
                 strip_tags(html_message),  
