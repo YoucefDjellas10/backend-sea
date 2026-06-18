@@ -731,76 +731,54 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         date_depart_heure += timedelta(hours=1)
         date_retour_heure += timedelta(hours=1)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
-
-        print(f"\n{'='*60}")
-        print(f"[ENTRY] ref={ref} | lieu_depart={lieu_depart} | lieu_retour={lieu_retour}")
-        print(f"[ENTRY] date_depart={date_depart} {heure_depart} | date_retour={date_retour} {heure_retour}")
-        print(f"[ENTRY] country_code={country_code}")
-        print(f"[ENTRY] lieu_depart_obj={lieu_depart_obj} | zone={getattr(lieu_depart_obj, 'zone', 'INTROUVABLE')}")
-        print(f"{'='*60}\n")
-
         total = 0
-
+        print("!!!!!!!!!!!!!!!!!! total : ",total)
+        print("ref :",ref)
+                
         ma_reservation = Reservation.objects.filter(name=ref)
-        print(f"[RESERVATION] count={ma_reservation.count()}")
         if not ma_reservation:
-            print("[RESERVATION] ❌ Aucune réservation trouvée → return")
             return {"message": "pas de reservation"}
-
         for record in ma_reservation:
-            print(f"\n[RECORD] id={record.id} | create_date={record.create_date} | etat={record.etat_reservation} | status={record.status}")
-
             if record.create_date < datetime(2025, 11, 2, 0, 0):
-                print(f"[RECORD] ❌ create_date trop ancienne ({record.create_date}) → can_be_modified=no")
-                result.append({'is_available': "no", 'can_be_midified': "no"})
+                result.append({
+                        'is_available': "no",
+                        'can_be_midified':"no",
+                    })
                 return result
 
             get_vehicule_id = record.vehicule.numero
-            vehicule = Vehicule.objects.get(numero=get_vehicule_id)
-            print(f"[VEHICULE] numero={get_vehicule_id} | vehicule={vehicule}")
-            if not vehicule:
-                print("[VEHICULE] ❌ Véhicule introuvable → return")
-                return {"message": "pas de vehicule"}
 
+            vehicule = Vehicule.objects.get(numero=get_vehicule_id)
+            if not vehicule:
+                return {"message": "pas de vehicule"}
             vehicle_reservations = Reservation.objects.filter(vehicule=vehicule)
-            print(f"[DISPO] {vehicle_reservations.count()} réservation(s) pour ce véhicule")
             client_id = record.client.id
             is_available = True
 
             for reservation in vehicle_reservations:
-                overlap = (date_depart_heure < reservation.date_heure_fin and
-                           date_retour_heure > reservation.date_heure_debut and
-                           ref != reservation.name and
-                           reservation.etat_reservation == "confirmee")
-                if overlap:
-                    print(f"[DISPO] ❌ Conflit avec réservation name={reservation.name} | {reservation.date_heure_debut} → {reservation.date_heure_fin}")
+
+                if (date_depart_heure < reservation.date_heure_fin and date_retour_heure > reservation.date_heure_debut and ref != reservation.name and reservation.etat_reservation == "confirmee"):
                     is_available = False
                     break
 
-            print(f"[DISPO] is_available={is_available}")
-
-            if is_available:
+            if is_available == True :
                 get_total = record.total_reduit_euro
                 get_options_total = record.options_total_reduit
                 get_status = record.status
                 get_reservation_satus = record.etat_reservation
-                print(f"[STATUS] status={get_status} | etat_reservation={get_reservation_satus} | total_reduit={get_total}")
-
                 if get_status != "confirmee":
-                    print(f"[STATUS] ❌ status != confirmee ({get_status}) → can_be_modified=no")
-                    result.append({'is_available': "no", 'can_be_midified': "no"})
+                    result.append({
+                        'is_available': "no",
+                        'can_be_midified':"no",
+                    })
                     return result
 
-                date_depart_parsed = datetime.strptime(date_depart, "%Y-%m-%d").date()
-                date_retour_parsed = datetime.strptime(date_retour, "%Y-%m-%d").date()
-                total_days = (date_retour_parsed - date_depart_parsed).days
-                today = datetime.today().date()
-                print(f"[DATES] date_depart={date_depart_parsed} | date_retour={date_retour_parsed} | total_days={total_days} | today={today}")
+                date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
+                date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
 
-                # Réassigner pour usage cohérent dans la suite
-                date_depart = date_depart_parsed
-                date_retour = date_retour_parsed
-
+                total_days = (date_retour - date_depart).days 
+                today = datetime.today().date()  
+                
                 promotions = Promotion.objects.filter(
                     debut_visibilite__lte=today,
                     fin_visibilite__gte=today,
@@ -808,83 +786,78 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     date_fin__gte=date_retour,
                     active_passive=True
                 ).first()
-                print(f"[PROMO] promotion trouvée={promotions}")
-
                 promotion_value = 0
-                percentage = 0
+                percentage = 0 
 
                 if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
                     promotion_value = promotions.reduction
                 elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-                    if reservation.zone in [promotions.zone_one, promotions.zone_two, promotions.zone_three]:
+                    if reservation.zone == promotions.zone_one or reservation.zone == promotions.zone_two or reservation.zone == promotions.zone_three :
                         promotion_value = promotions.reduction
-                elif promotions and (promotions.tout_modele in ["non", "aleatoire"]) and promotions.tout_zone == "oui":
-                    if record.modele in [promotions.model_one, promotions.model_two, promotions.model_three, promotions.model_four, promotions.model_five]:
+                    else :
+                        promotion_value = 0
+                elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
+                    if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
                         promotion_value = promotions.reduction
-                elif promotions and (promotions.tout_modele in ["non", "aleatoire"]) and promotions.tout_zone == "non":
-                    modeles_promo = [promotions.model_one, promotions.model_two, promotions.model_three, promotions.model_four, promotions.model_five]
-                    for zone_promo in [promotions.zone_one, promotions.zone_two, promotions.zone_three]:
-                        if reservation.zone == zone_promo:
-                            promotion_value = promotions.reduction if record.modele in modeles_promo else 0
-                            break
+                    else: 
+                        promotion_value = 0
 
-                print(f"[PROMO] promotion_value après promo={promotion_value}")
+                elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
+                    if reservation.zone == promotions.zone_one :
+                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                            promotion_value = promotions.reduction
+                        else: 
+                            promotion_value = 0
+                    elif reservation.zone == promotions.zone_two :
+                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                            promotion_value = promotions.reduction
+                        else: 
+                            promotion_value = 0
+                    elif reservation.zone == promotions.zone_three :
+                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
+                            promotion_value = promotions.reduction
+                        else: 
+                            promotion_value = 0
+                    else :
+                        promotion_value = 0
+                                    
+                if record.client :
+                    
+                    if record.client.reduction is not None and  record.client.reduction > 0:
+                        client_pr = record.client.reduction if record.client.reduction is not None else 0
 
-                client_pr = 0
-                if record.client:
-                    client_pr = record.client.reduction if (record.client.reduction is not None and record.client.reduction > 0) else 0
-                    print(f"[CLIENT] client_id={client_id} | reduction client={client_pr}")
+                    else:
+                        client_pr = 0
 
                 promotion_value = client_pr if client_pr > promotion_value else promotion_value
-                print(f"[PROMO] promotion_value finale (après client)={promotion_value}")
 
-                # ==================== DEBUG TARIFS ====================
-                print(f"\n[TARIFS] Recherche avec :")
-                print(f"  modele     = '{record.modele}'")
-                print(f"  zone       = '{lieu_depart_obj.zone}'")
-                print(f"  total_days = {total_days}")
-                print(f"  date_depart= {date_depart}")
-                print(f"  date_retour= {date_retour}")
+                print("##################  Parametres ##########################")
+                print("zone : ",lieu_depart_obj.zone)
+                print("modele : ",record.modele)
+                print("total_days : ",total_days)
+                print("date_depart : ",date_depart)
+                print("date_retour : ",date_retour)
 
-                t1 = Tarifs.objects.filter(modele=record.modele)
-                print(f"[TARIFS] [1] modele seul              → {t1.count()} résultat(s)")
-
-                t2 = t1.filter(zone=lieu_depart_obj.zone)
-                print(f"[TARIFS] [2] + zone                  → {t2.count()} résultat(s)")
-
-                t3 = t2.filter(nbr_de__lte=total_days, nbr_au__gte=total_days)
-                print(f"[TARIFS] [3] + nbr_de/nbr_au         → {t3.count()} résultat(s)")
-
-                t4 = t3.filter(
-                    Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                    Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                    Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                    Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
+                tarifs = Tarifs.objects.filter(
+                    Q(modele = record.modele)&
+                    Q(zone = lieu_depart_obj.zone)&
+                    Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
+                        Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
+                        Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
+                        Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
+                        Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
+                    )
                 )
-                print(f"[TARIFS] [4] + filtre dates           → {t4.count()} résultat(s)")
-
-                if t3.count() > 0 and t4.count() == 0:
-                    print("[TARIFS] ⚠️  Bloqué par le filtre dates. Voici les plages dispo en base :")
-                    for t in t3:
-                        print(f"  → nbr_de={t.nbr_de} nbr_au={t.nbr_au} | prix={t.prix}")
-                        print(f"     one  : {t.date_depart_one} → {t.date_fin_one}")
-                        print(f"     two  : {t.date_depart_two} → {t.date_fin_two}")
-                        print(f"     three: {t.date_depart_three} → {t.date_fin_three}")
-                        print(f"     four : {t.date_depart_four} → {t.date_fin_four}")
-
-                tarifs = t4
-                # ======================================================
-
                 if not tarifs:
-                    print("[TARIFS] ❌ Aucun tarif trouvé → is_available=no")
-                    result.append({'is_available': "no", 'can_be_midified': "no"})
-                    return result  # ← FIX : était return result.append(...) qui retournait None
-
+                    return result.append({
+                        'is_available': "no",
+                        'can_be_midified':"no",
+                    })
+                print("################## tarif",tarifs)
+                
                 for tarif in tarifs:
                     total = 0
                     prix_unitaire = 0
-                    overlap_days = 0
-                    print(f"\n[TARIF] id={tarif.id} | prix={tarif.prix}")
 
                     if tarif.date_depart_one and tarif.date_fin_one:
                         if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
@@ -895,7 +868,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
                                 total += Decimal(overlap_days * prix_unitaire)
-                                print(f"[TARIF] one → overlap_days={overlap_days} | prix_unitaire={prix_unitaire} | total={total}")
 
                     if tarif.date_depart_two and tarif.date_fin_two:
                         if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
@@ -906,7 +878,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
                                 total += Decimal(overlap_days * prix_unitaire)
-                                print(f"[TARIF] two → overlap_days={overlap_days} | prix_unitaire={prix_unitaire} | total={total}")
 
                     if tarif.date_depart_three and tarif.date_fin_three:
                         if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
@@ -917,7 +888,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
                                 total += Decimal(overlap_days * prix_unitaire)
-                                print(f"[TARIF] three → overlap_days={overlap_days} | prix_unitaire={prix_unitaire} | total={total}")
 
                     if tarif.date_depart_four and tarif.date_fin_four:
                         if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
@@ -925,33 +895,33 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             overlap_end = min(date_retour, tarif.date_fin_four)
                             overlap_days = (overlap_end - overlap_start).days
                             if overlap_days > 0:
+                                
                                 percentage = promotion_value * tarif.prix / 100
                                 prix_unitaire = tarif.prix - percentage
                                 total += Decimal(overlap_days * prix_unitaire)
-                                print(f"[TARIF] four → overlap_days={overlap_days} | prix_unitaire={prix_unitaire} | total={total}")
-
-                    print(f"[TARIF] total après jours = {total}")
-
+                    
+                    print("!!!!!!!!!!!!!!!!!! total 11111111111111 : ",total)
+                                        
                     frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
-                    print(f"[FRAIS_DOSSIER] trouvé={frais_dossier} | prix={getattr(frais_dossier, 'prix', 'N/A')}")
                     if frais_dossier:
                         total += Decimal(frais_dossier.prix)
-                    print(f"[TARIF] total après frais_dossier = {total}")
-
-                    frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
-                    print(f"[FRAIS_LIVRAISON] direct trouvé={frais_livraison.count()} | depart={lieu_depart} retour={lieu_retour}")
-                    if frais_livraison:
+                    
+                    print("!!!!!!!!!!!!!!!!!! total 22222222222 : ",total)
+                    
+                    frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour) 
+                    if frais_livraison :
                         for frais in frais_livraison:
                             total += Decimal(frais.montant)
-                            print(f"[FRAIS_LIVRAISON] + {frais.montant}")
-                    else:
+                    else :
                         trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-                        print(f"[FRAIS_LIVRAISON] Calcul chemin indirect sur {len(trajets)} trajet(s)")
-                        chemins_possibles = [(lieu_depart, 0, set())]
+                        chemins_possibles = [(lieu_depart, 0, set())] 
+
                         meilleur_cout = None
+
                         while chemins_possibles:
                             pos, cout, visites = chemins_possibles.pop()
                             visites = visites | {pos}
+
                             for t in trajets:
                                 if t['depart_id'] == pos and t['retour_id'] not in visites:
                                     nouveau_cout = cout + (t['montant'] or 0)
@@ -960,131 +930,105 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                             meilleur_cout = nouveau_cout
                                     else:
                                         chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
-                        print(f"[FRAIS_LIVRAISON] meilleur_cout indirect = {meilleur_cout}")
-                        total += Decimal((meilleur_cout or 0))
-                    print(f"[TARIF] total après livraison = {total}")
 
+                        total += Decimal((meilleur_cout or 0))
+                    
+                    print("!!!!!!!!!!!!!!!!!! total 33333333333333 : ",total)
+                    
                     supplements = Supplement.objects.filter(
                         Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
                         Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
                     )
-                    print(f"[SUPPLEMENT] heure → {supplements.count()} supplément(s)")
                     for supplement in supplements:
                         total += Decimal(supplement.montant) if supplement else 0
 
-                    supplements_valeur = Supplement.objects.filter(Q(valeur__gt=0))
-                    print(f"[SUPPLEMENT] valeur → {supplements_valeur.count()} supplément(s)")
-                    for supplement in supplements_valeur:
-                        start_hour = float(heure_depart[:2]) + float(heure_depart[3:]) / 60
-                        end_hour = float(heure_retour[:2]) + float(heure_retour[3:]) / 60
+                    supplements = Supplement.objects.filter(
+                        Q(valeur__gt=0)
+                    )
+                
+                    for supplement in supplements:
+
+                        start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
+                        end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
+
                         duration = end_hour - start_hour
+
                         if duration > supplement.reatrd:
-                            ajout = Decimal((prix_unitaire * supplement.valeur) / 100)
-                            total += ajout
-                            print(f"[SUPPLEMENT] valeur ajouté={ajout} (duration={duration} > retard={supplement.reatrd})")
+                            total += Decimal((prix_unitaire * supplement.valeur) / 100)
 
-                    print(f"[TARIF] total après suppléments = {total}")
+                print("!!!!!!!!!!!!!!!!!! total 44444444444 : ",total)
 
-                print(f"\n[OPTIONS] calcul options pour client_id={client_id}")
                 free_options = free_options_f(client_id)
-                print(f"[OPTIONS] free_options={free_options}")
                 if free_options:
-                    free_options = free_options[0]
-
-                if record.opt_payment_name:
-                    ajout = Decimal(record.opt_payment_total) if record.opt_payment_total else 0
-                    total += ajout
-                    print(f"[OPTIONS] opt_payment → +{ajout}")
+                    free_options = free_options[0]  
+                if record.opt_payment_name:  
+                    total += Decimal(record.opt_payment_total) if record.opt_payment_total else 0
 
                 if record.opt_klm:
                     if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
-                        ajout = Decimal(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else Decimal(record.opt_klm.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_klm → +{ajout}")
-
+                        total += Decimal(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else Decimal(record.opt_klm.prix)
                 if record.opt_protection:
                     if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
-                        ajout = Decimal(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else Decimal(record.opt_protection.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_protection → +{ajout}")
-
+                        total += Decimal(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else Decimal(record.opt_protection.prix)
                 if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
                     if not (free_options.get("option_three") and "MAX" in record.opt_protection.opt.option_code):
-                        ajout = Decimal(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else Decimal(record.opt_protection.opt.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_protection.opt → +{ajout}")
-
+                        total += Decimal(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else Decimal(record.opt_protection.opt.prix)
                 if record.opt_nd_driver:
                     if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
-                        ajout = Decimal(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else Decimal(record.opt_nd_driver.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_nd_driver → +{ajout}")
-
+                        total += Decimal(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else Decimal(record.opt_nd_driver.prix)
                 if record.opt_plein_carburant:
                     if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
-                        ajout = Decimal(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else Decimal(record.opt_plein_carburant.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_plein_carburant → +{ajout}")
-
+                        total += Decimal(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else Decimal(record.opt_plein_carburant.prix)
                 if record.opt_siege_a:
                     if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
-                        ajout = Decimal(record.opt_siege_a.prix) * total_days if record.opt_siege_a.type_tarif == "jour" else Decimal(record.opt_siege_a.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_siege_a → +{ajout}")
-
+                        total += Decimal(record.opt_siege_a.prix) * total_days if record.opt_siege_a.type_tarif == "jour" else Decimal(record.opt_siege_a.prix)
                 if record.opt_siege_b:
                     if not (free_options.get("option_four") and "S_BEBE_13" in record.opt_siege_b.option_code):
-                        ajout = Decimal(record.opt_siege_b.prix) * total_days if record.opt_siege_b.type_tarif == "jour" else Decimal(record.opt_siege_b.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_siege_b → +{ajout}")
-
+                        total += Decimal(record.opt_siege_b.prix) * total_days if record.opt_siege_b.type_tarif == "jour" else Decimal(record.opt_siege_b.prix)
                 if record.opt_siege_c:
                     if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
-                        ajout = Decimal(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else Decimal(record.opt_siege_c.prix)
-                        total += ajout
-                        print(f"[OPTIONS] opt_siege_c → +{ajout}")
-
-                print(f"\n[TOTAL FINAL] total={total} | get_total={get_total}")
-
+                        total += Decimal(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else Decimal(record.opt_siege_c.prix)
                 credit = "no"
                 credit_amount = 0.00
-                if float(get_total) > float(total) and (float(get_total) - float(total)) > 150:
+                if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
                     credit = "yes"
-                    credit_amount = (float(get_total) - float(total)) / 2.00
-                print(f"[CREDIT] credit={credit} | credit_amount={credit_amount}")
-
+                    credit_amount = (float(get_total) - float(total)) / 2.00              
+                
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
-                print(f"[TAUX] taux_change={taux_change} | country_code={country_code}")
+
+
+                print("!!!!!!!!!!!!!!!!!! total 55555555555555 : ",total)
 
                 old_total = float(get_total) * float(taux_change) if country_code == "DZ" else get_total
                 new_total = float(total) * float(taux_change) if country_code == "DZ" else total
-                print(f"[TOTAL] old_total={old_total} | new_total={new_total}")
 
                 if record.opt_klm_name:
-                    current_klm_limit = 0
-                elif record.categorie_client.name == "VIP":
+                    current_klm_limit = 0 
+                elif not record.opt_klm_name and record.categorie_client.name == "VIP" :
                     current_klm_limit = record.nbr_jour_reservation * 275
-                else:
+                else: 
                     current_klm_limit = record.nbr_jour_reservation * 250
-
+                
                 if record.opt_klm_name:
-                    new_klm_limit = 0
-                elif record.categorie_client.name == "VIP":
+                    new_klm_limit = 0 
+                elif not record.opt_klm_name and record.categorie_client.name == "VIP" :
                     new_klm_limit = overlap_days * 275
-                else:
+                else: 
                     new_klm_limit = overlap_days * 250
-
-                print(f"[KLM] current_klm_limit={current_klm_limit} | new_klm_limit={new_klm_limit}")
-
-                payment_required = "no" if (record.opt_payment_name or float(new_total) <= float(old_total)) else "yes"
+                
+                if record.opt_payment_name or float(new_total) <= float(old_total):
+                    payment_required = "no"
+                else:
+                    payment_required = "yes"
+                
                 remaining_date = (record.date_heure_debut.date() - date.today()).days
-                print(f"[PAYMENT] payment_required={payment_required} | remaining_date={remaining_date}")
-
+                
                 refund = "no"
                 refund_amount = 0.0
+
                 if new_total < old_total:
-                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14:
+                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
                         refund_amount = (float(old_total) - float(new_total)) * 0.3
                         new_total = float(old_total) - float(refund_amount)
                         refund = "yes"
@@ -1092,13 +1036,12 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         refund = "no"
                         refund_amount = 0.0
                         new_total = old_total
-                print(f"[REFUND] refund={refund} | refund_amount={refund_amount} | new_total final={new_total}")
 
                 result.append({
-                    'is_available': "yes",
+                    'is_available':"yes",
                     "payment_required": payment_required,
                     "refund": refund,
-                    "refund_amount": refund_amount,
+                    "refund_amount":refund_amount,
                     "current_total_days": record.nbr_jour_reservation,
                     "current_klm_limit": current_klm_limit,
                     'new_total_days': overlap_days,
@@ -1106,29 +1049,26 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     'diff_days': overlap_days - record.nbr_jour_reservation,
                     "diff_klm_limit": new_klm_limit - current_klm_limit,
                     'old_total': old_total,
-                    'new_total': new_total,
+                    'new_total':new_total,
                     'frais': float(new_total) - float(old_total),
-                    'amount_paid': record.montant_paye,
+                    'amount_paid':record.montant_paye,
                     'remaining_to_pay': float(new_total) - float(record.montant_paye),
-                    "credit": credit,
+                    "credit":credit,
                     "credit_amount": credit_amount
                 })
-                print(f"[RESULT] ✅ Résultat ajouté")
 
-            else:
-                print(f"[DISPO] ❌ Véhicule non disponible → is_available=no")
-                result.append({'is_available': "no", 'can_be_midified': "no"})
+            else :
+                result.append({
+                    'is_available': "no",
+                    'can_be_midified':"no",
+                })
                 return result
-
-        print(f"\n[END] result={result}")
         return result
 
     except Exception as e:
         import traceback
-        tb = traceback.format_exc()
-        print(f"[EXCEPTION] {str(e)}\n{tb}")
-        return {"message": f"Erreur: {str(e)}", "trace": tb}
-
+        return {"message": f"Erreur: {str(e)}", "trace": traceback.format_exc()}
+    
 def option_ma_reservation(ref, email, country_code):
     """
     Retourne un dict d'options indexées par slug, avec
