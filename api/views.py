@@ -6326,7 +6326,7 @@ def caution_receipt_download(request):
 
     context = {
         "ref": livraison.reservation.name,
-        "date_retour": livraison.reservation.date_heure_debut.date(),
+        "date_retour": livraison.reservation.date_heure_fin.date(),
         "caution": round(caution, 2),
         "montant_retenu": round(degradation, 2),
         "montant_remboursé": round(caution - degradation, 2),
