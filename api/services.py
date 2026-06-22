@@ -615,7 +615,7 @@ def mes_reservations(client_id,country_code):
                 "model_name": reservation.model_name,
                 "photo_link": reservation.photo_link,
                 "marketing_text_fr": reservation.marketing_text_fr,
-                "can_be_modified": can_be_modified,
+                "can_be_modified": "yes",
                 "type_caution":reservation.type_caution,
                 "date_depart_char": reservation.date_depart_char,
                 "date_retour_char": reservation.date_retour_char,
