@@ -2690,7 +2690,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     
 
-def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by):
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by, payment):
     try:
         verify_value = verify_and_calculate(
             ref,
@@ -2705,6 +2705,40 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         
         if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
             return {"success": "no"}
+        
+        if (verify_value[0].get('payment_required') and verify_value[0].get('payment_required') == "yes") or (payment == "yes"):
+            request_factory = RequestFactory()
+            fake_request = request_factory.post(
+                path="/create-payment-session-verify-calculate/",
+                data=json.dumps({
+                    "product_name": f"Réservation N° : {reservation_obj.name}",
+                    "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
+                    "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
+                    "unit_amount": int((float(new_total) - float(old_total)) * 100),
+                    "quantity": 1,
+                    "currency": "eur",
+                    "reservation_id": reservation_obj.id,
+                    "montant_paye":(float(new_total) - float(old_total)),
+                    "email": reservation_obj.email,
+                    "lieu_depart_id":lieu_depart,
+                    "lieu_retour_id":lieu_retour,
+                    "date_depart":date_depart,
+                    "heure_depart":heure_depart,
+                    "date_retour":date_retour,
+                    "heure_retour":heure_retour
+
+                }),
+                content_type="application/json"
+            )
+            payment_session_response = create_payment_session_verify_calculate(fake_request)
+            if payment_session_response.status_code == 200:
+                payment_session_data = json.loads(payment_session_response.content)
+                session_id = payment_session_data.get("session_id", "")
+                payment_url = payment_session_data.get("url", "")
+            else : 
+                session_id = "Lost"
+                payment_url = "Lost"
+                return {"success": "no" ,"session_id": session_id, "payment_url": payment_url}
     
         user = Users.objects.get(id=did_by)
 
@@ -3060,6 +3094,7 @@ def verify_and_do_view(request):
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
     backoffice = request.GET.get("backoffice")
+    payment = request.GET.get("payment")
     did_by = request.GET.get("did_by")
     if not did_by : 
         did_by = 52
@@ -3078,7 +3113,8 @@ def verify_and_do_view(request):
             date_retour = date_retour,
             heure_retour = heure_retour,
             backoffice = backoffice,
-            did_by = did_by
+            did_by = did_by,
+            payment = payment
         )
         
         if resultats.get('success') == "yes":
