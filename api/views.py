@@ -3061,6 +3061,8 @@ def verify_and_do_view(request):
     heure_retour = request.GET.get("heure_retour")
     backoffice = request.GET.get("backoffice")
     did_by = request.GET.get("did_by")
+    if not did_by : 
+        did_by = 52
     country_code = request.headers.get("X-Country-Code")
 
     if not date_retour or not date_depart or not lieu_depart or not lieu_retour or not heure_depart or not heure_retour:
