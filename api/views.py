@@ -2595,8 +2595,6 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
                 supplement_prix = 0
                 retard_prix = 0
 
-
-
                 if total > 0:
                     if tarif.date_depart_one and tarif.date_fin_one:
                         if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
@@ -2717,10 +2715,28 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
             date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d" if '-' in date_retour else "%d/%m/%Y").date()
             heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
+
             old_total = verify_value[0].get('old_total') 
             new_total = verify_value[0].get('new_total')
+            payment_required = verify_value[0].get('payment_required') 
+            refund = verify_value[0].get('refund')
+            refund_amount = verify_value[0].get('refund_amount')
+            current_total_days = verify_value[0].get('current_total_days')
+            current_klm_limit = verify_value[0].get('current_klm_limit')
+            new_total_days = verify_value[0].get('new_total_days')
+            new_klm_limit = verify_value[0].get('new_klm_limit')
+            diff_days = verify_value[0].get('diff_days')
+            diff_klm_limit = verify_value[0].get('diff_klm_limit')
+            frais = verify_value[0].get('frais')
+            amount_paid = verify_value[0].get('amount_paid')
+            remaining_to_pay = verify_value[0].get('remaining_to_pay')
+            credit = verify_value[0].get('credit')
             credit_amount = verify_value[0].get('credit_amount')
-            diff_prix = float(new_total) - float(old_total) if (float(new_total) - float(old_total)) >0 else 0
+
+            date_retour_befor = reservation_obj.date_depart_char
+            heure_retour_befor = reservation_obj.heure_retour_char
+
+            diff_prix = float(new_total) - float(old_total)
             session_id = None
             payment_url = None
             anciennes_dates = reservation_obj.du_au 
@@ -2729,248 +2745,366 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
             taux_change = TauxChange.objects.get(id=2)
             taux = taux_change.montant
+            if diff_prix < 0:
+                if refund == "yes":
+                    refund_obj = RefundTable.objects.create(
+                        reservation=reservation_obj,
+                        amount=refund_amount,
+                        status="en_attent",
+                        date= None,
+                        action_date = datetime.now(),
+                        note = "Changement des dates"
+                    )
+                    refund_obj.save()
 
-            if backoffice == "yes":
-                if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    nouvelle_date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                    lvs = Livraison.objects.filter(reservation=reservation_obj)
-                    cautions = GestionCaution.objects.filter(reservation=reservation_obj)
-                    if cautions: 
-                        for caution in cautions: 
-                            caution.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                            caution.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                            caution.save()
+                else:
+                    new_total = old_total
+                    diff_prix = 0
 
-                    if nouvelle_date_heure_fin > reservation_obj.date_heure_fin:
-                        prolongation_obj = Prolongation.objects.create(
-                            reservation=reservation_obj,
-                            date_heure_debut=datetime.combine(date_depart_obj, heure_depart_obj),
-                            date_heure_fin=datetime.combine(date_retour_obj, heure_retour_obj),
-                            lieu_depart=lieu_depart_obj,
-                            lieu_retour=lieu_retour_obj,
-                            total_prolongation= diff_prix,
-                            prix_prolongation_devise = diff_prix,
-                            date_du_au = anciennes_dates,
-                            date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
-                            date_prolongation = datetime.now(),
-                            effectuer_par = user if user else None 
-                        )
-                        prolongation_id = prolongation_obj.id
-                        reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else float(reservation_obj.total_prolone) + float(diff_prix)
-                        reservation_obj.total_reduit_euro = new_total
-                        reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
+            if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
+                nouvelle_date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                lvs = Livraison.objects.filter(reservation=reservation_obj)
 
-                    elif nouvelle_date_heure_fin < reservation_obj.date_heure_fin:
-                        retour_avance_obj = RetourAvance.objects.create(
-                            reservation=reservation_obj,
-                            lieu_depart=lieu_depart_obj,
-                            lieu_retour=lieu_retour_obj,
-                            prix_retour_avance= diff_prix,
-                            date_du_au = anciennes_dates,
-                            date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
-                            date_retour_avance = datetime.now(),
-                            effectuer_par = user if user else None
-                        )
-
-                        retour_avance_id = retour_avance_obj.id
-                        reservation_obj.total_reduit_euro = new_total
-                        reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
-                    reservation_obj.du_au_modifier = reservation_obj.du_au
-                    reservation_obj.du_au = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}"
-                    reservation_obj.date_depart_char = date_depart_obj
-                    reservation_obj.date_retour_char = date_retour_obj
-                    reservation_obj.heure_depart_char = heure_depart
-                    reservation_obj.heure_retour_char = heure_retour
-                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-
-                    for lv in lvs:
-                        lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                        lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                        lv.date_depart_char_lv = date_depart_obj
-                        lv.date_depart_char_lv = date_retour_obj
-                        lv.heure_depart_char_lv = heure_depart
-                        lv.heure_retour_char_lv = heure_retour
-                        lv.total_reduit_euro = diff_prix if not lv.total_reduit_euro else float(lv.total_reduit_euro) + float(diff_prix)
-                        lv.total_payer = diff_prix if not lv.total_payer else float(lv.total_payer) + float(diff_prix)
-                        lv.total_payer_dz = float(diff_prix) * float(taux) if not lv.total_payer_dz else (float(lv.total_payer_dz) + float(diff_prix)) * float(taux)
-                        lv.save()
-
-                if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
-                    reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
-                    reservation_obj.depart_retour = f"{lieu_depart_obj.name} → {lieu_retour_obj.name}"
-                    reservation_obj.lieu_depart = lieu_depart_obj
-                    reservation_obj.lieu_retour = lieu_retour_obj
-                reservation_obj.save()
-
-                sujet = f"Confirmation de votre reservation N°= {reservation_obj.name}"
-                expediteur = settings.DEFAULT_FROM_EMAIL
-
-                html_message = render_to_string('email/confirmation_email.html', {
-                    "id":reservation_obj.id,
-                    "referance":reservation_obj.name,
-                    "mobile_one":reservation_obj.lieu_depart.mobile,
-                    "adresse_one":reservation_obj.lieu_depart.address,
-                    "mobile_two":reservation_obj.lieu_retour.mobile,
-                    "adresse_two":reservation_obj.lieu_retour.address,
-                    'client': reservation_obj.client.nom,
-                    'client_prenom':reservation_obj.client.prenom,
-                    'durrée':reservation_obj.duree_dereservation,
-                    'model_name':reservation_obj.model_name,
-                    'reste_paye':reservation_obj.reste_payer,
-                    'caution':reservation_obj.opt_protection_caution,
-                    "date_depart_char" : reservation_obj.date_depart_char,
-                    "date_retour_char" : reservation_obj.date_retour_char,
-                    "heure_depart_char" : reservation_obj.heure_depart_char,
-                    "heure_retour_char" : reservation_obj.heure_retour_char,
-                    'date_depart':date_depart,
-                    'heure_depart':heure_depart,
-                    'date_retoure':date_retour,
-                    'haure_retour':heure_retour,
-                    'lieu_depart':reservation_obj.lieu_depart.name,
-                    'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
-                    'lieu_retour':reservation_obj.lieu_retour.name,
-                    'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
-
-                })
-
-                send_mail(
-                    sujet,
-                    strip_tags(html_message),  
-                    expediteur,
-                    [reservation_obj.email],
-                    html_message=html_message,
-                    fail_silently=False,
-                )
-                a = {"success": "yes" , 
-                    "prolongation_id": prolongation_id,
-                    "retour_avance_id":retour_avance_id, 
-                    "reservation":reservation_obj.id}
-                print("result : ",a)
-
-
-
-                return {"success": "yes" , 
-                        "prolongation_id": prolongation_id,
-                        "retour_avance_id":retour_avance_id, 
-                        "reservation":reservation_obj.id}
-                
-            if float(old_total) == float(new_total) or ((float(old_total) > float(new_total)) and (float(old_total) - float(new_total))<= 150):
-                if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
-                                                      f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
-                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
-                    reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
-                    reservation_obj.lieu_depart = lieu_depart_obj
-                    reservation_obj.lieu_retour = lieu_retour_obj
-                reservation_obj.save()
-
-            elif float(old_total) > float(new_total) and (float(old_total) - float(new_total)) > 150:
-                reservation_obj.client.solde += Decimal(float(old_total) - float(new_total))
-                reservation_obj.client.solde_total += (float(old_total) - float(new_total))
-                if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                    reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
-                                                      f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
-                    reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                    reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
-                    reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
-                    reservation_obj.lieu_depart = lieu_depart_obj
-                    reservation_obj.lieu_retour = lieu_retour_obj
-                reservation_obj.save()
-            elif float(old_total) < float(new_total):
-                if reservation_obj.opt_payment_name : 
-                    
-                    if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                        reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
-                                                        f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
-                        reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                        reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                    if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
-                        reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
-                        reservation_obj.lieu_depart = lieu_depart_obj
-                        reservation_obj.lieu_retour = lieu_retour_obj
-                    
+                if nouvelle_date_heure_fin > reservation_obj.date_heure_fin:
+                    prolongation_obj = Prolongation.objects.create(
+                        reservation=reservation_obj,
+                        date_heure_debut=datetime.combine(date_depart_obj, heure_depart_obj),
+                        date_heure_fin=datetime.combine(date_retour_obj, heure_retour_obj),
+                        lieu_depart=lieu_depart_obj,
+                        lieu_retour=lieu_retour_obj,
+                        total_prolongation= diff_prix,
+                        prix_prolongation_devise = diff_prix,
+                        date_du_au = anciennes_dates,
+                        date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
+                        date_prolongation = datetime.now(),
+                        effectuer_par = user if user else None 
+                    )
+                    prolongation_id = prolongation_obj.id
+                    reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else float(reservation_obj.total_prolone) + float(diff_prix)
                     reservation_obj.total_reduit_euro = new_total
-                    reservation_obj.reste_payer = float(old_total) - float(new_total)
-                    reservation_obj.save()
-                else :
+                    reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
+                    if date_depart_obj < datetime.now().date():
+                        sujet_prologation_after = "SAFAR EL AMIR - Prolongation confirmé"
+                        expediteur_prologation_after = settings.DEFAULT_FROM_EMAIL
+
+                        html_message_prologation_after = render_to_string('email/prolongation_accorde_email.html', {
+                            "client_name": reservation_obj.client.name,
+                            "ref": reservation_obj.name,
+                            "return_date": date_retour_obj,
+                            "heure_retour": date_retour,
+                            "pickup_date": date_depart_obj,
+                            "heure_pickup": date_depart,
+                            "date_retour_befor": date_retour_befor,
+                            "heure_retour_befor": heure_retour_befor,
+                            "pickup_place": reservation_obj.lieu_depart.name,
+                            "return_place": reservation_obj.lieu_retour.name,
+                            "current_total_days": current_total_days,
+                            "diff_days": diff_days,
+                            "new_total_days": new_total_days,
+                            "old_total": old_total,
+                            "new_total": frais,
+                            "new_total_last": new_total,
+                            "credit_amount":credit_amount,
+
+                        })
+
+                        send_mail(
+                            sujet_prologation_after,
+                            strip_tags(html_message_prologation_after),  
+                            expediteur_prologation_after,
+                            [reservation_obj.email],
+                            html_message=html_message_prologation_after,
+                            fail_silently=False,
+                        )
+                    else:
+                        sujet_update = f"SAFAR EL AMIR - Prolongation confirmé pour la réservation {reservation_obj.name}"
+                        expediteur_update = settings.DEFAULT_FROM_EMAIL
+
+                        html_message_update = render_to_string('email/update_reservation_befor_email.html', {
+                            "client_name": reservation_obj.client.name,
+                            "ref": reservation_obj.name,
+                            "return_date": date_retour_obj,
+                            "heure_retour": date_retour,
+                            "pickup_date": date_depart_obj,
+                            "heure_pickup": date_depart,
+                            "date_retour_befor": date_retour_befor,
+                            "heure_retour_befor": heure_retour_befor,
+                            "pickup_place": reservation_obj.lieu_depart.name,
+                            "address_pickup": reservation_obj.lieu_depart.address,
+                            "address_pickup_mobile": reservation_obj.lieu_depart.mobile,
+                            "pickup_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
+                            "return_place": reservation_obj.lieu_retour.name,
+                            "address_return":reservation_obj.lieu_retour.address,
+                            "address_return_mobile": reservation_obj.lieu_retour.mobile,
+                            "retur_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
+                            "current_total_days": current_total_days,
+                            "diff_days": diff_days,
+                            "new_total_days": new_total_days,
+                            "old_total": old_total,
+                            "new_total": frais,
+                            "new_total_last": new_total,
+                            "montant_payer": amount_paid,
+                            "credit_amount":credit_amount,
+                            "remaining_to_pay": remaining_to_pay,
+
+                        })
+
+                        send_mail(
+                            sujet_update,
+                            strip_tags(html_message_update),  
+                            expediteur_update,
+                            [reservation_obj.email],
+                            html_message=html_message_update,
+                            fail_silently=False,
+                        )
+
+
+                elif nouvelle_date_heure_fin <= reservation_obj.date_heure_fin:
+                    retour_avance_obj = RetourAvance.objects.create(
+                        reservation=reservation_obj,
+                        lieu_depart=lieu_depart_obj,
+                        lieu_retour=lieu_retour_obj,
+                        prix_retour_avance= diff_prix,
+                        date_du_au = anciennes_dates,
+                        date_du_au_new = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}",
+                        date_retour_avance = datetime.now(),
+                        effectuer_par = user if user else None
+                    )
+
+                    retour_avance_id = retour_avance_obj.id
+                    reservation_obj.total_reduit_euro = new_total
+                    reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
+
+                    if date_depart_obj < datetime.now().date() and credit != "yes":
+                        sujet_prologation_after = "SAFAR EL AMIR - Prolongation confirmé"
+                        expediteur_prologation_after = settings.DEFAULT_FROM_EMAIL
+
+                        html_message_prologation_after = render_to_string('email/prolongation_accorde_email.html', {
+                            "client_name": reservation_obj.client.name,
+                            "ref": reservation_obj.name,
+                            "return_date": date_retour_obj,
+                            "heure_retour": date_retour,
+                            "pickup_date": date_depart_obj,
+                            "heure_pickup": date_depart,
+                            "date_retour_befor": date_retour_befor,
+                            "heure_retour_befor": heure_retour_befor,
+                            "pickup_place": reservation_obj.lieu_depart.name,
+                            "return_place": reservation_obj.lieu_retour.name,
+                            "current_total_days": current_total_days,
+                            "diff_days": diff_days,
+                            "new_total_days": new_total_days,
+                            "old_total": old_total,
+                            "new_total": frais,
+                            "new_total_last": new_total,
+                            "credit_amount":credit_amount,
+
+                        })
+
+                        send_mail(
+                            sujet_prologation_after,
+                            strip_tags(html_message_prologation_after),  
+                            expediteur_prologation_after,
+                            [reservation_obj.email],
+                            html_message=html_message_prologation_after,
+                            fail_silently=False,
+                        )
+                    
+                    elif credit == "yes":
+                        reservation_obj.client.total_points += credit_amount
+                        sujet_credit = f"SAFAR EL AMIR - Retour anticipé confirmé pour la reservation {reservation_obj.name}"
+                        expediteur_credit = settings.DEFAULT_FROM_EMAIL
+
+                        html_message_credit = render_to_string('email/retour_avance_apres_email.html', {
+                            "client_name": reservation_obj.client.name,
+                            "ref": reservation_obj.name,
+                            "return_date": date_retour_obj,
+                            "heure_retour": date_retour,
+                            "pickup_date": date_depart_obj,
+                            "heure_pickup": date_depart,
+                            "date_retour_befor": date_retour_befor,
+                            "heure_retour_befor": heure_retour_befor,
+                            "pickup_place": reservation_obj.lieu_depart.name,
+                            "return_place": reservation_obj.lieu_retour.name,
+                            "current_total_days": current_total_days,
+                            "diff_days": diff_days,
+                            "old_total": old_total,
+                            "new_total": float(old_total) - float(new_total),
+                            "credit_amount":credit_amount,
+
+                        })
+
+                        send_mail(
+                            sujet_credit,
+                            strip_tags(html_message_credit),  
+                            expediteur_credit,
+                            [reservation_obj.email],
+                            html_message=html_message_credit,
+                            fail_silently=False,
+                        )
+
+                    else:
+                        sujet_update = f"SAFAR EL AMIR - Retour à l'avance confirmé pour la réservation {reservation_obj.name}"
+                        expediteur_update = settings.DEFAULT_FROM_EMAIL
+
+                        html_message_update = render_to_string('email/update_reservation_befor_email.html', {
+                            "client_name": reservation_obj.client.name,
+                            "ref": reservation_obj.name,
+                            "return_date": date_retour_obj,
+                            "heure_retour": date_retour,
+                            "pickup_date": date_depart_obj,
+                            "heure_pickup": date_depart,
+                            "date_retour_befor": date_retour_befor,
+                            "heure_retour_befor": heure_retour_befor,
+                            "pickup_place": reservation_obj.lieu_depart.name,
+                            "address_pickup": reservation_obj.lieu_depart.address,
+                            "address_pickup_mobile": reservation_obj.lieu_depart.mobile,
+                            "pickup_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
+                            "return_place": reservation_obj.lieu_retour.name,
+                            "address_return":reservation_obj.lieu_retour.address,
+                            "address_return_mobile": reservation_obj.lieu_retour.mobile,
+                            "retur_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
+                            "current_total_days": current_total_days,
+                            "diff_days": diff_days,
+                            "new_total_days": new_total_days,
+                            "old_total": old_total,
+                            "new_total": frais,
+                            "new_total_last": new_total,
+                            "montant_payer": amount_paid,
+                            "credit_amount":credit_amount,
+                            "remaining_to_pay": remaining_to_pay,
+
+                        })
+
+                        send_mail(
+                            sujet_update,
+                            strip_tags(html_message_update),  
+                            expediteur_update,
+                            [reservation_obj.email],
+                            html_message=html_message_update,
+                            fail_silently=False,
+                        )
+
+                reservation_obj.du_au_modifier = reservation_obj.du_au
+                reservation_obj.du_au = f"{date_depart_obj} {heure_depart} → {date_retour_obj} {heure_retour}"
+                reservation_obj.date_depart_char = date_depart_obj
+                reservation_obj.date_retour_char = date_retour_obj
+                reservation_obj.heure_depart_char = heure_depart
+                reservation_obj.heure_retour_char = heure_retour
+                reservation_obj.nbr_jour_reservation = new_total_days
+                reservation_obj.duree_dereservation = f"{new_total_days} jours"
+                reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+
+                for lv in lvs:
+                    lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                    lv.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                    lv.date_depart_char_lv = date_depart_obj
+                    lv.date_depart_char_lv = date_retour_obj
+                    lv.heure_depart_char_lv = heure_depart
+                    lv.heure_retour_char_lv = heure_retour
+                    lv.nbr_jour_reservation = new_total_days
+                    lv.total_reduit_euro = diff_prix if not lv.total_reduit_euro else float(lv.total_reduit_euro) + float(diff_prix)
+                    lv.total_payer = diff_prix if not lv.total_payer else float(lv.total_payer) + float(diff_prix)
+                    lv.total_payer_dz = float(diff_prix) * float(taux) if not lv.total_payer_dz else (float(lv.total_payer_dz) + float(diff_prix)) * float(taux)
+                    lv.save()
+
+                cautions = GestionCaution.objects.filter(reservation=reservation_obj)
+                if cautions: 
+                    for caution in cautions: 
+                        caution.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
+                        caution.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
+                        caution.save()
+
+                if payment_required == "yes" and remaining_to_pay > 0:
+                    print()
                     request_factory = RequestFactory()
                     fake_request = request_factory.post(
-                        path="/create-payment-session-verify-calculate/",
+                        path="/create-payment-session-reservation/",
                         data=json.dumps({
                             "product_name": f"Réservation N° : {reservation_obj.name}",
                             "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
                             "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
-                            "unit_amount": int((float(new_total) - float(old_total)) * 100),
+                            "unit_amount": int(float(remaining_to_pay) * 100),
                             "quantity": 1,
                             "currency": "eur",
                             "reservation_id": reservation_obj.id,
-                            "montant_paye":(float(new_total) - float(old_total)),
+                            "montant_total":float(new_total),
+                            "montant_paye":float(remaining_to_pay),
                             "email": reservation_obj.email,
-                            "lieu_depart_id":lieu_depart,
-                            "lieu_retour_id":lieu_retour,
-                            "date_depart":date_depart,
-                            "heure_depart":heure_depart,
-                            "date_retour":date_retour,
-                            "heure_retour":heure_retour
 
                         }),
                         content_type="application/json"
                     )
-                    payment_session_response = create_payment_session_verify_calculate(fake_request)
+                    payment_session_response = create_payment_session_reservation(fake_request)
                     if payment_session_response.status_code == 200:
                         payment_session_data = json.loads(payment_session_response.content)
                         session_id = payment_session_data.get("session_id", "")
                         payment_url = payment_session_data.get("url", "")
-                    else : 
-                        session_id = "Lost"
-                        payment_url = "Lost"
-                        return {"success": "no" ,"session_id": session_id, "payment_url": payment_url}
+                    
+            if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
+                reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
+                reservation_obj.depart_retour = f"{lieu_depart_obj.name} → {lieu_retour_obj.name}"
+                reservation_obj.lieu_depart = lieu_depart_obj
+                reservation_obj.lieu_retour = lieu_retour_obj
+            reservation_obj.save()
+
+            sujet = f"Confirmation de votre reservation N°= {reservation_obj.name}"
+            expediteur = settings.DEFAULT_FROM_EMAIL
+
+            html_message = render_to_string('email/confirmation_email.html', {
+                "id":reservation_obj.id,
+                "referance":reservation_obj.name,
+                "mobile_one":reservation_obj.lieu_depart.mobile,
+                "adresse_one":reservation_obj.lieu_depart.address,
+                "mobile_two":reservation_obj.lieu_retour.mobile,
+                "adresse_two":reservation_obj.lieu_retour.address,
+                'client': reservation_obj.client.nom,
+                'client_prenom':reservation_obj.client.prenom,
+                'durrée':reservation_obj.duree_dereservation,
+                'model_name':reservation_obj.model_name,
+                'reste_paye':reservation_obj.reste_payer,
+                'caution':reservation_obj.opt_protection_caution,
+                "date_depart_char" : reservation_obj.date_depart_char,
+                "date_retour_char" : reservation_obj.date_retour_char,
+                "heure_depart_char" : reservation_obj.heure_depart_char,
+                "heure_retour_char" : reservation_obj.heure_retour_char,
+                'date_depart':date_depart,
+                'heure_depart':heure_depart,
+                'date_retoure':date_retour,
+                'haure_retour':heure_retour,
+                'lieu_depart':reservation_obj.lieu_depart.name,
+                'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
+                'lieu_retour':reservation_obj.lieu_retour.name,
+                'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
+
+            })
+
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [reservation_obj.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            a = {"success": "yes" , 
+                "prolongation_id": prolongation_id,
+                "retour_avance_id":retour_avance_id, 
+                "reservation":reservation_obj.id}
+            print("result : ",a)
 
 
-            if (verify_value[0].get('payment_required') and verify_value[0].get('payment_required') == "yes") or (payment == "yes"):
-                request_factory = RequestFactory()
-                fake_request = request_factory.post(
-                    path="/create-payment-session-verify-calculate/",
-                    data=json.dumps({
-                        "product_name": f"Réservation N° : {reservation_obj.name}",
-                        "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
-                        "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
-                        "unit_amount": int((float(new_total) - float(old_total)) * 100),
-                        "quantity": 1,
-                        "currency": "eur",
-                        "reservation_id": reservation_obj.id,
-                        "montant_paye":(float(new_total) - float(old_total)),
-                        "email": reservation_obj.email,
-                        "lieu_depart_id":lieu_depart,
-                        "lieu_retour_id":lieu_retour,
-                        "date_depart":date_depart,
-                        "heure_depart":heure_depart,
-                        "date_retour":date_retour,
-                        "heure_retour":heure_retour
 
-                    }),
-                    content_type="application/json"
-                )
-                payment_session_response = create_payment_session_verify_calculate(fake_request)
-                if payment_session_response.status_code == 200:
-                    payment_session_data = json.loads(payment_session_response.content)
-                    session_id = payment_session_data.get("session_id", "")
-                    payment_url = payment_session_data.get("url", "")
-                else : 
-                    session_id = "Lost"
-                    payment_url = "Lost"
-                    return {"success": "no" ,"session_id": session_id, "payment_url": payment_url}
+            return {"success": "yes" , 
+                    "session_id": session_id, 
+                    "payment_url": payment_url,
+                    "prolongation_id": prolongation_id,
+                    "retour_avance_id":retour_avance_id, 
+                    "reservation":reservation_obj.id}
         
-            return {"success": "yes" ,"session_id": session_id, "payment_url": payment_url}
         else : 
             return JsonResponse({"success": "no"}, status=400)
 
-    except Exception as e:
-        return {"message": f"Erreur: {str(e)}"}
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 

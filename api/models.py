@@ -1627,7 +1627,7 @@ class RefundTable(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='en_attent', verbose_name='Statut')
     date = models.DateTimeField(verbose_name='Date')
     action_date = models.DateTimeField(verbose_name='Date')
-
+    note = models.TextField(string='Note')
 
     class Meta:
         db_table = 'refund_table'
