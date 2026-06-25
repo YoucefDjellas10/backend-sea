@@ -730,346 +730,327 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
         date_depart_heure += timedelta(hours=1)
         date_retour_heure += timedelta(hours=1)
+
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
-        total = 0
-        print("!!!!!!!!!!!!!!!!!! total : ",total)
-        print("ref :",ref)
-                
+
         ma_reservation = Reservation.objects.filter(name=ref)
         if not ma_reservation:
             return {"message": "pas de reservation"}
+
         for record in ma_reservation:
             if record.create_date < datetime(2025, 11, 2, 0, 0):
-                result.append({
-                        'is_available': "no",
-                        'can_be_midified':"no",
-                    })
+                result.append({'is_available': "no", 'can_be_midified': "no"})
                 return result
 
             get_vehicule_id = record.vehicule.numero
-
             vehicule = Vehicule.objects.get(numero=get_vehicule_id)
             if not vehicule:
                 return {"message": "pas de vehicule"}
+
             vehicle_reservations = Reservation.objects.filter(vehicule=vehicule)
             client_id = record.client.id
             is_available = True
 
             for reservation in vehicle_reservations:
-
-                if (date_depart_heure < reservation.date_heure_fin and date_retour_heure > reservation.date_heure_debut and ref != reservation.name and reservation.etat_reservation == "confirmee"):
+                if (date_depart_heure < reservation.date_heure_fin and
+                    date_retour_heure > reservation.date_heure_debut and
+                    ref != reservation.name and
+                    reservation.etat_reservation == "confirmee"):
                     is_available = False
                     break
 
-            if is_available == True :
-                get_total = record.total_reduit_euro
-                get_options_total = record.options_total_reduit
-                get_status = record.status
-                get_reservation_satus = record.etat_reservation
-                if get_status != "confirmee":
-                    result.append({
-                        'is_available': "no",
-                        'can_be_midified':"no",
-                    })
-                    return result
-
-                date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
-                date_retour = datetime.strptime(date_retour, "%Y-%m-%d").date()
-
-                total_days = (date_retour - date_depart).days 
-                today = datetime.today().date()  
-                
-                promotions = Promotion.objects.filter(
-                    debut_visibilite__lte=today,
-                    fin_visibilite__gte=today,
-                    date_debut__lte=date_depart,
-                    date_fin__gte=date_retour,
-                    active_passive=True
-                ).first()
-                promotion_value = 0
-                percentage = 0 
-
-                if promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
-                    promotion_value = promotions.reduction
-                elif promotions and promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-                    if reservation.zone == promotions.zone_one or reservation.zone == promotions.zone_two or reservation.zone == promotions.zone_three :
-                        promotion_value = promotions.reduction
-                    else :
-                        promotion_value = 0
-                elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
-                    if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
-                        promotion_value = promotions.reduction
-                    else: 
-                        promotion_value = 0
-
-                elif promotions and (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
-                    if reservation.zone == promotions.zone_one :
-                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
-                            promotion_value = promotions.reduction
-                        else: 
-                            promotion_value = 0
-                    elif reservation.zone == promotions.zone_two :
-                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
-                            promotion_value = promotions.reduction
-                        else: 
-                            promotion_value = 0
-                    elif reservation.zone == promotions.zone_three :
-                        if promotions.model_one == reservation.modele or promotions.model_two == reservation.modele or promotions.model_three == reservation.modele or promotions.model_four == reservation.modele or promotions.model_five == reservation.modele:
-                            promotion_value = promotions.reduction
-                        else: 
-                            promotion_value = 0
-                    else :
-                        promotion_value = 0
-                                    
-                if record.client :
-                    
-                    if record.client.reduction is not None and  record.client.reduction > 0:
-                        client_pr = record.client.reduction if record.client.reduction is not None else 0
-
-                    else:
-                        client_pr = 0
-
-                promotion_value = client_pr if client_pr > promotion_value else promotion_value
-
-                print("##################  Parametres ##########################")
-                print("zone : ",lieu_depart_obj.zone)
-                print("modele : ",record.modele)
-                print("total_days : ",total_days)
-                print("date_depart : ",date_depart)
-                print("date_retour : ",date_retour)
-
-                tarifs = Tarifs.objects.filter(
-                    Q(modele = record.modele)&
-                    Q(zone = lieu_depart_obj.zone)&
-                    Q(nbr_de__lte=total_days) & Q(nbr_au__gte=total_days) & (
-                        Q(date_depart_one__lte=date_depart, date_fin_one__gte=date_retour) |
-                        Q(date_depart_two__lte=date_depart, date_fin_two__gte=date_retour) |
-                        Q(date_depart_three__lte=date_depart, date_fin_three__gte=date_retour) |
-                        Q(date_depart_four__lte=date_depart, date_fin_four__gte=date_retour)
-                    )
-                )
-                if not tarifs:
-                    result.append({
-                        'is_available': "no",
-                        'can_be_midified':"no",
-                    })
-                    return result
-                print("################## tarif",tarifs)
-                
-                for tarif in tarifs:
-                    total = 0
-                    prix_unitaire = 0
-
-                    if tarif.date_depart_one and tarif.date_fin_one:
-                        if date_depart <= tarif.date_fin_one and date_retour >= tarif.date_depart_one:
-                            overlap_start = max(date_depart, tarif.date_depart_one)
-                            overlap_end = min(date_retour, tarif.date_fin_one)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                percentage = promotion_value * tarif.prix / 100
-                                prix_unitaire = tarif.prix - percentage
-                                total += Decimal(overlap_days * prix_unitaire)
-
-                    if tarif.date_depart_two and tarif.date_fin_two:
-                        if date_depart <= tarif.date_fin_two and date_retour >= tarif.date_depart_two:
-                            overlap_start = max(date_depart, tarif.date_depart_two)
-                            overlap_end = min(date_retour, tarif.date_fin_two)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                percentage = promotion_value * tarif.prix / 100
-                                prix_unitaire = tarif.prix - percentage
-                                total += Decimal(overlap_days * prix_unitaire)
-
-                    if tarif.date_depart_three and tarif.date_fin_three:
-                        if date_depart <= tarif.date_fin_three and date_retour >= tarif.date_depart_three:
-                            overlap_start = max(date_depart, tarif.date_depart_three)
-                            overlap_end = min(date_retour, tarif.date_fin_three)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                percentage = promotion_value * tarif.prix / 100
-                                prix_unitaire = tarif.prix - percentage
-                                total += Decimal(overlap_days * prix_unitaire)
-
-                    if tarif.date_depart_four and tarif.date_fin_four:
-                        if date_depart <= tarif.date_fin_four and date_retour >= tarif.date_depart_four:
-                            overlap_start = max(date_depart, tarif.date_depart_four)
-                            overlap_end = min(date_retour, tarif.date_fin_four)
-                            overlap_days = (overlap_end - overlap_start).days
-                            if overlap_days > 0:
-                                
-                                percentage = promotion_value * tarif.prix / 100
-                                prix_unitaire = tarif.prix - percentage
-                                total += Decimal(overlap_days * prix_unitaire)
-                    
-                    print("!!!!!!!!!!!!!!!!!! total 11111111111111 : ",total)
-                                        
-                    frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
-                    if frais_dossier:
-                        total += Decimal(frais_dossier.prix)
-                    
-                    print("!!!!!!!!!!!!!!!!!! total 22222222222 : ",total)
-                    
-                    frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour) 
-                    if frais_livraison :
-                        for frais in frais_livraison:
-                            total += Decimal(frais.montant)
-                    else :
-                        trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-                        chemins_possibles = [(lieu_depart, 0, set())] 
-
-                        meilleur_cout = None
-
-                        while chemins_possibles:
-                            pos, cout, visites = chemins_possibles.pop()
-                            visites = visites | {pos}
-
-                            for t in trajets:
-                                if t['depart_id'] == pos and t['retour_id'] not in visites:
-                                    nouveau_cout = cout + (t['montant'] or 0)
-                                    if t['retour_id'] == lieu_retour:
-                                        if meilleur_cout is None or nouveau_cout < meilleur_cout:
-                                            meilleur_cout = nouveau_cout
-                                    else:
-                                        chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
-
-                        total += Decimal((meilleur_cout or 0))
-                    
-                    print("!!!!!!!!!!!!!!!!!! total 33333333333333 : ",total)
-                    
-                    supplements = Supplement.objects.filter(
-                        Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
-                        Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
-                    )
-                    for supplement in supplements:
-                        total += Decimal(supplement.montant) if supplement else 0
-
-                    supplements = Supplement.objects.filter(
-                        Q(valeur__gt=0)
-                    )
-                
-                    for supplement in supplements:
-
-                        start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
-                        end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
-
-                        duration = end_hour - start_hour
-
-                        if duration > supplement.reatrd:
-                            total += Decimal((prix_unitaire * supplement.valeur) / 100)
-
-                print("!!!!!!!!!!!!!!!!!! total 44444444444 : ",total)
-
-                free_options = free_options_f(client_id)
-                if free_options:
-                    free_options = free_options[0]  
-                if record.opt_payment_name:  
-                    total += Decimal(record.opt_payment_total) if record.opt_payment_total else 0
-
-                if record.opt_klm:
-                    if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
-                        total += Decimal(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else Decimal(record.opt_klm.prix)
-                if record.opt_protection:
-                    if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
-                        total += Decimal(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else Decimal(record.opt_protection.prix)
-                if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
-                    if not (free_options.get("option_three") and "MAX" in record.opt_protection.opt.option_code):
-                        total += Decimal(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else Decimal(record.opt_protection.opt.prix)
-                if record.opt_nd_driver:
-                    if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
-                        total += Decimal(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else Decimal(record.opt_nd_driver.prix)
-                if record.opt_plein_carburant:
-                    if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
-                        total += Decimal(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else Decimal(record.opt_plein_carburant.prix)
-                if record.opt_siege_a:
-                    if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
-                        total += Decimal(record.opt_siege_a.prix) * total_days if record.opt_siege_a.type_tarif == "jour" else Decimal(record.opt_siege_a.prix)
-                if record.opt_siege_b:
-                    if not (free_options.get("option_four") and "S_BEBE_13" in record.opt_siege_b.option_code):
-                        total += Decimal(record.opt_siege_b.prix) * total_days if record.opt_siege_b.type_tarif == "jour" else Decimal(record.opt_siege_b.prix)
-                if record.opt_siege_c:
-                    if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
-                        total += Decimal(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else Decimal(record.opt_siege_c.prix)
-                credit = "no"
-                credit_amount = 0.00
-                if float(get_total) > float(total) and ( float(get_total) - float(total))>150: 
-                    credit = "yes"
-                    credit_amount = (float(get_total) - float(total)) / 2.00              
-                
-                taux = TauxChange.objects.filter(id=2).first()
-                taux_change = taux.montant
-
-
-                print("!!!!!!!!!!!!!!!!!! total 55555555555555 : ",total)
-
-                old_total = float(get_total) * float(taux_change) if country_code == "DZ" else get_total
-                new_total = float(total) * float(taux_change) if country_code == "DZ" else total
-
-                if record.opt_klm_name:
-                    current_klm_limit = 0 
-                elif not record.opt_klm_name and record.categorie_client.name == "VIP" :
-                    current_klm_limit = record.nbr_jour_reservation * 275
-                else: 
-                    current_klm_limit = record.nbr_jour_reservation * 250
-                
-                if record.opt_klm_name:
-                    new_klm_limit = 0 
-                elif not record.opt_klm_name and record.categorie_client.name == "VIP" :
-                    new_klm_limit = overlap_days * 275
-                else: 
-                    new_klm_limit = overlap_days * 250
-                
-                if record.opt_payment_name or float(new_total) <= float(old_total):
-                    payment_required = "no"
-                else:
-                    payment_required = "yes"
-                
-                remaining_date = (record.date_heure_debut.date() - date.today()).days
-                
-                refund = "no"
-                refund_amount = 0.0
-
-                if new_total < old_total:
-                    if not record.opt_payment_name and new_total < record.montant_paye and remaining_date > 14 :
-                        refund_amount = (float(old_total) - float(new_total)) * 0.3
-                        new_total = float(old_total) - float(refund_amount)
-                        refund = "yes"
-                    else:
-                        refund = "no"
-                        refund_amount = 0.0
-                        new_total = old_total
-
-                result.append({
-                    'is_available':"yes",
-                    "payment_required": payment_required,
-                    "refund": refund,
-                    "refund_amount":refund_amount,
-                    "current_total_days": record.nbr_jour_reservation,
-                    "current_klm_limit": current_klm_limit,
-                    'new_total_days': overlap_days,
-                    "new_klm_limit": new_klm_limit,
-                    'diff_days': overlap_days - record.nbr_jour_reservation,
-                    "diff_klm_limit": new_klm_limit - current_klm_limit,
-                    'old_total': old_total,
-                    'new_total':new_total,
-                    'frais': float(new_total) - float(old_total),
-                    'amount_paid':record.montant_paye,
-                    'remaining_to_pay': float(new_total) - float(record.montant_paye),
-                    "credit":credit,
-                    "credit_amount": credit_amount
-                })
-
-            else :
-                result.append({
-                    'is_available': "no",
-                    'can_be_midified':"no",
-                })
+            if not is_available:
+                result.append({'is_available': "no", 'can_be_midified': "no"})
                 return result
+
+            get_total = record.total_reduit_euro
+            get_status = record.status
+
+            if get_status != "confirmee":
+                result.append({'is_available': "no", 'can_be_midified': "no"})
+                return result
+
+            date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
+            date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
+            total_days = (date_retour_obj - date_depart_obj).days
+            today = datetime.today().date()
+
+            # ── Promotions (même logique que search_result_vehicule) ──────────
+            promotions = Promotion.objects.filter(
+                debut_visibilite__lte=today,
+                fin_visibilite__gte=today,
+                date_debut__lte=date_retour_obj,
+                date_fin__gte=date_depart_obj,
+                active_passive=True
+            ).first()
+
+            promotion_value = 0
+            model_one = model_two = model_three = model_four = model_five = None
+
+            if promotions:
+                debut_chevauchement = max(promotions.date_debut, date_depart_obj)
+                fin_chevauchement = min(promotions.date_fin, date_retour_obj)
+                jours_promo = (fin_chevauchement - debut_chevauchement).days
+                promotion_base = promotions.reduction
+
+                if jours_promo >= total_days:
+                    promotion_proportionnelle = promotion_base
+                elif total_days > 0:
+                    promotion_proportionnelle = (promotion_base * jours_promo) / total_days
+                else:
+                    promotion_proportionnelle = 0
+
+                if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
+                    promotion_value = promotion_proportionnelle
+
+                elif promotions.tout_modele == "oui" and promotions.tout_zone == "non":
+                    if lieu_depart_obj.zone in [promotions.zone_one, promotions.zone_two, promotions.zone_three]:
+                        promotion_value = promotion_proportionnelle
+
+                elif (promotions.tout_modele in ["non", "aleatoire"]) and promotions.tout_zone == "oui":
+                    promotion_value = promotion_proportionnelle
+                    model_one = promotions.model_one
+                    model_two = promotions.model_two
+                    model_three = promotions.model_three
+                    model_four = promotions.model_four
+                    model_five = promotions.model_five
+
+                elif (promotions.tout_modele in ["non", "aleatoire"]) and promotions.tout_zone == "non":
+                    if lieu_depart_obj.zone in [promotions.zone_one, promotions.zone_two, promotions.zone_three]:
+                        promotion_value = promotion_proportionnelle
+                        model_one = promotions.model_one
+                        model_two = promotions.model_two
+                        model_three = promotions.model_three
+                        model_four = promotions.model_four
+                        model_five = promotions.model_five
+
+            # ── Reduction client ──────────────────────────────────────────────
+            client_pr = 0
+            if record.client and record.client.reduction is not None and record.client.reduction > 0:
+                client_pr = record.client.reduction
+
+            # Promotion finale = max(client, promo globale)
+            # (la promo par modèle sera vérifiée après)
+            effective_promotion = client_pr if client_pr > promotion_value else promotion_value
+
+            # ── Tarifs périodiques avec chevauchement ────────────────────────
+            tarifs_periodiques = Tarifs.objects.filter(
+                modele=record.modele,
+                zone=lieu_depart_obj.zone,
+                nbr_de__lte=total_days,
+                nbr_au__gte=total_days,
+            ).filter(
+                Q(date_depart_one__lte=date_retour_obj, date_fin_one__gte=date_depart_obj) |
+                Q(date_depart_two__lte=date_retour_obj, date_fin_two__gte=date_depart_obj) |
+                Q(date_depart_three__lte=date_retour_obj, date_fin_three__gte=date_depart_obj) |
+                Q(date_depart_four__lte=date_retour_obj, date_fin_four__gte=date_depart_obj)
+            )
+
+            periodes_prix = []
+            for t in tarifs_periodiques:
+                for debut_field, fin_field in [
+                    ('date_depart_one', 'date_fin_one'),
+                    ('date_depart_two', 'date_fin_two'),
+                    ('date_depart_three', 'date_fin_three'),
+                    ('date_depart_four', 'date_fin_four'),
+                ]:
+                    debut = getattr(t, debut_field)
+                    fin = getattr(t, fin_field)
+                    if debut and fin and debut <= date_retour_obj and fin >= date_depart_obj:
+                        periodes_prix.append((debut, fin, t.prix))
+
+            if not periodes_prix:
+                result.append({'is_available': "no", 'can_be_midified': "no"})
+                return result
+
+            cout_total_tarif = 0
+            jours_couverts = 0
+
+            for debut, fin, prix in periodes_prix:
+                chevauchement_debut = max(debut, date_depart_obj)
+                chevauchement_fin = min(fin, date_retour_obj)
+                jours = (chevauchement_fin - chevauchement_debut).days
+                if jours > 0:
+                    jours_couverts += jours
+                    cout_total_tarif += jours * float(prix)
+
+            if jours_couverts == 0:
+                result.append({'is_available': "no", 'can_be_midified': "no"})
+                return result
+
+            prix_jour = cout_total_tarif / jours_couverts
+
+            # ── Appliquer promotion par modèle si nécessaire ─────────────────
+            modele_id = record.modele.id if record.modele else None
+            modeles_promo = [m.id for m in [model_one, model_two, model_three, model_four, model_five] if m is not None]
+
+            if promotions and promotions.tout_modele in ["non", "aleatoire"] and modele_id in modeles_promo:
+                effective_promotion = promotion_value
+            elif client_pr > promotion_value:
+                effective_promotion = client_pr
+            elif promotions and promotions.tout_modele == "oui":
+                effective_promotion = promotion_value
+
+            # ── Frais fixes ──────────────────────────────────────────────────
+            total_fixe = Decimal(0)
+
+            frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
+            if frais_dossier:
+                total_fixe += Decimal(frais_dossier.prix)
+
+            frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
+            if frais_livraison:
+                for frais in frais_livraison:
+                    total_fixe += Decimal(frais.montant)
+            else:
+                trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
+                chemins_possibles = [(lieu_depart, 0, set())]
+                meilleur_cout = None
+                while chemins_possibles:
+                    pos, cout, visites = chemins_possibles.pop()
+                    visites = visites | {pos}
+                    for t in trajets:
+                        if t['depart_id'] == pos and t['retour_id'] not in visites:
+                            nouveau_cout = cout + (t['montant'] or 0)
+                            if t['retour_id'] == lieu_retour:
+                                if meilleur_cout is None or nouveau_cout < meilleur_cout:
+                                    meilleur_cout = nouveau_cout
+                            else:
+                                chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+                total_fixe += Decimal(meilleur_cout or 0)
+
+            supplements = Supplement.objects.filter(
+                Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
+                Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
+            )
+            for supplement in supplements:
+                total_fixe += Decimal(supplement.montant)
+
+            supplements_valeur = Supplement.objects.filter(valeur__gt=0)
+            total_primary = float(total_fixe)
+            for supplement in supplements_valeur:
+                start_hour = float(heure_depart[:2]) + float(heure_depart[3:]) / 60
+                end_hour = float(heure_retour[:2]) + float(heure_retour[3:]) / 60
+                duration = end_hour - start_hour
+                if duration > supplement.reatrd:
+                    total_primary += (prix_jour * supplement.valeur) / 100
+
+            # ── Options de la réservation ─────────────────────────────────────
+            free_options = free_options_f(client_id)
+            if free_options:
+                free_options = free_options[0]
+            else:
+                free_options = {}
+
+            options_total = 0
+            if record.opt_payment_name:
+                options_total += float(record.opt_payment_total) if record.opt_payment_total else 0
+            if record.opt_klm:
+                if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
+                    options_total += float(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else float(record.opt_klm.prix)
+            if record.opt_protection:
+                if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
+                    options_total += float(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else float(record.opt_protection.prix)
+            if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
+                if not (free_options.get("option_three") and "MAX" in record.opt_protection.opt.option_code):
+                    options_total += float(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else float(record.opt_protection.opt.prix)
+            if record.opt_nd_driver:
+                if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
+                    options_total += float(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else float(record.opt_nd_driver.prix)
+            if record.opt_plein_carburant:
+                if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
+                    options_total += float(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else float(record.opt_plein_carburant.prix)
+            if record.opt_siege_a:
+                if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
+                    options_total += float(record.opt_siege_a.prix) * total_days if record.opt_siege_a.type_tarif == "jour" else float(record.opt_siege_a.prix)
+            if record.opt_siege_b:
+                if not (free_options.get("option_four") and "S_BEBE_13" in record.opt_siege_b.option_code):
+                    options_total += float(record.opt_siege_b.prix) * total_days if record.opt_siege_b.type_tarif == "jour" else float(record.opt_siege_b.prix)
+            if record.opt_siege_c:
+                if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
+                    options_total += float(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else float(record.opt_siege_c.prix)
+
+            # ── Total brut et réduit ──────────────────────────────────────────
+            total_brut = total_primary + cout_total_tarif + options_total
+
+            if effective_promotion > 0:
+                tarif_reduit = ((100 - effective_promotion) * prix_jour / 100) * total_days
+                total_new = total_primary + tarif_reduit + options_total
+            else:
+                total_new = total_brut
+
+            # ── Taux de change ────────────────────────────────────────────────
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = float(taux.montant)
+
+            old_total = float(get_total) * taux_change if country_code == "DZ" else float(get_total)
+            new_total = float(total_new) * taux_change if country_code == "DZ" else float(total_new)
+
+            # ── KLM limits ───────────────────────────────────────────────────
+            if record.opt_klm_name:
+                current_klm_limit = 0
+                new_klm_limit = 0
+            elif record.categorie_client and record.categorie_client.name == "VIP":
+                current_klm_limit = record.nbr_jour_reservation * 275
+                new_klm_limit = total_days * 275
+            else:
+                current_klm_limit = record.nbr_jour_reservation * 250
+                new_klm_limit = total_days * 250
+
+            # ── Credit ───────────────────────────────────────────────────────
+            credit = "no"
+            credit_amount = 0.0
+            if float(get_total) > float(total_new) and (float(get_total) - float(total_new)) > 150:
+                credit = "yes"
+                credit_amount = (float(get_total) - float(total_new)) / 2.0
+
+            # ── Payment required ──────────────────────────────────────────────
+            if record.opt_payment_name or new_total <= old_total:
+                payment_required = "no"
+            else:
+                payment_required = "yes"
+
+            # ── Refund ───────────────────────────────────────────────────────
+            remaining_date = (record.date_heure_debut.date() - date.today()).days
+            refund = "no"
+            refund_amount = 0.0
+
+            if new_total < old_total:
+                if not record.opt_payment_name and new_total < float(record.montant_paye) and remaining_date > 14:
+                    refund_amount = (old_total - new_total) * 0.3
+                    new_total = old_total - refund_amount
+                    refund = "yes"
+                else:
+                    new_total = old_total
+
+            frais = float(new_total) - float(old_total)
+
+            result.append({
+                'is_available': "yes",
+                "payment_required": payment_required,
+                "refund": refund,
+                "refund_amount": refund_amount,
+                "current_total_days": record.nbr_jour_reservation,
+                "current_klm_limit": current_klm_limit,
+                'new_total_days': total_days,
+                "new_klm_limit": new_klm_limit,
+                'diff_days': total_days - record.nbr_jour_reservation,
+                "diff_klm_limit": new_klm_limit - current_klm_limit,
+                'old_total': old_total,
+                'new_total': new_total,
+                'frais': frais,
+                'amount_paid': record.montant_paye,
+                'remaining_to_pay': new_total - float(record.montant_paye),
+                "credit": credit,
+                "credit_amount": credit_amount
+            })
+
         return result
 
     except Exception as e:
         import traceback
         return {"message": f"Erreur: {str(e)}", "trace": traceback.format_exc()}
-    
+     
 def option_ma_reservation(ref, email, country_code):
     """
     Retourne un dict d'options indexées par slug, avec
