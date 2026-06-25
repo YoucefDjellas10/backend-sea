@@ -3019,10 +3019,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     print()
                     request_factory = RequestFactory()
                     fake_request = request_factory.post(
-                        path="/create-payment-session-reservation/",
+                        path="/create-payment-session-verify-calculate/",
                         data=json.dumps({
-                            "product_name": f"Réservation N° : {reservation_obj.name}",
-                            "description": f"Réservation du {reservation_obj.model_name} du {date_depart} à {heure_depart} au {date_retour} à {heure_retour}",
+                            "product_name": f"Prolongation N° : {reservation_obj.name}",                           
+                            "description":f"Réservation du {reservation_obj.model_name} du : ( {date_depart} à {heure_depart} lieu de prise : {reservation_obj.lieu_depart.name})→({date_retour} à {heure_retour} lieu de retour : {reservation_obj.lieu_retour.name})",
                             "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule.modele.photo_link_pay else [],
                             "unit_amount": int(float(remaining_to_pay) * 100),
                             "quantity": 1,
@@ -3048,53 +3048,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 reservation_obj.lieu_retour = lieu_retour_obj
             reservation_obj.save()
 
-            sujet = f"Confirmation de votre reservation N°= {reservation_obj.name}"
-            expediteur = settings.DEFAULT_FROM_EMAIL
-
-            html_message = render_to_string('email/confirmation_email.html', {
-                "id":reservation_obj.id,
-                "referance":reservation_obj.name,
-                "mobile_one":reservation_obj.lieu_depart.mobile,
-                "adresse_one":reservation_obj.lieu_depart.address,
-                "mobile_two":reservation_obj.lieu_retour.mobile,
-                "adresse_two":reservation_obj.lieu_retour.address,
-                'client': reservation_obj.client.nom,
-                'client_prenom':reservation_obj.client.prenom,
-                'durrée':reservation_obj.duree_dereservation,
-                'model_name':reservation_obj.model_name,
-                'reste_paye':reservation_obj.reste_payer,
-                'caution':reservation_obj.opt_protection_caution,
-                "date_depart_char" : reservation_obj.date_depart_char,
-                "date_retour_char" : reservation_obj.date_retour_char,
-                "heure_depart_char" : reservation_obj.heure_depart_char,
-                "heure_retour_char" : reservation_obj.heure_retour_char,
-                'date_depart':date_depart,
-                'heure_depart':heure_depart,
-                'date_retoure':date_retour,
-                'haure_retour':heure_retour,
-                'lieu_depart':reservation_obj.lieu_depart.name,
-                'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
-                'lieu_retour':reservation_obj.lieu_retour.name,
-                'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
-
-            })
-
-            send_mail(
-                sujet,
-                strip_tags(html_message),  
-                expediteur,
-                [reservation_obj.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-            a = {"success": "yes" , 
-                "prolongation_id": prolongation_id,
-                "retour_avance_id":retour_avance_id, 
-                "reservation":reservation_obj.id}
-            print("result : ",a)
-
-
-
             return {"success": "yes" , 
                     "session_id": session_id, 
                     "payment_url": payment_url,
@@ -3103,10 +3056,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     "reservation":reservation_obj.id}
         
         else : 
-            return JsonResponse({"success": "no"}, status=400)
+            return JsonResponse({"success": "no", "status": "vehicule n'est pas disponible"}, status=400)
 
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
+    
 
 @csrf_exempt
 def create_payment_session_verify_calculate(request):
