@@ -2910,7 +2910,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         )
                     
                     elif credit == "yes":
-                        reservation_obj.client.total_points += credit_amount
+                        reservation_obj.client.solde += credit_amount
                         sujet_credit = f"SAFAR EL AMIR - Retour anticipé confirmé pour la reservation {reservation_obj.name}"
                         expediteur_credit = settings.DEFAULT_FROM_EMAIL
 
