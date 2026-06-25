@@ -849,10 +849,11 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     )
                 )
                 if not tarifs:
-                    return result.append({
+                    result.append({
                         'is_available': "no",
                         'can_be_midified':"no",
                     })
+                    return result
                 print("################## tarif",tarifs)
                 
                 for tarif in tarifs:
