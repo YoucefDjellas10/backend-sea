@@ -2022,8 +2022,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         if prime_code and not client_id:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
             if parent_client :
-                parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
-                prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
+                resa_client = Reservation.objects.filter(client=parent_client).first()
+                if resa_client:
+                    parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
+                    prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
+                else : 
+                    prime_red = 0
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id, lieu_depart_id, lieu_retour_id)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
@@ -2684,8 +2688,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         if prime_code and not client_id:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
             if parent_client :
-                parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
-                prime_red = parent_sold.parrain_solde
+                resa_client = Reservation.objects.filter(client=parent_client).first()
+                if resa_client:
+                    parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
+                    prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
+                else : 
+                    prime_red = 0
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id,  lieu_depart_id, lieu_retour_id)
 
