@@ -3299,6 +3299,7 @@ def add_reservation_post_view(request):
         nd_driver_id = data.get("nd_driver_id")
         num_vol = data.get("num_vol")
         token = data.get("token")
+        prime_code = data.get("prime_code")
         ccountry_code = request.META.get("HTTP_X_COUNTRY_CODE")
         pays_drapeau = country_code_to_emoji(ccountry_code)
 
@@ -3316,6 +3317,10 @@ def add_reservation_post_view(request):
         total_option = 0
         promo_value = 0
         client_solde = 0
+
+        prime_red = 0
+        parent_client = None
+        
 
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
 
@@ -4066,6 +4071,17 @@ def add_reservation_post_view(request):
 
         taux_change = TauxChange.objects.get(id=2)
         change = taux_change.montant
+
+        if prime_code and not client_id:
+            parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
+            if parent_client :
+                resa_client = Reservation.objects.filter(client=parent_client).first()
+                if resa_client:
+                    parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
+                    prime_red = float(parent_sold.parrain_solde) if parent_sold.parrain_solde is not None else 0
+                    last_total -= prime_red 
+                else : 
+                    prime_red = 0
         
         reservation = Reservation.objects.create(
             create_date=timezone.now(),
@@ -4178,6 +4194,8 @@ def add_reservation_post_view(request):
             avis_tustpilot = "non",
             avis_tripadvisor = "non",
             update_category = "non",
+            feuil_red = - prime_red,
+            parrain = parent_client,
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 

@@ -2691,7 +2691,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 resa_client = Reservation.objects.filter(client=parent_client).first()
                 if resa_client:
                     parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
-                    prime_red = float(parent_sold.parrain_solde) * taux_change if parent_sold.parrain_solde is not None else 0
+                    prime_red = float(parent_sold.parrain_solde) if parent_sold.parrain_solde is not None else 0
                 else : 
                     prime_red = 0
 

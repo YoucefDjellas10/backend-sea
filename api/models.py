@@ -996,6 +996,9 @@ class Reservation(models.Model):
     nbr_jour_reservation = models.IntegerField(editable=False)
     duree_dereservation = models.CharField(max_length=100, editable=False)
 
+    feuil_red = models.FloatField()
+    parrain = models.ForeignKey('ListeClient', on_delete=models.CASCADE,db_column='parrain', related_name='parrain_reservations')
+
     lieu_depart = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='lieu_depart', related_name='lieu_depart_reservations')
     zone = models.ForeignKey('Zone', on_delete=models.CASCADE,db_column='zone', related_name='zone_reservations', editable=False)
     lieu_retour = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='lieu_retour', related_name='lieu_retour_reservations')
