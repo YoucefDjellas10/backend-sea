@@ -517,18 +517,12 @@ class ListeClient(models.Model):
         """Calcule le champ `name` à partir des champs `civilite`, `nom` et `prenom`."""
         self.name = f"{self.civilite or ''} {self.nom} {self.prenom or ''}".strip()
 
-    def compute_code_prime(self):
-        year_suffix = str(datetime.now().year)[-2:]  
-        random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4)) 
-        self.code_prime = f"01{year_suffix}{random_part}"
-
     def compute_total_points_char(self):
         """Convertit les `total_points` en une chaîne de caractères."""
         self.total_points_char = f"{self.total_points} pts" if self.total_points is not None else ""
 
     def save(self, *args, **kwargs):
         self.compute_full_name()
-        self.compute_code_prime()
         self.compute_total_points_char()
         super().save(*args, **kwargs)
 

@@ -1349,6 +1349,9 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
         if client:
             return {"created": False, "message": "Le client existe déjà avec prénom et nom inversés."}
         category = CategorieClient.objects.filter(name="DRIVER").first()
+        year_suffix = str(datetime.now().year)[-2:]  
+        random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4)) 
+        code_prime = f"01{year_suffix}{random_part}"
         
         client_create = ListeClient.objects.create(
             email=email,
@@ -1362,7 +1365,8 @@ def create_account(email, nom, prenom, phone , birthday, permis_date):
             category_client_name=category.name,
             total_points_char="0 pts",
             total_points=0,
-            create_date=datetime.now()
+            create_date=datetime.now(),
+            code_prime = code_prime
         )
         client_create.save()
         max_retries = 3
