@@ -4076,7 +4076,8 @@ def add_reservation_post_view(request):
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
             if parent_client :
                 resa_client = Reservation.objects.filter(client=parent_client).first()
-                if resa_client:
+                client_resa = Reservation.objects.filter(client=client).first()
+                if resa_client and not client_resa:
                     parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                     prime_red = float(parent_sold.parrain_solde) if parent_sold.parrain_solde is not None else 0
                     last_total = float(last_total) - float(prime_red) 
