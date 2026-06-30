@@ -4072,7 +4072,7 @@ def add_reservation_post_view(request):
         taux_change = TauxChange.objects.get(id=2)
         change = taux_change.montant
 
-        if prime_code and not client_id:
+        if prime_code:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
             if parent_client :
                 resa_client = Reservation.objects.filter(client=parent_client).first()
