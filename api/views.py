@@ -44,21 +44,26 @@ def parrainage_email(request):
         reservation_id = request.GET.get("reservation_id")
         reservation = Reservation.objects.filter(id=reservation_id)
 
-        sujet = "Mise a jour parrainnage"
-        expediteur = settings.DEFAULT_FROM_EMAIL
-        html_message = render_to_string('email/update_parrainnage_email.html', {
-            'client_name':reservation.client.name,
-            'link':reservation.zone.avis_google           
-        })
-        send_mail(
-            sujet,
-            strip_tags(html_message),  
-            expediteur,
-            [reservation.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+        if reservation:
 
+            sujet = "Mise a jour parrainnage"
+            expediteur = settings.DEFAULT_FROM_EMAIL
+            html_message = render_to_string('email/update_parrainnage_email.html', {
+                'client_name':reservation.client.name,
+                'link':reservation.zone.avis_google           
+            })
+            send_mail(
+                sujet,
+                strip_tags(html_message),  
+                expediteur,
+                [reservation.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+
+            return JsonResponse({"message": "mail de parrainage envoyé."}, status=200)
+        else:
+            return JsonResponse({"message": "Reservation non trouver."}, status=400)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
