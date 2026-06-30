@@ -93,5 +93,6 @@ urlpatterns += [
     path("refund-caution/", refund_caution, name="refund_caution"),
     path("caution-receipt-download/", caution_receipt_download, name="caution_receipt_download"),
     path("cancel-receipt-download/", cancel_receipt_download, name="cancel_receipt_download"),
+    path("email-parrainage/", parrainage_email, name="parrainage_email"),
 
 ]

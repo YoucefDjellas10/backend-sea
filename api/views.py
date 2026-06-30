@@ -39,6 +39,31 @@ from .utils import verify_pickup_token
 
 logger = logging.getLogger(__name__)
 
+def parrainage_email(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+        reservation = Reservation.objects.filter(id=reservation_id)
+
+        sujet = "Mise a jour parrainnage"
+        expediteur = settings.DEFAULT_FROM_EMAIL
+        html_message = render_to_string('email/update_parrainnage_email.html', {
+            'client_name':reservation.client.name,
+            'link':reservation.zone.avis_google           
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 def avis_tripadvisor_mail_view(request):
     try:
         reservation_id = request.GET.get("reservation_id")
