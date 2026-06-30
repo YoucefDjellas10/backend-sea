@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 def parrainage_email(request):
     try:
         reservation_id = request.GET.get("reservation_id")
-        reservation = Reservation.objects.filter(id=reservation_id)
+        reservation = Reservation.objects.filter(id=reservation_id).first()
 
         if reservation:
 
