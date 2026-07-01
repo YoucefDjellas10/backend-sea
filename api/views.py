@@ -2812,6 +2812,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     prolongation_id = prolongation_obj.id
                     reservation_obj.total_prolone = diff_prix if not reservation_obj.total_prolone else float(reservation_obj.total_prolone) + float(diff_prix)
                     reservation_obj.total_reduit_euro = new_total
+                    reservation_obj.total_afficher = diff_prix if not lv.total_reduit_euro else float(lv.total_reduit_euro) + float(diff_prix)
                     reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
                     if date_depart_obj < datetime.now().date():
                         sujet_prologation_after = "SAFAR EL AMIR - Prolongation confirmé"
