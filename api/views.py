@@ -2847,7 +2847,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             fail_silently=False,
                         )
                     else:
-                        sujet_update = f"SAFARELAMIR - Reservation : {reservation_obj.name} - Confirmation de Mise à jour de votre réservation"
+                        sujet_update = f"SAFAR EL AMIR - Reservation : {reservation_obj.name} - Confirmation de Mise à jour de votre réservation"
                         expediteur_update = settings.DEFAULT_FROM_EMAIL
 
                         html_message_update = render_to_string('email/update_reservation_befor_email.html', {
@@ -2973,7 +2973,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         )
 
                     else:
-                        sujet_update = f"SAFARELAMIR - Reservation : {reservation_obj.name} - Confirmation de Mise à jour de votre réservation "
+                        sujet_update = f"SAFAR EL AMIR - Reservation : {reservation_obj.name} - Confirmation de Mise à jour de votre réservation "
                         expediteur_update = settings.DEFAULT_FROM_EMAIL
 
                         html_message_update = render_to_string('email/update_reservation_befor_email.html', {
