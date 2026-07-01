@@ -1197,7 +1197,7 @@ def ma_reservation_detail(ref, email, country_code):
                     'opt_klm_price': ma_reservation.opt_klm_price * taux_change if ma_reservation.opt_klm_price else 0,
                     'opt_klm_total': ma_reservation.opt_klm_total * taux_change if ma_reservation.opt_klm_total else 0,
                     'opt_protection': ma_reservation.opt_protection_name,
-                    'opt_protection_caution': ma_reservation.opt_protection_caution,
+                    'opt_protection_caution': ma_reservation.opt_protection_caution * taux_change if ma_reservation.opt_protection_caution else 0,
                     'opt_protection_price': ma_reservation.opt_protection_price * taux_change if ma_reservation.opt_protection_price else 0,
                     'opt_protection_total': ma_reservation.opt_protection_total * taux_change if ma_reservation.opt_protection_total else 0,
                     'opt_nd_driver': ma_reservation.opt_nd_driver_name,
