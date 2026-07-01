@@ -2360,7 +2360,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
-                    montant_code_prime = client_sold
+                    montant_code_prime = prime_red
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
