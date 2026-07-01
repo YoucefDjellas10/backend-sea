@@ -3137,8 +3137,8 @@ def create_payment_session_verify_calculate(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safarelamir.com/confirmation/{reservation_id}",
-            cancel_url="https://safarelamir.com/cancel",
+            success_url=f"https://safarelamir.com/",
+            cancel_url="https://safarelamir.com/",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
