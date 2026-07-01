@@ -1144,7 +1144,7 @@ def ma_reservation_detail(ref, email, country_code):
         date = ma_reservation.date_heure_debut.date()
         today = datetime.today().date()
         can_cancel = "yes" 
-        can_midify = "yes" if (date - today).days >= 1 else "no"
+        can_midify = "yes" if (date - today).days > 2 else "no"
         retour = ma_reservation.date_heure_fin.date()
         can_modify_return = "yes" if (retour - today).days >= 1 else "no"
         address = ma_reservation.lieu_depart.address
