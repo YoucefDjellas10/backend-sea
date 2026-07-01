@@ -998,15 +998,17 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 new_klm_limit = total_days * 250
 
             # ── Credit ───────────────────────────────────────────────────────
-            credit = "no"
-            credit_amount = 0.0
-            if float(get_total) > float(total_new) and (float(get_total) - float(total_new)) > 150:
-                credit = "yes"
-                credit_amount = (float(get_total) - float(total_new)) / 2.0
+            
             
             remaining_date = (record.date_heure_debut.date() - date.today()).days
             refund = "no"
             refund_amount = 0.0
+
+            credit = "no"
+            credit_amount = 0.0
+            if float(get_total) > float(total_new) and (float(get_total) - float(total_new)) > 150 and remaining_date < 0:
+                credit = "yes"
+                credit_amount = (float(get_total) - float(total_new)) / 2.0
 
             if remaining_date > 0:
                 payment_required = "no"
