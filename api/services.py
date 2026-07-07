@@ -898,25 +898,33 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             if frais_dossier:
                 total_fixe += Decimal(frais_dossier.prix)
 
-            frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
+            lieu_depart_int = int(lieu_depart)
+            lieu_retour_int = int(lieu_retour)
+
+            frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_int, retour_id=lieu_retour_int)
             if frais_livraison:
                 for frais in frais_livraison:
                     total_fixe += Decimal(frais.montant)
             else:
+                # cas indirect : on cherche un chemin via escales
                 trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-                chemins_possibles = [(lieu_depart, 0, set())]
+                chemins_possibles = [(lieu_depart_int, 0, set())]  # (position, total, lieux_visités)
+
                 meilleur_cout = None
+
                 while chemins_possibles:
                     pos, cout, visites = chemins_possibles.pop()
                     visites = visites | {pos}
+
                     for t in trajets:
                         if t['depart_id'] == pos and t['retour_id'] not in visites:
                             nouveau_cout = cout + (t['montant'] or 0)
-                            if t['retour_id'] == lieu_retour:
+                            if t['retour_id'] == lieu_retour_int:
                                 if meilleur_cout is None or nouveau_cout < meilleur_cout:
                                     meilleur_cout = nouveau_cout
                             else:
                                 chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+
                 total_fixe += Decimal(meilleur_cout or 0)
 
             supplements = Supplement.objects.filter(
