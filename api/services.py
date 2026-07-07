@@ -1170,14 +1170,59 @@ def ma_reservation_detail(ref, email, country_code):
         elif ma_reservation.date_heure_debut.date() < date.today():
             can_cancel = "no"
             can_modify_return = "no"
-             
         
+        modify_status = []
+        
+        add_options = False
+        add_protection = False
+        pickup_place = False
+        pickup_date = False
+        return_place = False
+        return_date = False
+        count_button = False
+        cancel_button = False
+
+        now = datetime.now()
+        if ma_reservation.date_heure_debut < now + timedelta(hours=49):
+            add_options = True
+            add_protection = True
+            pickup_date = True
+            return_place = True
+            return_date = True
+            count_button = True
+            cancel_button = True
+        elif ma_reservation.date_heure_debut > now + timedelta(hours=49) and  ma_reservation.date_heure_fin < now + timedelta(hours=13):
+            return_place = True
+            return_date = True
+            count_button = True
+        else:
+            add_options = False
+            add_protection = False
+            pickup_place = False
+            pickup_date = False
+            return_place = False
+            return_date = False
+            count_button = False
+            cancel_button = False
+        
+        modify_status.append({
+            "add_options": add_options,
+            "add_protection": add_protection,
+            "pickup_place": pickup_place,
+            "pickup_date": pickup_date,
+            "return_place": return_place,
+            "return_date": return_date,
+            "count_button": count_button,
+            "cancel_button": cancel_button
+        })
+
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
             if ma_reservation :
                 result.append({
                     "currency":"DA",
+                    "modify_status":modify_status,
                     'can_cancel': can_cancel,
                     "can_midify":can_midify,
                     "can_modify_return":can_modify_return,
