@@ -1307,6 +1307,7 @@ def ma_reservation_detail(ref, email, country_code):
             if ma_reservation :
                 result.append({
                     "currency":"EUR",
+                    "modify_status":modify_status,
                     'can_cancel': can_cancel,
                     "can_midify":can_midify,
                     "can_modify_return":can_modify_return,
