@@ -1183,7 +1183,7 @@ def ma_reservation_detail(ref, email, country_code):
         cancel_button = False
 
         now = datetime.now()
-        if ma_reservation.date_heure_debut < now + timedelta(hours=49):
+        if ma_reservation.date_heure_debut > now + timedelta(hours=49):
             add_options = True
             add_protection = True
             pickup_date = True
@@ -1191,7 +1191,7 @@ def ma_reservation_detail(ref, email, country_code):
             return_date = True
             count_button = True
             cancel_button = True
-        elif ma_reservation.date_heure_debut > now + timedelta(hours=49) and  ma_reservation.date_heure_fin < now + timedelta(hours=13):
+        elif ma_reservation.date_heure_debut <= now + timedelta(hours=49) and  ma_reservation.date_heure_fin > now + timedelta(hours=13):
             return_place = True
             return_date = True
             count_button = True
