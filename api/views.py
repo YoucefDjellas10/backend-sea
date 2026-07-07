@@ -248,9 +248,9 @@ def checklist_mail_view(request):
             'date_retoure':date_fin,
             'haure_retour':heure_fin,
             'lieu_depart':reservation.lieu_depart.name,
-            'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+            'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
             'lieu_retour':reservation.lieu_retour.name,
-            'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
+            'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
             'url': url,
         })
         send_mail(
@@ -1026,9 +1026,9 @@ def confirme_reservation_view(request):
             'date_retoure':reservation.date_retour_char,
             'haure_retour':reservation.heure_retour_char,
             'lieu_depart':reservation.lieu_depart.name,
-            'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+            'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
             'lieu_retour':reservation.lieu_retour.name,
-            'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
+            'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
 
         })
 
@@ -1149,7 +1149,7 @@ def combined_document_download(request):
     permis_contract = livraison.client.date_de_permis
     permit_date_contract = permis_contract.strftime("%B/%Y") if permis_contract else None 
 
-    signature_url = f"https://api.safarelamir.com/signature/{livraison.id}/"
+    signature_url = f"{settings.API_BASE_URL}/signature/{livraison.id}/"
 
     contract_context = {
         "REF": reservation.name,
@@ -1612,7 +1612,7 @@ def restitution_email_view(request):
                     "clien_name" : livraison.client.name,
                     "reviews": review if review else "yes",
                     "reviews_link" : reviews_link,
-                    "reciept_link":f"https://api.safarelamir.com/caution-receipt-download/?livraison_id={livraison_id}"
+                    "reciept_link":f"{settings.API_BASE_URL}m/caution-receipt-download/?livraison_id={livraison_id}"
                     
                 })
                 
@@ -1651,7 +1651,7 @@ def pick_up_mail_view(request):
 
         # ✅ Génère le token sécurisé ici directement
         token = generate_pickup_token(livraison_id)
-        inspection_link = f"https://api.safarelamir.com/inspection-report/?token={token}"
+        inspection_link = f"{settings.API_BASE_URL}/inspection-report/?token={token}"
 
         max_retries = 3
         for attempt in range(max_retries):
@@ -1661,7 +1661,7 @@ def pick_up_mail_view(request):
                 html_message = render_to_string('email/livraison_email.html', {
                     "clien_name": livraison.client.name,
                     "photos_link": inspection_link,  # ✅ lien sécurisé
-                    "contract_link": f"https://api.safarelamir.com/contract-download/?livraison_id={livraison_id}"
+                    "contract_link": f"{settings.API_BASE_URL}/contract-download/?livraison_id={livraison_id}"
                 })
                 
                 send_mail(
@@ -1750,7 +1750,7 @@ def contract_download_(request):
         nd_client_name = " "
         permi_desc = " "
        
-    signature_url = f"https://api.safarelamir.com/signature/{livraison_id}/"
+    signature_url = f"{settings.API_BASE_URL}/signature/{livraison_id}/"
 
     
     context = {
@@ -1839,7 +1839,7 @@ def get_signature_by_id(request, livraison_id):
     
 def generate_pickup_token_view(request, livraison_id):
     token = generate_pickup_token(livraison_id)
-    link = f"https://api.safarelamir.com/inspection-report/?token={token}"
+    link = f"{settings.API_BASE_URL}/inspection-report/?token={token}"
     return JsonResponse({
         'token': token,
         'link': link
@@ -1869,7 +1869,7 @@ def success_pick_up_view(request):
 
         photos_list = []
         for i, p in enumerate(photos, start=1):
-            url = f'https://api.safarelamir.com/livraison/{livraison.id}/photo/{p.ir_attachment_id}/'
+            url = f'{settings.API_BASE_URL}/livraison/{livraison.id}/photo/{p.ir_attachment_id}/'
             photos_list.append({
                 "number": i,
                 "label": f"Photo {i}",
@@ -2295,8 +2295,8 @@ def create_payment_session_protection(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safarelamir.com/confirmation?id={reservation_id}",
-            cancel_url="https://safarelamir.com/cancel",
+            success_url= f"{settings.SITE_BASE_URL}/confirmation?id={reservation_id}",
+            cancel_url=f"{settings.SITE_BASE_URL}/cancel",
             metadata={
                 "reservation_id": str(reservation_id),
                 "to_pay": str(to_pay), 
@@ -2863,11 +2863,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             "pickup_place": reservation_obj.lieu_depart.name,
                             "address_pickup": reservation_obj.lieu_depart.address,
                             "address_pickup_mobile": reservation_obj.lieu_depart.mobile,
-                            "pickup_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
+                            "pickup_address_url":f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
                             "return_place": reservation_obj.lieu_retour.name,
                             "address_return":reservation_obj.lieu_retour.address,
                             "address_return_mobile": reservation_obj.lieu_retour.mobile,
-                            "retur_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
+                            "retur_address_url":f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
                             "current_total_days": current_total_days,
                             "diff_days": diff_days,
                             "new_total_days": new_total_days,
@@ -2989,11 +2989,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             "pickup_place": reservation_obj.lieu_depart.name,
                             "address_pickup": reservation_obj.lieu_depart.address,
                             "address_pickup_mobile": reservation_obj.lieu_depart.mobile,
-                            "pickup_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
+                            "pickup_address_url":f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation_obj.lieu_depart.id}",
                             "return_place": reservation_obj.lieu_retour.name,
                             "address_return":reservation_obj.lieu_retour.address,
                             "address_return_mobile": reservation_obj.lieu_retour.mobile,
-                            "retur_address_url":f"https://api.safarelamir.com/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
+                            "retur_address_url":f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation_obj.lieu_retour.id}",
                             "current_total_days": current_total_days,
                             "diff_days": diff_days,
                             "new_total_days": new_total_days,
@@ -3138,8 +3138,8 @@ def create_payment_session_verify_calculate(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safarelamir.com/",
-            cancel_url="https://safarelamir.com/",
+            success_url=f"{settings.SITE_BASE_URL}/",
+            cancel_url=f"{settings.SITE_BASE_URL}/",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
@@ -4308,8 +4308,8 @@ def create_payment_session_reservation(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safarelamir.com/confirmation/{reservation_id}?token={token}",
-            cancel_url="https://safarelamir.com/cancel",
+            success_url=f"{settings.SITE_BASE_URL}/confirmation/{reservation_id}?token={token}",
+            cancel_url=f"{settings.SITE_BASE_URL}/cancel",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
@@ -4397,9 +4397,9 @@ def stripe_webhook_reservation_(request):
                     'date_retoure':date_fin,
                     'haure_retour':heure_fin,
                     'lieu_depart':reservation.lieu_depart.name,
-                    'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+                    'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
-                    'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
+                    'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
 
                 })
 
@@ -4624,9 +4624,9 @@ def stripe_webhook_reservation_(request):
                 'date_retoure':date_fin,
                 'haure_retour':heure_fin,
                 'lieu_depart':reservation.lieu_depart.name,
-                'lieu_depart_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_depart.id}",
+                'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
-                'lieu_retour_id':f"https://api.safarelamir.com/location-description/?lieu_id={reservation.lieu_retour.id}",
+                'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
 
             })
 
@@ -4800,7 +4800,7 @@ def create_caution_payment_link_permanent(request):
             after_completion={
                 "type": "redirect",
                 "redirect": {
-                    "url": "https://safarelamir.com/"
+                    "url": f"{settings.SITE_BASE_URL}/"
                 }
             }
         )
@@ -5015,8 +5015,8 @@ def create_payment_session(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safarelamir.com/confirmation?id={reservation_id}",
-            cancel_url="https://safarelamir.com/cancel",
+            success_url= f"{settings.SITE_BASE_URL}/confirmation?id={reservation_id}",
+            cancel_url=f"{settings.SITE_BASE_URL}/cancel",
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -5252,8 +5252,8 @@ def create_payment_session_option(request):
                 },
             ],
             mode="payment",
-            success_url= f"https://safarelamir.com/confirmation?id={reservation_id}",
-            cancel_url="https://safarelamir.com/cancel",
+            success_url= f"{settings.SITE_BASE_URL}/confirmation?id={reservation_id}",
+            cancel_url=f"{settings.SITE_BASE_URL}/cancel",
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -5375,7 +5375,7 @@ def cancel_do_view(request):
             "referance":reservation.name,
             "annuler_raison":reservation.annuler_raison.name,
             "client":reservation.client.name,
-            "receipt_url":f"https://api.safarelamir.com/cancel-receipt-download/?reservation_id={reservation.id}"
+            "receipt_url":f"{settings.API_BASE_URL}/cancel-receipt-download/?reservation_id={reservation.id}"
         })
         
         
@@ -6605,8 +6605,8 @@ def create_complement_payment_reservation(request):
                 },
             ],
             mode="payment",
-            success_url=f"https://safarelamir.com/",
-            cancel_url="https://safarelamir.com/",
+            success_url=f"{settings.SITE_BASE_URL}/",
+            cancel_url=f"{settings.SITE_BASE_URL}/",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),

@@ -4,6 +4,10 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+API_BASE_URL = os.getenv("API_BASE_URL", "https://api.safarelamir.com")
+SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://safarelamir.com")
+
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
