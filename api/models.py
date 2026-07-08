@@ -1027,7 +1027,7 @@ class Reservation(models.Model):
     changes = models.CharField(max_length=20, choices=[
         ('no', 'no'),
         ('yes', 'yes'),
-    ], verbose_name='Type caution', null=True, blank=True)
+    ], verbose_name='Changes', null=True, blank=True)
 
     client = models.ForeignKey('ListeClient', on_delete=models.CASCADE,db_column='client', related_name='reservations')
     nd_client = models.ForeignKey('ListeClient', on_delete=models.CASCADE,db_column='nd_client', related_name='nd_client_reservations')
