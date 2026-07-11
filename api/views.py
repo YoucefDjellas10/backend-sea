@@ -4617,6 +4617,8 @@ def stripe_webhook_reservation_(request):
                 date_retour = date_retour,
                 heure_retour = heure_retour,
                 backoffice = "yes",
+                did_by = None ,
+                payment = "no"
             )
             print("########## 6 #########") 
             print("resultats : ", resultats)
