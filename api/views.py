@@ -3062,7 +3062,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     "retour_avance_id":retour_avance_id, 
                     "reservation":reservation_obj.id}
 
-            if (payment_required == "yes" or payment == "yes") and remaining_to_pay > 0:
+            if payment == "yes":
                 lieu_depart_name = Lieux.objects.filter(id=lieu_depart).first()
                 lieu_retour_name = Lieux.objects.filter(id=lieu_retour).first()
                 request_factory = RequestFactory()
