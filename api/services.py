@@ -736,8 +736,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         ma_reservation = Reservation.objects.filter(name=ref)
         if not ma_reservation:
             return {"message": "pas de reservation"}
-        
-        
 
         for record in ma_reservation:
             if lieu_depart_obj.zone != record.zone:

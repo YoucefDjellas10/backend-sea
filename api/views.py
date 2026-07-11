@@ -3173,10 +3173,10 @@ def create_payment_session_verify_calculate(request):
                 "heure_depart":heure_depart,
                 "date_retour":date_retour,
                 "heure_retour":heure_retour,
+                "montant_paye":unit_amount,
                 "type":"verify_calculate"
             }
         )
-
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
@@ -4564,7 +4564,7 @@ def stripe_webhook_reservation_(request):
                 print(f"Paiement réussi pour la réservation ID: {reservation_id}")
         elif type_id == "verify_calculate":
             session = event["data"]["object"]
-            reservation_id = session.get("metadata", {}).get("reservation_id")
+            reservation_id = session.get("metadata", {}).get("ref")
             lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
             lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
             date_depart = session.get("metadata", {}).get("date_depart")
@@ -4574,26 +4574,42 @@ def stripe_webhook_reservation_(request):
             montant_paye = session.get("metadata", {}).get("montant_paye")
 
             reservation_obj = Reservation.objects.get(id=reservation_id)
-            lieu_depart_obj = Lieux.objects.get(id=lieu_depart_id)
-            lieu_retour_obj = Lieux.objects.get(id=lieu_retour_id)
-            date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
-            heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
-            date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
-            heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
 
-            print("reservation_date_one : ",reservation_obj.date_heure_debut , " date_two : ",reservation_obj.date_heure_fin)
-            print("new_date_one : ",datetime.combine(date_depart_obj, heure_depart_obj) , " date_two : ",datetime.combine(date_retour_obj, heure_retour_obj))
-            if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
-                reservation_obj.du_au_modifier = (f"{reservation_obj.date_heure_debut.strftime('%d/%m/%Y %H:%M')} → "
-                                                    f"{reservation_obj.date_heure_fin.strftime('%d/%m/%Y %H:%M')}")
-                reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-            if reservation_obj.lieu_depart.id != lieu_depart_obj.id or reservation_obj.lieu_retour.id != lieu_retour_obj.id :
-                reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
-                reservation_obj.lieu_depart = lieu_depart_obj
-                reservation_obj.lieu_retour = lieu_retour_obj
-            reservation_obj.save()
-            
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
+
+            montant = float(montant_paye)/100
+
+            payment = Payment.objects.create(
+                reservation=reservation,
+                vehicule=reservation.vehicule,  
+                modele=reservation.modele,  
+                zone=reservation.lieu_depart.zone,  
+                total_reduit_euro=float(reservation.total_reduit_euro),
+                montant=montant,
+                montant_dzd=0,
+                montant_eur_dzd=montant * float(taux_change),
+                montant_dzd_eur=0,  
+                note="Complement effectué via Stripe",  
+                total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
+                ecart_eur=float(reservation.reste_payer) - montant,
+                ecart_da=(float(reservation.reste_payer) - montant) * float(taux_change),
+                mode_paiement="carte", 
+                total_encaisse = float(reservation.montant_paye) + montant,  
+            )
+            payment.save()
+
+            resultats = verify_and_do(
+                ref=reservation.name,
+                lieu_depart = lieu_depart_id,
+                lieu_retour = lieu_retour_id,
+                date_depart = date_depart,
+                heure_depart = heure_depart,
+                date_retour = date_retour,
+                heure_retour = heure_retour,
+                backoffice = "yes",
+            )
+
             print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
         elif type_id == "protection":
             session = event["data"]["object"]
