@@ -469,7 +469,7 @@ class ListeClient(models.Model):
 
     total_points = models.IntegerField(verbose_name="Total des points", blank=True, null=True)
     total_points_char = models.CharField(max_length=50, verbose_name="Total des points (texte)", blank=True, null=True)
-    solde = models.DecimalField(
+    solde = models.FloatField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Solde non consommé",
