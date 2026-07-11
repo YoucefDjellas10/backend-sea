@@ -2777,7 +2777,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         taux = taux_change.montant
 
         if verify_value and verify_value[0].get('is_available') == "yes":
-            if backoffice == "yes":
+            if backoffice == "yes" or (payment != "yes" and payment_required != "yes"):
                 
                 if diff_prix < 0:
                     if refund == "yes":
@@ -3062,7 +3062,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     "retour_avance_id":retour_avance_id, 
                     "reservation":reservation_obj.id}
 
-            if payment == "yes":
+            elif backoffice != "yes" and (payment == "yes" or payment_required == "yes"):
                 lieu_depart_name = Lieux.objects.filter(id=lieu_depart).first()
                 lieu_retour_name = Lieux.objects.filter(id=lieu_retour).first()
                 request_factory = RequestFactory()
