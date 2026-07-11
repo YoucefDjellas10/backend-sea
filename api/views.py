@@ -2544,7 +2544,7 @@ def create_account_view(request):
             data = json.loads(request.body.decode('utf-8'))
             email = data.get('email')
             nom = data.get('nom')
-            prenom = data.get('verify_and_doprenom')
+            prenom = data.get('prenom')
             phone = data.get('phone')
             birthday = data.get('birthday')
             permis_date = data.get('permis_date')
