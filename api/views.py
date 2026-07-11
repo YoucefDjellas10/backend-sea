@@ -2753,30 +2753,32 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         credit = verify_value[0].get('credit')
         credit_amount = verify_value[0].get('credit_amount')
 
+        reservation_obj = Reservation.objects.get(name=ref)
+        lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
+        lieu_retour_obj = Lieux.objects.get(id=lieu_retour)
+        date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d" if '-' in date_depart else "%d/%m/%Y").date()
+        heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
+        date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d" if '-' in date_retour else "%d/%m/%Y").date()
+        heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
+
+        
+
+        date_retour_befor = reservation_obj.date_depart_char
+        heure_retour_befor = reservation_obj.heure_retour_char
+
+        diff_prix = float(new_total) - float(old_total)
+        session_id = None
+        payment_url = None
+        anciennes_dates = reservation_obj.du_au 
+        prolongation_id = None
+        retour_avance_id = None
+
+        taux_change = TauxChange.objects.get(id=2)
+        taux = taux_change.montant
+
         if verify_value and verify_value[0].get('is_available') == "yes":
             if backoffice == "yes":
-                reservation_obj = Reservation.objects.get(name=ref)
-                lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
-                lieu_retour_obj = Lieux.objects.get(id=lieu_retour)
-                date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d" if '-' in date_depart else "%d/%m/%Y").date()
-                heure_depart_obj = datetime.strptime(heure_depart, "%H:%M").time()
-                date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d" if '-' in date_retour else "%d/%m/%Y").date()
-                heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
-
                 
-
-                date_retour_befor = reservation_obj.date_depart_char
-                heure_retour_befor = reservation_obj.heure_retour_char
-
-                diff_prix = float(new_total) - float(old_total)
-                session_id = None
-                payment_url = None
-                anciennes_dates = reservation_obj.du_au 
-                prolongation_id = None
-                retour_avance_id = None
-
-                taux_change = TauxChange.objects.get(id=2)
-                taux = taux_change.montant
                 if diff_prix < 0:
                     if refund == "yes":
                         refund_obj = RefundTable.objects.create(
@@ -3097,8 +3099,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                 return {"success": "yes" , 
                         "session_id": session_id, 
                         "payment_url": payment_url,
-                        "prolongation_id": prolongation_id,
-                        "retour_avance_id":retour_avance_id, 
                         "reservation":reservation_obj.id}
             else:
                 return {"success": "no"}
