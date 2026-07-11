@@ -2778,6 +2778,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             if backoffice == "yes" or (payment != "yes" and payment_required != "yes"):
+                print("############# First condition ############")
                 
                 if diff_prix < 0:
                     if refund == "yes":
@@ -3063,6 +3064,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     "reservation":reservation_obj.id}
 
             elif backoffice != "yes" and (payment == "yes" or payment_required == "yes"):
+                print("############# Second condition ############")
                 lieu_depart_name = Lieux.objects.filter(id=lieu_depart).first()
                 lieu_retour_name = Lieux.objects.filter(id=lieu_retour).first()
                 request_factory = RequestFactory()
@@ -3101,6 +3103,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         "payment_url": payment_url,
                         "reservation":reservation_obj.id}
             else:
+                print("############# third condition ############")
                 return {"success": "no"}
 
         
