@@ -3097,6 +3097,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     payment_session_data = json.loads(payment_session_response.content)
                     session_id = payment_session_data.get("session_id", "")
                     payment_url = payment_session_data.get("url", "")
+                
+                reservation_obj.changes = "yes"
+                reservation_obj.save()
 
                 return {"success": "yes" , 
                         "session_id": session_id, 
@@ -4580,48 +4583,52 @@ def stripe_webhook_reservation_(request):
             
             print("########## 3 #########") 
 
-            taux = TauxChange.objects.filter(id=2).first()
-            taux_change = taux.montant
+            if reservation.changes == "yes":
 
-            montant = float(montant_paye)/100
+                aux = TauxChange.objects.filter(id=2).first()
+                taux_change = taux.montant
 
-            print("########## 4 #########") 
+                montant = float(montant_paye)/100
 
-            payment = Payment.objects.create(
-                reservation=reservation,
-                vehicule=reservation.vehicule,  
-                modele=reservation.modele,  
-                zone=reservation.lieu_depart.zone,  
-                total_reduit_euro=float(reservation.total_reduit_euro),
-                montant=montant,
-                montant_dzd=0,
-                montant_eur_dzd=montant * float(taux_change),
-                montant_dzd_eur=0,  
-                note="Complement effectué via Stripe",  
-                total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
-                ecart_eur=float(reservation.reste_payer) - montant,
-                ecart_da=(float(reservation.reste_payer) - montant) * float(taux_change),
-                mode_paiement="carte", 
-                total_encaisse = float(reservation.montant_paye) + montant,  
-            )
-            payment.save()
+                print("########## 4 #########") 
 
-            print("########## 5 #########") 
+                payment = Payment.objects.create(
+                    reservation=reservation,
+                    vehicule=reservation.vehicule,  
+                    modele=reservation.modele,  
+                    zone=reservation.lieu_depart.zone,  
+                    total_reduit_euro=float(reservation.total_reduit_euro),
+                    montant=montant,
+                    montant_dzd=0,
+                    montant_eur_dzd=montant * float(taux_change),
+                    montant_dzd_eur=0,  
+                    note="Complement effectué via Stripe",  
+                    total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
+                    ecart_eur=float(reservation.reste_payer) - montant,
+                    ecart_da=(float(reservation.reste_payer) - montant) * float(taux_change),
+                    mode_paiement="carte", 
+                    total_encaisse = float(reservation.montant_paye) + montant,  
+                )
+                payment.save()
 
-            resultats = verify_and_do(
-                ref=reservation.name,
-                lieu_depart = lieu_depart_id,
-                lieu_retour = lieu_retour_id,
-                date_depart = date_depart,
-                heure_depart = heure_depart,
-                date_retour = date_retour,
-                heure_retour = heure_retour,
-                backoffice = "yes",
-                did_by = 52 ,
-                payment = "no"
-            )
+                print("########## 5 #########") 
+
+                resultats = verify_and_do(
+                    ref=reservation.name,
+                    lieu_depart = lieu_depart_id,
+                    lieu_retour = lieu_retour_id,
+                    date_depart = date_depart,
+                    heure_depart = heure_depart,
+                    date_retour = date_retour,
+                    heure_retour = heure_retour,
+                    backoffice = "yes",
+                    did_by = 52 ,
+                    payment = "no"
+                )
             print("########## 6 #########") 
             print("resultats : ", resultats)
+            reservation.changes = "no"
+            reservation.save()
 
             print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
         elif type_id == "protection":
