@@ -1020,7 +1020,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 credit = "yes"
                 credit_amount = (float(get_total) - float(total_new)) / 2.0
 
-            if remaining_date > 0:
+            if remaining_date > 1:
                 payment_required = "no"
             else:
                 payment_required = "yes"
@@ -1049,8 +1049,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 'old_total': old_total,
                 'new_total': new_total,
                 'frais': frais,
-                'amount_paid': record.montant_paye,
-                'remaining_to_pay': new_total - float(record.montant_paye),
+                'amount_paid': round(record.montant_paye, 2) ,
+                'remaining_to_pay': round(new_total - float(record.montant_paye), 2),
                 "credit": credit,
                 "credit_amount": credit_amount
             })
