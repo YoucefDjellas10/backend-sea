@@ -4565,7 +4565,7 @@ def stripe_webhook_reservation_(request):
         elif type_id == "verify_calculate":
             session = event["data"]["object"]
             print("########## 1 #########")
-            reservation_id = session.get("metadata", {}).get("ref")
+            reservation_id = session.get("metadata", {}).get("reservation_id")
             lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
             lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
             date_depart = session.get("metadata", {}).get("date_depart")
