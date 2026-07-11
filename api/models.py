@@ -1550,6 +1550,7 @@ class ConditionAnnulation(models.Model):
         db_table = 'condition_annulation'
 
 from django.core.validators import MinValueValidator
+
 class Payment(models.Model):
     name = models.CharField(max_length=255, unique=True, editable=False)
     reservation = models.ForeignKey(Reservation, db_column='reservation', on_delete=models.CASCADE,related_name='payments')

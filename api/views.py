@@ -4573,7 +4573,7 @@ def stripe_webhook_reservation_(request):
             heure_retour = session.get("metadata", {}).get("heure_retour")
             montant_paye = session.get("metadata", {}).get("montant_paye")
 
-            reservation_obj = Reservation.objects.get(id=reservation_id)
+            reservation = Reservation.objects.get(id=reservation_id)
 
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
