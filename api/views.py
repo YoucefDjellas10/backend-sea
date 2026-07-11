@@ -4564,6 +4564,7 @@ def stripe_webhook_reservation_(request):
                 print(f"Paiement réussi pour la réservation ID: {reservation_id}")
         elif type_id == "verify_calculate":
             session = event["data"]["object"]
+            print("########## 1 #########")
             reservation_id = session.get("metadata", {}).get("ref")
             lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
             lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
@@ -4573,12 +4574,18 @@ def stripe_webhook_reservation_(request):
             heure_retour = session.get("metadata", {}).get("heure_retour")
             montant_paye = session.get("metadata", {}).get("montant_paye")
 
+            print("########## 2 #########") 
+
             reservation = Reservation.objects.get(id=reservation_id)
+            
+            print("########## 3 #########") 
 
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
 
             montant = float(montant_paye)/100
+
+            print("########## 4 #########") 
 
             payment = Payment.objects.create(
                 reservation=reservation,
@@ -4599,6 +4606,8 @@ def stripe_webhook_reservation_(request):
             )
             payment.save()
 
+            print("########## 5 #########") 
+
             resultats = verify_and_do(
                 ref=reservation.name,
                 lieu_depart = lieu_depart_id,
@@ -4609,6 +4618,8 @@ def stripe_webhook_reservation_(request):
                 heure_retour = heure_retour,
                 backoffice = "yes",
             )
+            print("########## 6 #########") 
+            print("resultats : ", resultats)
 
             print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
         elif type_id == "protection":
