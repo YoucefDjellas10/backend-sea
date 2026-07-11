@@ -2544,7 +2544,7 @@ def create_account_view(request):
             data = json.loads(request.body.decode('utf-8'))
             email = data.get('email')
             nom = data.get('nom')
-            prenom = data.get('prenom')
+            prenom = data.get('verify_and_doprenom')
             phone = data.get('phone')
             birthday = data.get('birthday')
             permis_date = data.get('permis_date')
@@ -4617,7 +4617,7 @@ def stripe_webhook_reservation_(request):
                 date_retour = date_retour,
                 heure_retour = heure_retour,
                 backoffice = "yes",
-                did_by = None ,
+                did_by = 52 ,
                 payment = "no"
             )
             print("########## 6 #########") 
