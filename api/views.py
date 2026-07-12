@@ -3056,6 +3056,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
                     print("######### changement lieux  #########")
+                    print("lieu_retour_obj : ", lieu_retour_obj.name)
                     reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
                     reservation_obj.depart_retour = f"{lieu_depart_obj.name} → {lieu_retour_obj.name}"
                     reservation_obj.lieu_depart = lieu_depart_obj
