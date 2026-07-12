@@ -3075,6 +3075,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     print("reservation_obj.depart_retour :", reservation_obj.depart_retour)
                     reservation_obj.lieu_depart = lieu_depart_obj
                     reservation_obj.lieu_retour = lieu_retour_obj
+                    reservation_obj.save()
                     print("reservation_obj.lieu_retour :", reservation_obj.lieu_retour)
                 reservation_obj.save()
                 print("lieu_retour_obj : ", lieu_retour_obj)
