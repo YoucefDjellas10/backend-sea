@@ -4588,7 +4588,7 @@ def stripe_webhook_reservation_(request):
 
             if reservation.changes == "yes":
 
-                aux = TauxChange.objects.filter(id=2).first()
+                taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
 
                 montant = float(montant_paye)/100
