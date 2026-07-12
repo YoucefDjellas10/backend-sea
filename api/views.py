@@ -3064,6 +3064,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.lieu_retour = lieu_retour_obj
                     print("reservation_obj.lieu_retour :", reservation_obj.lieu_retour)
                 reservation_obj.save()
+                print("lieu_retour_obj : ", lieu_retour_obj)
+                print("reservation_obj.lieu_retour :", reservation_obj.lieu_retour)
 
                 return {"success": "yes" , 
                     "prolongation_id": prolongation_id,
