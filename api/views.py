@@ -2837,10 +2837,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "current_total_days": current_total_days,
                                 "diff_days": diff_days,
                                 "new_total_days": new_total_days,
-                                "old_total": old_total,
-                                "new_total": frais,
-                                "new_total_last": new_total,
-                                "credit_amount":credit_amount,
+                                "old_total": round(old_total, 2),
+                                "new_total": round(frais, 2),
+                                "new_total_last": round(new_total, 2),
+                                "credit_amount": round(credit_amount, 2),
 
                             })
 
