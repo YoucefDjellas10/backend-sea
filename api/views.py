@@ -4632,7 +4632,7 @@ def stripe_webhook_reservation_(request):
             print("resultats : ", resultats)
             reservation.changes = "no"
             reservation.montant_paye += Decimal(str(montant))
-            reservation.reste_payer = reservation.reste_payer - float(montant)
+            reservation.reste_payer = reservation.reste_payer - Decimal(str(montant))
             reservation.save()
 
             print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
