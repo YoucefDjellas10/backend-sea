@@ -4615,6 +4615,17 @@ def stripe_webhook_reservation_(request):
                 payment.save()
 
                 print("########## 5 #########") 
+                print("Paramètres envoyés à verify_and_do :")
+                print("ref :", reservation.name)
+                print("lieu_depart :", lieu_depart_id)
+                print("lieu_retour :", lieu_retour_id)
+                print("date_depart :", date_depart)
+                print("heure_depart :", heure_depart)
+                print("date_retour :", date_retour)
+                print("heure_retour :", heure_retour)
+                print("backoffice :", "yes")
+                print("did_by :", 52)
+                print("payment :", "no")
 
                 resultats = verify_and_do(
                     ref=reservation.name,
