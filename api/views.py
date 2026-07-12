@@ -2763,7 +2763,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
         
 
-        date_retour_befor = reservation_obj.date_depart_char
+        date_retour_befor = reservation_obj.date_retour_char
         heure_retour_befor = reservation_obj.heure_retour_char
 
         diff_prix = float(new_total) - float(old_total)
