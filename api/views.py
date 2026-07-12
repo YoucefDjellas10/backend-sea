@@ -2876,12 +2876,12 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "current_total_days": current_total_days,
                                 "diff_days": diff_days,
                                 "new_total_days": new_total_days,
-                                "old_total": old_total,
-                                "new_total": frais,
-                                "new_total_last": new_total,
-                                "montant_payer": amount_paid,
-                                "credit_amount":credit_amount,
-                                "remaining_to_pay": remaining_to_pay,
+                                "old_total": round(old_total, 2),
+                                "new_total": round(frais, 2),
+                                "new_total_last": round(new_total, 2),
+                                "montant_payer": round(amount_paid, 2),
+                                "credit_amount": round(credit_amount, 2),
+                                "remaining_to_pay": round(remaining_to_pay, 2),
 
                             })
 
@@ -2929,10 +2929,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "current_total_days": current_total_days,
                                 "diff_days": diff_days,
                                 "new_total_days": new_total_days,
-                                "old_total": old_total,
-                                "new_total": frais,
-                                "new_total_last": new_total,
-                                "credit_amount":credit_amount,
+                                "old_total": round(old_total, 2),
+                                "new_total": round(frais, 2),
+                                "new_total_last": round(new_total, 2),
+                                "credit_amount":round(credit_amount, 2),
 
                             })
 
@@ -2966,9 +2966,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "return_place": reservation_obj.lieu_retour.name,
                                 "current_total_days": current_total_days,
                                 "diff_days": diff_days,
-                                "old_total": old_total,
-                                "new_total": float(old_total) - float(new_total),
-                                "credit_amount":credit_amount,
+                                "old_total": round(old_total, 22),
+                                "new_total": round(float(old_total) - float(new_total), 2),
+                                "credit_amount":round(credit_amount, 2),
 
                             })
 
@@ -3005,12 +3005,12 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "current_total_days": current_total_days,
                                 "diff_days": diff_days,
                                 "new_total_days": new_total_days,
-                                "old_total": old_total,
-                                "new_total": frais,
-                                "new_total_last": new_total,
-                                "montant_payer": amount_paid,
-                                "credit_amount":credit_amount,
-                                "remaining_to_pay": remaining_to_pay,
+                                "old_total": round(old_total, 2),
+                                "new_total": round(frais, 2),
+                                "new_total_last": round(new_total, 2),
+                                "montant_payer": round(amount_paid, 2),
+                                "credit_amount":round(credit_amount, 2),
+                                "remaining_to_pay": round(remaining_to_pay, 2),
 
                             })
 
