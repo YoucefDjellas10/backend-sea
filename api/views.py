@@ -3709,17 +3709,17 @@ def add_reservation_post_view(request):
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
         ).first()
 
-        total += Decimal(supplements_one.montant) * taux_change if supplements_one else 0
-        supp_total += Decimal(supplements_one.montant) * taux_change if supplements_one else 0
-        last_total += Decimal(supplements_one.montant) * taux_change if supplements_one else 0
+        total += Decimal(supplements_one.montant) if supplements_one else 0
+        supp_total += Decimal(supplements_one.montant) if supplements_one else 0
+        last_total += Decimal(supplements_one.montant) if supplements_one else 0
 
 
         supplements_two = Supplement.objects.filter(
             Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
         ).first()
-        total += Decimal(supplements_two.montant) * taux_change if supplements_two else 0
-        supp_total += Decimal(supplements_two.montant) * taux_change if supplements_two else 0
-        last_total += Decimal(supplements_two.montant) * taux_change if supplements_two else 0
+        total += Decimal(supplements_two.montant) if supplements_two else 0
+        supp_total += Decimal(supplements_two.montant) if supplements_two else 0
+        last_total += Decimal(supplements_two.montant) if supplements_two else 0
         
         ecart = Supplement.objects.filter(valeur__gt=0).first()
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
