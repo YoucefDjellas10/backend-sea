@@ -106,8 +106,8 @@ def protections(ref, email, country_code):
 
             item = {
                 "protection_name":  prot.name,
-                "protection_prix":  prix if  prix * nb_jour >= prot.min_prix else prot.min_prix / nb_jour,
-                "protection_total": prix * nb_jour if  prix * nb_jour >= prot.min_prix else prot.min_prix,
+                "protection_prix":  prot.min_prix / nb_jour if prot.min_prix and prix * nb_jour < prot.min_prix else prot.prix,
+                "protection_total": prot.min_prix if prot.min_prix and prix * nb_jour < prot.min_prix else prix * nb_jour,
                 "protection_caution": (prot.caution or 0) * taux_change,
             }
 
@@ -347,7 +347,7 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
-        print("-----------  ------- country_code  : ", country_code)
+        print("-----------country_code  : ", country_code)
 
         result["currency"]="DA" if country_code == "DZ" else "EUR"
 
@@ -1155,8 +1155,26 @@ def ma_reservation_detail(ref, email, country_code):
 
         if not ma_reservation :
             return {"error": "reservation non trouvé"}
-
         result =[]
+        
+        date = ma_reservation.date_heure_debut.date()
+        today = datetime.today().date()
+        can_cancel = "yes" 
+        can_midify = "yes" if (date - today).days > 2 else "no"
+        retour = ma_reservation.date_heure_fin.date()
+        can_modify_return = "yes" if (retour - today).days >= 1 else "no"
+        address = ma_reservation.lieu_depart.address
+        frais_livraison = ma_reservation.frais_de_dossier
+        lieu_rdv = ma_reservation.lieu_depart.rendez_vous 
+
+        if ma_reservation.create_date < datetime(2025, 11, 2, 0, 0): 
+            can_cancel = "no"
+            can_midify = "no"
+            can_modify_return = "no"
+        elif ma_reservation.date_heure_debut.date() < date.today():
+            can_cancel = "no"
+            can_modify_return = "no"
+        
         modify_status = []
         
         add_options = False
@@ -1168,72 +1186,39 @@ def ma_reservation_detail(ref, email, country_code):
         count_button = False
         cancel_button = False
 
-        if ma_reservation.status != "confirmee":
-            modify_status.append({
-                "add_options": add_options,
-                "add_protection": add_protection,
-                "pickup_place": pickup_place,
-                "pickup_date": pickup_date,
-                "return_place": return_place,
-                "return_date": return_date,
-                "count_button": count_button,
-                "cancel_button": cancel_button
-            })
+        now = datetime.now()
+        if ma_reservation.date_heure_debut > now + timedelta(hours=49):
+            add_options = True
+            add_protection = True
+            pickup_date = True
+            return_place = True
+            return_date = True
+            count_button = True
+            cancel_button = True
+        elif ma_reservation.date_heure_debut <= now + timedelta(hours=49) and  ma_reservation.date_heure_fin > now + timedelta(hours=13):
+            return_place = True
+            return_date = True
+            count_button = True
         else:
+            add_options = False
+            add_protection = False
+            pickup_place = False
+            pickup_date = False
+            return_place = False
+            return_date = False
+            count_button = False
+            cancel_button = False
         
-            date = ma_reservation.date_heure_debut.date()
-            today = datetime.today().date()
-            can_cancel = "yes" 
-            can_midify = "yes" if (date - today).days > 2 else "no"
-            retour = ma_reservation.date_heure_fin.date()
-            can_modify_return = "yes" if (retour - today).days >= 1 else "no"
-            address = ma_reservation.lieu_depart.address
-            frais_livraison = ma_reservation.frais_de_dossier
-            lieu_rdv = ma_reservation.lieu_depart.rendez_vous 
-
-            if ma_reservation.create_date < datetime(2025, 11, 2, 0, 0): 
-                can_cancel = "no"
-                can_midify = "no"
-                can_modify_return = "no"
-            elif ma_reservation.date_heure_debut.date() < date.today():
-                can_cancel = "no"
-                can_modify_return = "no"
-            
-            
-
-            now = datetime.now()
-            if ma_reservation.date_heure_debut > now + timedelta(hours=49):
-                add_options = True
-                add_protection = True
-                pickup_date = True
-                return_place = True
-                return_date = True
-                count_button = True
-                cancel_button = True
-            elif ma_reservation.date_heure_debut <= now + timedelta(hours=49) and  ma_reservation.date_heure_fin > now + timedelta(hours=13):
-                return_place = True
-                return_date = True
-                count_button = True
-            else:
-                add_options = False
-                add_protection = False
-                pickup_place = False
-                pickup_date = False
-                return_place = False
-                return_date = False
-                count_button = False
-                cancel_button = False
-            
-            modify_status.append({
-                "add_options": add_options,
-                "add_protection": add_protection,
-                "pickup_place": pickup_place,
-                "pickup_date": pickup_date,
-                "return_place": return_place,
-                "return_date": return_date,
-                "count_button": count_button,
-                "cancel_button": cancel_button
-            })
+        modify_status.append({
+            "add_options": add_options,
+            "add_protection": add_protection,
+            "pickup_place": pickup_place,
+            "pickup_date": pickup_date,
+            "return_place": return_place,
+            "return_date": return_date,
+            "count_button": count_button,
+            "cancel_button": cancel_button
+        })
 
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
