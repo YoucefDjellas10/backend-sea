@@ -106,8 +106,8 @@ def protections(ref, email, country_code):
 
             item = {
                 "protection_name":  prot.name,
-                "protection_prix":  prix,
-                "protection_total": prix * nb_jour,
+                "protection_prix":  prix if  prix * nb_jour >= prot.min_prix else prot.min_prix / nb_jour,
+                "protection_total": prix * nb_jour if  prix * nb_jour >= prot.min_prix else prot.min_prix,
                 "protection_caution": (prot.caution or 0) * taux_change,
             }
 
