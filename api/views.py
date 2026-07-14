@@ -4689,8 +4689,8 @@ def stripe_webhook_reservation_(request):
 
             reservation.opt_protection = protection 
             reservation.opt_protection_name = protection.name
-            reservation.opt_protection_price = protection.prix 
-            reservation.opt_protection_total = protection.prix * reservation.nbr_jour_reservation
+            reservation.opt_protection_price = protection.prix if protection.prix * reservation.nbr_jour_reservation >= protection.min_prix else protection.min_prix / reservation.nbr_jour_reservation
+            reservation.opt_protection_total = protection.prix * reservation.nbr_jour_reservation if protection.prix * reservation.nbr_jour_reservation >= protection.min_prix else protection.min_prix
             reservation.opt_protection_caution = protection.caution
 
             
