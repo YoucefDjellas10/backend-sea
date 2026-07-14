@@ -4697,6 +4697,25 @@ def stripe_webhook_reservation_(request):
 
             reservation.save()
 
+            payment = Payment.objects.create(
+                reservation=reservation,
+                vehicule=reservation.vehicule,  
+                modele=reservation.modele,  
+                zone=reservation.lieu_depart.zone,  
+                total_reduit_euro=float(reservation.total_reduit_euro),
+                montant=Decimal(to_pay),
+                montant_dzd=0,
+                montant_eur_dzd=float(to_pay) * float(taux_change),
+                montant_dzd_eur=0,  
+                note="Complement effectué via Stripe",  
+                total_reduit_dinar=float(reservation.total_reduit_euro) * float(taux_change),
+                ecart_eur=float(reservation.reste_payer) - float(to_pay),
+                ecart_da=(float(reservation.reste_payer) - float(to_pay)) * float(taux_change),
+                mode_paiement="carte", 
+                total_encaisse = float(reservation.montant_paye) + float(to_pay),  
+            )
+            payment.save()
+
             livraison = Livraison.objects.filter(reservation=reservation)
 
             for lv in livraison:
