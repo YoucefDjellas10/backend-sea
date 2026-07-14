@@ -745,7 +745,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 return result
 
             get_vehicule_id = record.vehicule.numero
-            vehicule = Vehicule.objects.filter(numero=get_vehicule_id, active_test=True).first
+            vehicule = Vehicule.objects.filter(numero=get_vehicule_id, active_test=True).first()
             if not vehicule:
                 return {"message": "pas de vehicule"}
 
