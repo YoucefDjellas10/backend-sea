@@ -4691,9 +4691,9 @@ def stripe_webhook_reservation_(request):
             reservation.opt_protection_caution = protection.caution
 
             
-            reservation.total_reduit_euro += to_pay
-            reservation.montant_paye += to_pay
-            reservation.reste_payer = reservation.total_reduit_euro - reservation.montant_paye
+            reservation.total_reduit_euro += Decimal(to_pay)
+            reservation.montant_paye += Decimal(to_pay)
+            reservation.reste_payer = Decimal(reservation.total_reduit_euro) - Decimal(reservation.montant_paye)
 
             reservation.save()
 
