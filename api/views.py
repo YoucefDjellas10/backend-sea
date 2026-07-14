@@ -5272,7 +5272,7 @@ def add_options_put_view(request):
                     reservation.opt_plein_carburant = carburant_option
                     reservation.opt_plein_carburant_name = carburant_option.name
                     reservation.opt_plein_carburant_prix = carburant_option.prix
-                    reservation.opt_plein_carburant_total = carburant_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_plein_carburant_total = carburant_option.prix
                     reservation.save()
                 else:
                     reservation.opt_plein_carburant = carburant_option
@@ -5335,7 +5335,7 @@ def add_options_put_view(request):
                     reservation.opt_siege_c_total = 0
                     reservation.save()
 
-            return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=400)
+            return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=200)
 
     except json.JSONDecodeError:
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
