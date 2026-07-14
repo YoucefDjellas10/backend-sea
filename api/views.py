@@ -2229,7 +2229,8 @@ def protection_put_view(request):
                         "currency": "eur",
                         "reservation_id": reservation.id,
                         "protection": protection_id ,
-                        "to_pay": int(to_pay_value)
+                        "to_pay": int(to_pay_value),
+                        "email": reservation.email,
                     }),
                     content_type="application/json"
                 )

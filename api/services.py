@@ -138,7 +138,7 @@ def modify_protection_request(ref, protection,country_code):
             if protection == "BASE":
                 opt_protection = Options.objects.filter(option_code__icontains="BASE", categorie_id=category, zone= lieu_depart_obj.zone).first()
                 prix = opt_protection.prix
-                total = prix * nb_jour
+                total = prix * nb_jour if prix * nb_jour >= opt_protection.min_prix else opt_protection.min_prix
 
                 if total >= reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
