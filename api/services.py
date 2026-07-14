@@ -935,6 +935,17 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             )
             for supplement in supplements:
                 total_fixe += Decimal(supplement.montant)
+            
+            supplements_one = Supplement.objects.filter(
+                Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
+            ).first()
+
+            total_fixe += Decimal(supplements_one.montant) if supplements_one else 0
+
+            supplements_two = Supplement.objects.filter(
+                Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
+            ).first()
+            total_fixe += Decimal(supplements_two.montant) if supplements_two else 0
 
             supplements_valeur = Supplement.objects.filter(valeur__gt=0)
             total_primary = float(total_fixe)
@@ -1385,7 +1396,7 @@ def ma_reservation_detail(ref, email, country_code):
                     "is_fidelite": "yes" if ma_reservation.reduction and ma_reservation.reduction > 0 and  ma_reservation.reduction < 8 else "no",
                     "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) if ma_reservation.total_reduit and ma_reservation.total else 0,
                     "parrainage_value": ma_reservation.feuil_red if ma_reservation.feuil_red else 0.00,
-                    
+
                 })  
 
         return result
