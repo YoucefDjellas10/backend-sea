@@ -4724,7 +4724,7 @@ def stripe_webhook_reservation_(request):
             for lv in livraison:
                 lv.total_reduit_euro = reservation.reste_payer if reservation.reste_payer else lv.total_reduit_euro
 
-            sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+            sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
             expediteur = settings.DEFAULT_FROM_EMAIL
 
             html_message = render_to_string('email/confirmation_email.html', {
@@ -4738,16 +4738,16 @@ def stripe_webhook_reservation_(request):
                 'client_prenom':reservation.client.prenom,
                 'durrée':reservation.duree_dereservation,
                 'model_name':reservation.model_name,
-                'reste_paye':montant_total - montant_paye,
+                'reste_paye':reservation.reste_payer,
                 'caution':reservation.opt_protection_caution,
                 "date_depart_char" : reservation.date_depart_char,
                 "date_retour_char" : reservation.date_retour_char,
                 "heure_depart_char" : reservation.heure_depart_char,
                 "heure_retour_char" : reservation.heure_retour_char,
-                'date_depart':date_debut,
-                'heure_depart':heure_debut,
-                'date_retoure':date_fin,
-                'haure_retour':heure_fin,
+                'date_depart':reservation.date_depart_char,
+                'heure_depart':reservation.heure_depart_char,
+                'date_retoure':reservation.date_retour_char,
+                'haure_retour':reservation.heure_retour_char,
                 'lieu_depart':reservation.lieu_depart.name,
                 'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
