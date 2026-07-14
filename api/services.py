@@ -928,13 +928,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
                 total_fixe += Decimal(meilleur_cout or 0)
-
-            supplements = Supplement.objects.filter(
-                Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) |
-                Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
-            )
-            for supplement in supplements:
-                total_fixe += Decimal(supplement.montant)
             
             supplements_one = Supplement.objects.filter(
                 Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
