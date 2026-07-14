@@ -347,6 +347,8 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
+        print("-----------  ------- country_code  : ", country_code)
+
         result["currency"]="DA" if country_code == "DZ" else "EUR"
 
         if klm == "yes" and not reservations.opt_klm_name:
