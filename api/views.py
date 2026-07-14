@@ -4697,6 +4697,9 @@ def stripe_webhook_reservation_(request):
 
             reservation.save()
 
+            taux = TauxChange.objects.filter(id=2).first()
+            taux_change = taux.montant
+
             payment = Payment.objects.create(
                 reservation=reservation,
                 vehicule=reservation.vehicule,  
