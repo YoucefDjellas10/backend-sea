@@ -5426,6 +5426,9 @@ def add_options_put_view(request):
                 category = reservation.categorie
                 klm_name = klm_put.get("klm_name",None)
                 klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
+                if klm_option is None: 
+                    return JsonResponse({"modified":False ,"message": "klm_option is none"}, status=400)
+
                 if klm_discount is None:
                     if not reservation.opt_payment_name:
                         description_klm = f"{klm_option.name} : {klm_option.prix * reservation.nbr_jour_reservation} € |"
