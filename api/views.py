@@ -4840,6 +4840,7 @@ def stripe_webhook_reservation_(request):
         elif type_id == "add_option":
             reservation_id = session.get("metadata", {}).get("reservation_id")
             unit_amount = session.get("metadata", {}).get("unit_amount")
+            unit_amount = unit_amount / 100
             ref = session.get("metadata", {}).get("ref") 
             klm = session.get("metadata", {}).get("klm")
             carburant = session.get("metadata", {}).get("carburant")
@@ -4976,7 +4977,7 @@ def stripe_webhook_reservation_(request):
                 )
                 payment.save()
 
-                reservation.montant_paye += float(unit_amount)
+                reservation.montant_paye += Decimal(unit_amount)
                 reservation.reste_payer = float(reservation.total_reduit_euro) - float(reservation.montant_paye)
                 reservation.add_options = "no"
                 reservation.save()
