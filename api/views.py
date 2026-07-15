@@ -4977,7 +4977,7 @@ def stripe_webhook_reservation_(request):
                 payment.save()
 
                 reservation.montant_paye += float(unit_amount)
-                reservation.reste_payer = reservation.total_reduit_euro - reservation.montant_paye
+                reservation.reste_payer = float(reservation.total_reduit_euro) - float(reservation.montant_paye)
                 reservation.add_options = "no"
                 reservation.save()
             
