@@ -2228,6 +2228,7 @@ def protection_put_view(request):
                         "quantity": 1,
                         "currency": "eur",
                         "reservation_id": reservation.id,
+                        "ref": reservation.name,
                         "protection": protection_id ,
                         "to_pay": int(to_pay_value),
                         "email": reservation.email,
@@ -2273,6 +2274,7 @@ def create_payment_session_protection(request):
         protection_id = data.get("protection")
         to_pay = data.get("to_pay")
         customer_email = data.get("email")
+        ref = data.get("ref")
 
         if not all([product_name, description, unit_amount, quantity]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
@@ -2297,8 +2299,8 @@ def create_payment_session_protection(request):
                 },
             ],
             mode="payment",
-            success_url= f"{settings.SITE_BASE_URL}/confirmation?id={reservation_id}",
-            cancel_url=f"{settings.SITE_BASE_URL}/cancel",
+            success_url= f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
+            cancel_url=f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
@@ -3189,8 +3191,8 @@ def create_payment_session_verify_calculate(request):
                 },
             ],
             mode="payment",
-            success_url=f"{settings.SITE_BASE_URL}/",
-            cancel_url=f"{settings.SITE_BASE_URL}/",
+            success_url=f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
+            cancel_url=f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
@@ -5293,7 +5295,7 @@ def create_payment_session(request):
             ],
             mode="payment",
             success_url= f"{settings.SITE_BASE_URL}/confirmation?id={reservation_id}",
-            cancel_url=f"{settings.SITE_BASE_URL}/cancel",
+            cancel_url=f"{settings.SITE_BASE_URL}/",
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -5650,8 +5652,8 @@ def create_payment_session_option(request):
                 },
             ],
             mode="payment",
-            success_url= f"{settings.SITE_BASE_URL}/",
-            cancel_url=f"{settings.SITE_BASE_URL}/",
+            success_url= f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
+            cancel_url=f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
             customer_email=customer_email,
             metadata={
                 "reservation_id": str(reservation_id),
