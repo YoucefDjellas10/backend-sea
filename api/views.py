@@ -5359,6 +5359,7 @@ def add_options_put_view(request):
         country_code = request.META.get("HTTP_X_COUNTRY_CODE")
 
         total_to_pay = 0
+        is_edit = "no"
         description_one = "Le montant indiqué sera prélevé afin de valider les modifications apportées à votre location : "
         description_two = "Important : ⚠️ Attention : cette opération est irréversible. Tout remboursement en cas de rétractation est soumis aux conditions générales applicables. Merci de vérifier attentivement les options sélectionnées avant de confirmer votre paiement."
         description_nd_driver = ""
@@ -5399,7 +5400,7 @@ def add_options_put_view(request):
                         description_nd_driver = f"{nd_driver_option.name} : {nd_driver_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += nd_driver_option.prix * reservation.nbr_jour_reservation
                     else:
-                        
+                        is_edit = "yes"
                         reservation.nom_nd_condicteur = nom
                         reservation.prenom_nd_condicteur = prenom
                         reservation.date_nd_condicteur = birthday
@@ -5442,6 +5443,7 @@ def add_options_put_view(request):
                         description_klm = f"{klm_option.name} : {klm_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += klm_option.prix * reservation.nbr_jour_reservation
                     else:
+                        is_edit = "yes"
                         reservation.opt_klm = klm_option
                         reservation.opt_klm_name = klm_option.name
                         reservation.opt_klm_price = klm_option.prix
@@ -5466,6 +5468,7 @@ def add_options_put_view(request):
                         description_carburant = f"{carburant_option.name} : {carburant_option.prix} € |"
                         total_to_pay += carburant_option.prix
                     else:
+                        is_edit = "yes"
                         reservation.opt_plein_carburant = carburant_option
                         reservation.opt_plein_carburant_name = carburant_option.name
                         reservation.opt_plein_carburant_prix = carburant_option.prix
@@ -5490,6 +5493,7 @@ def add_options_put_view(request):
                         description_sb_a = f"{sb_a_option.name} : {sb_a_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += sb_a_option.prix * reservation.nbr_jour_reservation
                     else:
+                        is_edit = "yes"
                         reservation.opt_siege_a = sb_a_option
                         reservation.opt_siege_a_name = sb_a_option.name
                         reservation.opt_siege_a_prix = sb_a_option.prix
@@ -5514,6 +5518,7 @@ def add_options_put_view(request):
                         description_sb_b = f"{sb_b_option.name} : {sb_b_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += sb_b_option.prix * reservation.nbr_jour_reservation
                     else:
+                        is_edit = "yes"
                         reservation.opt_siege_b = sb_b_option
                         reservation.opt_siege_b_name = sb_b_option.name
                         reservation.opt_siege_b_prix = sb_b_option.prix
@@ -5538,6 +5543,7 @@ def add_options_put_view(request):
                         description_sb_c = f"{sb_c_option.name} : {sb_c_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += sb_c_option.prix * reservation.nbr_jour_reservation
                     else:
+                        is_edit = "yes"
                         reservation.opt_siege_c = sb_c_option
                         reservation.opt_siege_c_name = sb_c_option.name
                         reservation.opt_siege_c_prix = sb_c_option.prix

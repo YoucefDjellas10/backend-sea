@@ -1156,6 +1156,8 @@ def ma_reservation_detail(ref, email, country_code):
         if not ma_reservation :
             return {"error": "reservation non trouvé"}
         result =[]
+
+        klm_limit = ma_reservation.opt_klm.limit_Klm * ma_reservation.nbr_jour_reservation if ma_reservation.categorie_client.name != "VIP" else 275 * ma_reservation.nbr_jour_reservation
         
         date = ma_reservation.date_heure_debut.date()
         today = datetime.today().date()
@@ -1254,7 +1256,7 @@ def ma_reservation_detail(ref, email, country_code):
                     'opt_payment_price': ma_reservation.opt_payment_price * taux_change if ma_reservation.opt_payment_price else 0,
                     'opt_payment_total': ma_reservation.opt_payment_total * taux_change if ma_reservation.opt_payment_total else 0,
                     'opt_klm': ma_reservation.opt_klm_name ,
-                    'opt_kilometrage': ma_reservation.opt_kilometrage,
+                    'opt_kilometrage': klm_limit,
                     'opt_klm_price': ma_reservation.opt_klm_price * taux_change if ma_reservation.opt_klm_price else 0,
                     'opt_klm_total': ma_reservation.opt_klm_total * taux_change if ma_reservation.opt_klm_total else 0,
                     'opt_protection': ma_reservation.opt_protection_name,
@@ -1339,7 +1341,7 @@ def ma_reservation_detail(ref, email, country_code):
                     'opt_payment_price': ma_reservation.opt_payment_price,
                     'opt_payment_total': ma_reservation.opt_payment_total,
                     'opt_klm': ma_reservation.opt_klm_name ,
-                    'opt_kilometrage': ma_reservation.opt_kilometrage,
+                    'opt_kilometrage': klm_limit,
                     'opt_klm_price': ma_reservation.opt_klm_price,
                     'opt_klm_total': ma_reservation.opt_klm_total,
                     'opt_protection': ma_reservation.opt_protection_name,
