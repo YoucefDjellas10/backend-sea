@@ -5246,7 +5246,7 @@ def add_options_put_view(request):
                 nd_driver_option = Options.objects.filter(name=nd_driver_name, zone= lieu_depart_obj.zone).first()
                 if nd_driver_discount is None:
                     if not reservation.opt_payment_name:
-                        description_nd_driver = f"{nd_driver_option.name} : {nd_driver_option.prix * reservation.nbr_jour_reservation} |"
+                        description_nd_driver = f"{nd_driver_option.name} : {nd_driver_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += nd_driver_option.prix * reservation.nbr_jour_reservation
                     else:
                         
@@ -5282,7 +5282,7 @@ def add_options_put_view(request):
                 klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
                 if klm_discount is None:
                     if not reservation.opt_payment_name:
-                        description_klm = f"{klm_option.name} : {klm_option.prix * reservation.nbr_jour_reservation} |"
+                        description_klm = f"{klm_option.name} : {klm_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += klm_option.prix * reservation.nbr_jour_reservation
                     else:
                         reservation.opt_klm = klm_option
@@ -5307,7 +5307,7 @@ def add_options_put_view(request):
                 carburant_option = Options.objects.filter(name=carburant_name, zone= lieu_depart_obj.zone).first()
                 if carburant_discount is None:
                     if not reservation.opt_payment_name:
-                        description_carburant = f"{carburant_option.name} : {carburant_option.prix} |"
+                        description_carburant = f"{carburant_option.name} : {carburant_option.prix} € |"
                         total_to_pay += carburant_option.prix
                     else:
                         reservation.opt_plein_carburant = carburant_option
@@ -5332,7 +5332,7 @@ def add_options_put_view(request):
                 sb_a_option = Options.objects.filter(name=sb_a_name, zone= lieu_depart_obj.zone).first()
                 if sb_a_discount is None:
                     if not reservation.opt_payment_name:
-                        description_sb_a = f"{sb_a_option.name} : {sb_a_option.prix * reservation.nbr_jour_reservation} |"
+                        description_sb_a = f"{sb_a_option.name} : {sb_a_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += sb_a_option.prix * reservation.nbr_jour_reservation
                     else:
                         reservation.opt_siege_a = sb_a_option
@@ -5357,7 +5357,7 @@ def add_options_put_view(request):
                 sb_b_option = Options.objects.filter(name=sb_b_name, zone= lieu_depart_obj.zone).first()
                 if sb_b_discount is None:
                     if not reservation.opt_payment_name:
-                        description_sb_b = f"{sb_b_option.name} : {sb_b_option.prix * reservation.nbr_jour_reservation} |"
+                        description_sb_b = f"{sb_b_option.name} : {sb_b_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += sb_b_option.prix * reservation.nbr_jour_reservation
                     else:
                         reservation.opt_siege_b = sb_b_option
@@ -5382,7 +5382,7 @@ def add_options_put_view(request):
                 sb_c_option = Options.objects.filter(name=sb_c_name, zone= lieu_depart_obj.zone).first()
                 if sb_c_discount is None:
                     if not reservation.opt_payment_name:
-                        description_sb_c = f"{sb_c_option.name} : {sb_c_option.prix * reservation.nbr_jour_reservation} |"
+                        description_sb_c = f"{sb_c_option.name} : {sb_c_option.prix * reservation.nbr_jour_reservation} € |"
                         total_to_pay += sb_c_option.prix * reservation.nbr_jour_reservation
                     else:
                         reservation.opt_siege_c = sb_c_option
