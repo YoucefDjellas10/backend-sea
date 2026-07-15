@@ -5211,13 +5211,13 @@ def add_options_put_view(request):
         total_to_pay = 0
         description_one = "Le montant indiqué sera prélevé afin de valider les modifications apportées à votre location : "
         description_two = "Important : ⚠️ Attention : cette opération est irréversible. Tout remboursement en cas de rétractation est soumis aux conditions générales applicables. Merci de vérifier attentivement les options sélectionnées avant de confirmer votre paiement."
-        description_nd_driver = None
-        description_klm = None
-        description_carburant = None
-        description_sb_a = None
-        description_sb_b = None
-        description_sb_c = None
-        description_finale = None
+        description_nd_driver = ""
+        description_klm = ""
+        description_carburant = ""
+        description_sb_a = ""
+        description_sb_b = ""
+        description_sb_c = ""
+        description_finale = ""
 
         if not ref:
             return JsonResponse({"error": "Le champ 'ref' est requis."}, status=400)
