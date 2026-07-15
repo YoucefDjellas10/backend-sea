@@ -5551,6 +5551,8 @@ def add_options_put_view(request):
 
             if total_to_pay > 0 :
                 description_finale = f"{description_one} {description_nd_driver} {description_klm} {description_carburant} {description_sb_a} {description_sb_b} {description_sb_c} {description_two}"
+                reservation.add_options = "yes"
+                reservation.save()
                 request_factory = RequestFactory()
                 fake_request = request_factory.post(
                     path="/create-payment-session-option/",
@@ -5583,7 +5585,7 @@ def add_options_put_view(request):
                     payment_session_data = json.loads(payment_session_response.content)
                     session_id = payment_session_data.get("session_id", "")
                     payment_url = payment_session_data.get("url", "")
-                    reservation.add_options = "yes"
+                    
                     return JsonResponse({"modified": True ,
                                          "session_id": session_id,
                                          "payment_url": payment_url,
