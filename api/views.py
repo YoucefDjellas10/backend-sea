@@ -4891,7 +4891,7 @@ def stripe_webhook_reservation_(request):
                 if klm_put is not None :
                     
                     category = reservation.categorie
-                    klm_name = klm_put.get("klm_name",None)
+                    klm_name = klm_put.get("klM_name",None)
                     klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
                     reservation.opt_klm = klm_option
                     reservation.opt_klm_name = klm_option.name
@@ -5424,7 +5424,7 @@ def add_options_put_view(request):
                 
                 klm_discount = klm_put.get("klM_last_price",None)
                 category = reservation.categorie
-                klm_name = klm_put.get("klm_name",None)
+                klm_name = klm_put.get("klM_name",None)
                 print("#############################")
                 print("klm_name : ", klm_name)
                 print("category : ", category)
