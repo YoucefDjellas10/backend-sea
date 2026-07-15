@@ -4840,7 +4840,7 @@ def stripe_webhook_reservation_(request):
         elif type_id == "add_option":
             reservation_id = session.get("metadata", {}).get("reservation_id")
             unit_amount = session.get("metadata", {}).get("unit_amount")
-            unit_amount = unit_amount / 100
+            unit_amount = float(unit_amount) / 100
             ref = session.get("metadata", {}).get("ref") 
             klm = session.get("metadata", {}).get("klm")
             carburant = session.get("metadata", {}).get("carburant")
