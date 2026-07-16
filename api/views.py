@@ -5122,7 +5122,7 @@ def create_caution_payment_link_permanent(request):
             after_completion={
                 "type": "redirect",
                 "redirect": {
-                    "url": f"{settings.SITE_BASE_URL}/"
+                    "url": f"{settings.SITE_BASE_URL}/manage?email={reservation.email}&reference={reservation.name}"
                 }
             }
         )
