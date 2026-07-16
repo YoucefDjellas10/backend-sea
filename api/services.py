@@ -759,7 +759,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if (date_depart_heure < reservation.date_heure_fin and
                     date_retour_heure > reservation.date_heure_debut and
                     ref != reservation.name and
-                    reservation.etat_reservation == "confirmee"):
+                    reservation.status == "confirmee"):
                     is_available = False
                     break
 
