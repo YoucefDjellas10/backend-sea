@@ -252,6 +252,7 @@ def checklist_mail_view(request):
             'lieu_retour':reservation.lieu_retour.name,
             'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
             'url': url,
+            'base_url': {settings.API_BASE_URL}
         })
         send_mail(
             sujet,
@@ -1029,7 +1030,7 @@ def confirme_reservation_view(request):
             'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
             'lieu_retour':reservation.lieu_retour.name,
             'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-
+            'base_url': {settings.API_BASE_URL}
         })
 
         send_mail(
@@ -2900,6 +2901,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "montant_payer": round(amount_paid, 2),
                                 "credit_amount": round(credit_amount, 2),
                                 "remaining_to_pay": round(remaining_to_pay, 2),
+                                "base_url": {settings.API_BASE_URL}
 
                             })
 
@@ -3029,6 +3031,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "montant_payer": round(amount_paid, 2),
                                 "credit_amount":round(credit_amount, 2),
                                 "remaining_to_pay": round(remaining_to_pay, 2),
+                                "base_url": {settings.API_BASE_URL}
 
                             })
 
@@ -4461,6 +4464,7 @@ def stripe_webhook_reservation_(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+                    'base_url': {settings.API_BASE_URL}
 
                 })
 
@@ -4758,6 +4762,7 @@ def stripe_webhook_reservation_(request):
                 'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
                 'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+                'base_url': {settings.API_BASE_URL}
 
             })
 
@@ -5012,7 +5017,7 @@ def stripe_webhook_reservation_(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-
+                    'base_url': {settings.API_BASE_URL}
                 })
 
                 send_mail(
@@ -5225,6 +5230,7 @@ def refund_caution(request):
                 'restitution_id': restitution_id,
                 'solde_restant': round(solde_restant, 2),
                 'remboursement_total': round(remboursement_total, 2),
+                'url' : f"{settings.API_BASE_URL}/caution-receipt-download/?livraison_id={gestion_caution.reservation.id}"
             })
 
             send_mail(
@@ -5627,6 +5633,7 @@ def add_options_put_view(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+                    'base_url': {settings.API_BASE_URL}
 
                 })
 
