@@ -1806,7 +1806,6 @@ def contract_download_(request):
     response = HttpResponse(pdf_file, content_type="application/pdf")
     response['Content-Disposition'] = f'attachment; filename= "{file_name}"'
     return response
-
 def get_signature_by_id(request, livraison_id):
     try:
         attachment = IrAttachment.objects.filter(
@@ -1819,8 +1818,7 @@ def get_signature_by_id(request, livraison_id):
         if not attachment or not attachment.store_fname:
             return HttpResponse("Aucune signature trouvée", status=404)
 
-        ODOO_DATA_DIR = '/mnt/odoo-filestore/safarelamir'
-        path = os.path.join(ODOO_DATA_DIR, *attachment.store_fname.split('/'))
+        path = os.path.join(settings.ODOO_FILESTORE_DIR, *attachment.store_fname.split('/'))
 
         if not os.path.exists(path):
             raise Http404(f"Signature introuvable: {path}")
