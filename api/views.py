@@ -4983,6 +4983,46 @@ def stripe_webhook_reservation_(request):
                 reservation.reste_payer = float(reservation.total_reduit_euro) - float(reservation.montant_paye)
                 reservation.add_options = "no"
                 reservation.save()
+
+                sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+                expediteur = settings.DEFAULT_FROM_EMAIL
+
+                html_message = render_to_string('email/confirmation_email.html', {
+                    "id":reservation.id,
+                    "referance":reservation.name,
+                    "mobile_one":reservation.lieu_depart.mobile,
+                    "adresse_one":reservation.lieu_depart.address,
+                    "mobile_two":reservation.lieu_retour.mobile,
+                    "adresse_two":reservation.lieu_retour.address,
+                    'client': reservation.client.nom,
+                    'client_prenom':reservation.client.prenom,
+                    'durrée':reservation.duree_dereservation,
+                    'model_name':reservation.model_name,
+                    'reste_paye':reservation.reste_payer,
+                    'caution':reservation.opt_protection_caution,
+                    "date_depart_char" : reservation.date_depart_char,
+                    "date_retour_char" : reservation.date_retour_char,
+                    "heure_depart_char" : reservation.heure_depart_char,
+                    "heure_retour_char" : reservation.heure_retour_char,
+                    'date_depart':reservation.date_depart_char,
+                    'heure_depart':reservation.heure_depart_char,
+                    'date_retoure':reservation.date_retour_char,
+                    'haure_retour':reservation.heure_retour_char,
+                    'lieu_depart':reservation.lieu_depart.name,
+                    'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
+                    'lieu_retour':reservation.lieu_retour.name,
+                    'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+
+                })
+
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),  
+                    expediteur,
+                    [reservation.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
             
             print(f"Paiement réussi pour l'ajout des options pour la réservation ID: {reservation_id}")
 
@@ -5557,6 +5597,47 @@ def add_options_put_view(request):
                     reservation.opt_siege_c_prix = 0
                     reservation.opt_siege_c_total = 0
                     reservation.save()
+            
+            if is_edit == "yes":
+                sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+                expediteur = settings.DEFAULT_FROM_EMAIL
+
+                html_message = render_to_string('email/confirmation_email.html', {
+                    "id":reservation.id,
+                    "referance":reservation.name,
+                    "mobile_one":reservation.lieu_depart.mobile,
+                    "adresse_one":reservation.lieu_depart.address,
+                    "mobile_two":reservation.lieu_retour.mobile,
+                    "adresse_two":reservation.lieu_retour.address,
+                    'client': reservation.client.nom,
+                    'client_prenom':reservation.client.prenom,
+                    'durrée':reservation.duree_dereservation,
+                    'model_name':reservation.model_name,
+                    'reste_paye':reservation.reste_payer,
+                    'caution':reservation.opt_protection_caution,
+                    "date_depart_char" : reservation.date_depart_char,
+                    "date_retour_char" : reservation.date_retour_char,
+                    "heure_depart_char" : reservation.heure_depart_char,
+                    "heure_retour_char" : reservation.heure_retour_char,
+                    'date_depart':reservation.date_depart_char,
+                    'heure_depart':reservation.heure_depart_char,
+                    'date_retoure':reservation.date_retour_char,
+                    'haure_retour':reservation.heure_retour_char,
+                    'lieu_depart':reservation.lieu_depart.name,
+                    'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
+                    'lieu_retour':reservation.lieu_retour.name,
+                    'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+
+                })
+
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),  
+                    expediteur,
+                    [reservation.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
 
             if total_to_pay > 0 :
                 description_finale = f"{description_one} {description_nd_driver} {description_klm} {description_carburant} {description_sb_a} {description_sb_b} {description_sb_c} {description_two}"
