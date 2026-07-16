@@ -1160,7 +1160,8 @@ def ma_reservation_detail(ref, email, country_code):
         klm_limit = None
 
         if ma_reservation and not ma_reservation.opt_klm_name:
-            klm_limit = ma_reservation.opt_klm.limit_Klm * ma_reservation.nbr_jour_reservation if ma_reservation.categorie_client.name != "VIP" else 275 * ma_reservation.nbr_jour_reservation
+
+            klm_limit = 250 * ma_reservation.nbr_jour_reservation if ma_reservation.categorie_client.name != "VIP" else 275 * ma_reservation.nbr_jour_reservation
         else:
             klm_limit = "illimitée"
         date = ma_reservation.date_heure_debut.date()
