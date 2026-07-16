@@ -1160,8 +1160,9 @@ def ma_reservation_detail(ref, email, country_code):
         klm_limit = None
 
         if ma_reservation and not ma_reservation.opt_klm_name:
+            klm_option = Options.objects.filter(option_code__icontains="KLM_ILLIMITED", categorie_id=ma_reservation.vehicule.categorie, zone= ma_reservation.zone).first()
 
-            klm_limit = 250 * ma_reservation.nbr_jour_reservation if ma_reservation.categorie_client.name != "VIP" else 275 * ma_reservation.nbr_jour_reservation
+            klm_limit = klm_option.limit_Klm * ma_reservation.nbr_jour_reservation if ma_reservation.categorie_client.name != "VIP" else 275 * ma_reservation.nbr_jour_reservation
         else:
             klm_limit = "illimitée"
         date = ma_reservation.date_heure_debut.date()
