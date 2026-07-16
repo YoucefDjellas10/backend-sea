@@ -1894,9 +1894,11 @@ def success_pick_up_view(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
     
+from django.conf import settings
+
 def livraison_photo_by_res(request, livraison_id, attachment_id):
     logger.info(f"Requête reçue: livraison_id={livraison_id}, attachment_id={attachment_id}")
-    
+
     try:
         rel_exists = LivraisonIrAttachmentRel.objects.filter(
             livraison_id=livraison_id,
@@ -1907,19 +1909,19 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
             raise Http404("Ce fichier n'est pas lié à cette livraison")
 
         att = get_object_or_404(IrAttachment, pk=attachment_id)
-        
-        ODOO_DATA_DIR = '/mnt/odoo-filestore/safarelamir'
-        path = os.path.join(ODOO_DATA_DIR, *att.store_fname.split('/'))
-        
+
+        path = os.path.join(settings.ODOO_FILESTORE_DIR, *att.store_fname.split('/'))
+
         if not os.path.exists(path):
             logger.error(f"Fichier introuvable: {path}")
             raise Http404(f"Fichier introuvable : {path}")
-        
+
         with open(path, 'rb') as f:
             raw = f.read()
+
         mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
         return HttpResponse(raw, content_type=mimetype)
-        
+
     except Exception as e:
         logger.error(f"Erreur dans livraison_photo_by_res: {str(e)}")
         raise

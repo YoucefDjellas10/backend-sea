@@ -7,6 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 API_BASE_URL = config("API_BASE_URL", default="https://api.safarelamir.com")
 SITE_BASE_URL = config("SITE_BASE_URL", default="https://safarelamir.com")
+ODOO_FILESTORE_DIR = config("ODOO_FILESTORE_DIR")
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
