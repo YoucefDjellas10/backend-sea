@@ -5086,7 +5086,6 @@ def create_caution_payment_link_permanent(request):
         data = json.loads(request.body)
         ref = data.get("ref")
         montant_caution = data.get("montant_caution")
-        description = data.get("description", "Caution de garantie")
         
         if not all([ref, montant_caution]):
             return JsonResponse({
@@ -5094,6 +5093,9 @@ def create_caution_payment_link_permanent(request):
             }, status=400)
         reservation = Reservation.objects.get(name=ref)
         email = reservation.email
+        description = None
+
+        description = f"Caution de garantie | Afin de garantir votre location du véhicule ({reservation.model_name} du {reservation.date_depart_char} à {reservation.heure_depart_char} au {reservation.date_retour_char} à {reservation.heure_retour_char}), une caution est requise. Cette caution sera automatiquement remboursée en intégralité sous 7 jours ouvrés, à la fin de la réservation, après restitution conforme du véhicule (état, carburant, kilométrage et ponctualité). Ce lien reste actif et vous permet de déposer votre caution en ligne (caution par empreinte débitée) jusqu'à votre arrivée."
 
         montant_centimes = int(float(montant_caution) * 100)
         
