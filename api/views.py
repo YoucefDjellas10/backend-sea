@@ -1598,10 +1598,14 @@ def restitution_email_view(request):
         reviews_link = None
 
         livraison = Livraison.objects.get(id=livraison_id)
+        reviews_link = livraison.lieu_depart.zone.avis_google if livraison.lieu_depart.zone.avis_google else None
 
         if not livraison or livraison is None : 
             return JsonResponse({'error': "there are not livraison with this ref"}, status=status.HTTP_400_BAD_REQUEST)
         
+        token = generate_pickup_token(livraison_id)
+        inspection_link = f"{settings.API_BASE_URL}/inspection-report/?token={token}"
+
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -1613,7 +1617,8 @@ def restitution_email_view(request):
                     "clien_name" : livraison.client.name,
                     "reviews": review if review else "yes",
                     "reviews_link" : reviews_link,
-                    "reciept_link":f"{settings.API_BASE_URL}m/caution-receipt-download/?livraison_id={livraison_id}"
+                    "inspection_link": inspection_link,
+                    "reciept_link":f"{settings.API_BASE_URL}/caution-receipt-download/?livraison_id={livraison_id}"
                     
                 })
                 
