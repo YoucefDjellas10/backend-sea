@@ -1712,8 +1712,6 @@ def contract_download_(request):
     taux_change = TauxChange.objects.get(id=2)
     taux = taux_change.montant
 
-
-
     protection = livraison.reservation.opt_protection 
 
     protection_name = " "
