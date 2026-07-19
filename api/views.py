@@ -1615,6 +1615,7 @@ def restitution_email_view(request):
                 html_message = render_to_string('email/restitution_email.html', {
                     "ref":livraison.reservation.name,
                     "clien_name" : livraison.client.name,
+                    "client_prime_code": livraison.client.code_prime,
                     "reviews": review if review else "yes",
                     "reviews_link" : reviews_link,
                     "inspection_link": inspection_link,
