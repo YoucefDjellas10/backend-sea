@@ -58,9 +58,7 @@
             border-bottom: 1px solid #e0e0e0;
         }
         
-        .content {
-            padding: 30px 20px;
-            color: #333333;
+        .content {            color: #333333;
         }
         
         .content h1 {
@@ -157,44 +155,73 @@
         
         <!-- Contenu principal -->
         <div class="content">
-               <img src="https://img.mailinblue.com/9020115/images/content_library/original/688f69e0b76834021875ef63.png" 
-               alt="" width="370" class="adapt-img" 
+            <!--    <img src="https://img.mailinblue.com/9020115/images/content_library/original/688f69e0b76834021875ef63.png" 
+               alt="" width="80%" class="adapt-img" 
                style="display:block;
-               margin: 0 auto; ">
-                    
+               margin: 0 auto; "> -->
+                <img src="https://img.mailinblue.com/9020115/images/content_library/original/6a5c8badb5d839d4b80f261d.png" 
+               alt="" width="80%" class="adapt-img" 
+               style="display:block;
+               margin: 0 auto; ">  
             <h1 style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
                       font-size:46px;font-style:normal;
                       font-weight:bold;line-height:55.2px;
-                      color:#bf5646">Confirmation de restitution</h1>
+                      
+                      color:#202f36">Véhicule <span style="color: forestgreen;"> Restituée  ✓</span></h1>
             
-            <p><strong>{{ clien_name }},</strong></p>
+            <h1 style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
+font-size:28px;
+font-style:normal;
+font-weight:bold;line-height:55.2px;
+text-align:left;
+color:#202f36">Au revoir,<br/> <strong> {{ clien_name }}, </strong></h1>
             
-            <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', 
-                        helvetica, sans-serif;line-height:1.4;color:#202f36;font-size:14px; text-align: justify;">
+<p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', 
+helvetica, sans-serif;line-height:1.4;color:#202f36;font-size:15px; text-align: justify;">
 
-Nous vous remercions vivement d’avoir choisi notre agence.
-Si tout est conforme, l’empreinte bancaire sera automatiquement libérée par votre banque sous un délai de 7 jours ouvrés.
+Nous vous remercions sincèrement d’avoir choisi notre agence. En cas de caution en ligne, si aucune anomalie n’est constatée lors de la restitution du véhicule, l’empreinte bancaire sera automatiquement remboursée intégralement dans un délai de 7 jours ouvrables.
+<br/>
+<br/>
 
-En cas de frais supplémentaires lors de la restitution (carburant manquant, dommages, prolongation, excès de kilométrage, etc.), ceux-ci seront prélevés sur l’empreinte avant la libération du solde.
-Vous retrouverez ces informations mentionnées sur votre reçu d’encaissement. <br/><br/>
- <a href="{{ reciept_link }}"  class="link" style="
- font-weight: normal;font-size: 15px;">  Cliquez ici pour télécharger votre reçu</a>  </p>
+<a href="{{ reciept_link }}" class="link" style="
+font-weight: normal;font-size: 15px;">
+Cliquez ici pour télécharger votre reçu
+</a>
+<br/>
+
+</p>
+<p>
+En cas de frais supplémentaires, ceux-ci seront prélevés selon les conditions de location.
+</p>
+
 
                   
-            
-            <div class="info-box">
+          <div class="info-box">
 
-                <h2>Accès à votre espace client</h2>
-                <p>Pour consulter l'historique de vos locations, votre solde, points de fidélité, et vos informations de compte, veuillez vous connecter à votre espace personnel :</p>
-                
-                <p> 
-                <a href="https://safarelamir.com/?popup=login" 
-                class="link">Accéder à mon espace client</a>
-                
-                </p>
-            
-            </div>
-            
+<h1 style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
+font-size:25px;font-style:normal;
+font-weight:bold;line-height:1.4;
+text-align:left;
+color:#202f36">
+🖥️📑 Rapport et Constat
+</h1>
+
+<p>
+Dans ce rapport, vous trouverez le récapitulatif de votre location  : état de restitution du véhicule, kilométrage, niveau de carburant, photos du constat ainsi que les éventuelles observations relevées lors de la restitution.
+</p>
+
+<p>
+<a href="{{ inspection_link }}" class="link">
+Accéder au Rapport et Constat de restitution
+</a>
+</p>
+
+<p style="background-color:#fff8e5;border-left:4px solid #f0b429;padding:8px 12px;border-radius:6px;color:#4a3a01;font-family:Arial,sans-serif;font-size:14px;line-height:21px;margin:20px 0">
+⚠️ <strong>Important :</strong> Les photos du constat sont horodatées, géolocalisées (GPS) et conservées 30 jours dans nos serveurs pour garantir une totale transparence lors de la restitution du véhicule.
+</p>
+
+</div>
+     <!--        
             <h2>Programme de parrainage</h2>
             <p>Vous pouvez recommander nos services à vos proches. Votre code personnel est : <strong>{{ ref }}</strong></p>
 
@@ -204,7 +231,7 @@ Vous retrouverez ces informations mentionnées sur votre reçu d’encaissement.
 
 
 
-   <a href="https://api.whatsapp.com/send?text=Bonjour,%20voici%20mon%20code%20Prime%20chez%20SAFAR%20EL%20AMIR%20:%201219020.%20Plus%20d'informations%20sur%20:%20www.safarelamir.com/programme-prime" 
+   <a href="https://api.whatsapp.com/send?text=Bonjour,%20voici%20mon%20code%20Prime%20chez%20SAFAR%20EL%20AMIR%20:%{{ ref }}.%20Plus%20d'informations%20sur%20:%20www.safarelamir.com/programme-prime" 
    target="_blank" 
    style="font-size:15px; font-family:Arial, sans-serif; color:#ffffff;text-decoration: none; display:inline-block;">
  
@@ -215,8 +242,57 @@ Vous retrouverez ces informations mentionnées sur votre reçu d’encaissement.
       </a>
     </td>
   </tr>
-</table>
-            <p>Pour plus d'informations sur notre programme de parrainage : <a href="http://www.safarelamir.com/programme-prime" class="link">www.safarelamir.com/programme-prime</a></p>
+</table> -->
+<div style="background:#f7f9fc;border:1px solid #e3e8f0;border-radius:10px;padding:20px;text-align:center;font-family:Arial, sans-serif;">
+
+    <h2 style="margin:0 0 12px;color:#264686;font-size:22px;font-weight:bold;">
+        🎁 Programme de parrainage
+    </h2>
+
+    <p style="margin:0 0 15px;color:#202f36;font-size:14px;line-height:1.5;">
+        Recommandez SAFAR EL AMIR à vos proches et profitez des avantages du programme Prime.
+    </p>
+
+    <div style="background:#ffffff;border:2px dashed #264686;border-radius:8px;padding:12px;margin:15px auto;max-width:250px;">
+        <span style="display:block;color:#777;font-size:12px;margin-bottom:5px;">
+            Votre code personnel
+        </span>
+
+        <strong style="font-size:24px;color:#D7263D;letter-spacing:1px;">
+            {{ ref }}
+        </strong>
+    </div>
+
+
+    <table border="0" cellspacing="0" cellpadding="0" align="center" style="margin:20px auto;">
+        <tr>
+            <td align="center" bgcolor="#25D366" style="border-radius:25px;padding:12px 22px;">
+
+                <a href="https://api.whatsapp.com/send?text=Bonjour,%20voici%20mon%20code%20Prime%20chez%20SAFAR%20EL%20AMIR%20:%20{{ ref }}.%20Plus%20d'informations%20sur%20:%20www.safarelamir.com/programme-prime"
+                   target="_blank"
+                   style="font-size:14px;font-family:Arial,sans-serif;color:#ffffff;text-decoration:none;display:inline-block;font-weight:bold;">
+
+                    <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b06b83a498c1a17b044d3d.png"
+                         alt="WhatsApp"
+                         width="18"
+                         height="18"
+                         style="vertical-align:middle;margin-right:8px;border:none;">
+
+                    Partager mon code Prime
+                </a>
+
+            </td>
+        </tr>
+    </table>
+
+    <p style="margin:10px 0 0;color:#666;font-size:12px;">
+        Votre filleul bénéficiera également d’un avantage lors de sa première réservation.
+    <br/>Pour plus d'informations sur notre programme de parrainage : 
+    
+    <br/>
+    <a href="http://www.safarelamir.com/programme-prime" class="link">www.safarelamir.com/programme-prime</a></p>
+</div>
+            
             
             {% if reviews == "yes" %}
             <div class="info-box" style="background-color: #fefcfe">
@@ -263,9 +339,9 @@ Vous retrouverez ces informations mentionnées sur votre reçu d’encaissement.
             <p>Copyright © 2003 SAFAR EL AMIR, Tous droits réservés.</p>
             
             <p>
-                <a href="#">Nous contacter</a> |
-                <a href="#">Politique de confidentialité</a> |
-                <a href="#">Conditions d'utilisation</a>
+                <a href="https://www.safarelamir.com/en/contact">Nous contacter</a> |
+                <a href="https://www.safarelamir.com/privacy">Politique de confidentialité</a> |
+                <a href="https://www.safarelamir.com/fr/terms">Conditions d'utilisation</a>
             </p>
             
         </div>
