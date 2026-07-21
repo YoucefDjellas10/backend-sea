@@ -979,6 +979,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     options_total += float(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else float(record.opt_nd_driver.prix)
             if record.opt_plein_carburant:
                 if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
+                    print("#############################################")
+                    print("condition re aliser prix de l'option : ", float(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else float(record.opt_plein_carburant.prix))
                     options_total += float(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else float(record.opt_plein_carburant.prix)
             if record.opt_siege_a:
                 if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
