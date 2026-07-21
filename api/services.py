@@ -973,14 +973,15 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     options_total += float(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else float(record.opt_protection.prix)
             if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
                 if not (free_options.get("option_eight") and "MAX" in record.opt_protection.opt.option_code):
+                    print("///////////////////////////////////////////////////")
+                    print("pris de l'option : ", float(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else float(record.opt_protection.opt.prix))
+                    print("///////////////////////////////////////////////////")
                     options_total += float(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else float(record.opt_protection.opt.prix)
             if record.opt_nd_driver:
                 if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
                     options_total += float(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else float(record.opt_nd_driver.prix)
             if record.opt_plein_carburant:
                 if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
-                    print("#############################################")
-                    print("condition re aliser prix de l'option : ", float(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else float(record.opt_plein_carburant.prix))
                     options_total += float(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else float(record.opt_plein_carburant.prix)
             if record.opt_siege_a:
                 if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
