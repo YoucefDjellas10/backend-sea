@@ -974,9 +974,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             if record.opt_klm:
                 if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
                     options_total += float(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else float(record.opt_klm.prix)
-            if record.opt_payment:
-                if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
-                    options_total += float(record.opt_payment.prix) * total_days if record.opt_payment.type_tarif == "jour" else float(record.opt_payment.prix)
             if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
                 if not (free_options.get("option_eight") and "MAX" in record.opt_protection.opt.option_code):
                     options_total += float(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else float(record.opt_protection.opt.prix)
