@@ -978,8 +978,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if not (free_options.get("option_six") and "ANTICIPE" in record.opt_protection.option_code):
                     options_total += float(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else float(record.opt_protection.prix)
             if record.opt_protection and hasattr(record.opt_protection, 'opt') and record.opt_protection.opt:
+                print("///////////////////////////////////////////////////")
                 if not (free_options.get("option_eight") and "MAX" in record.opt_protection.opt.option_code):
-                    print("///////////////////////////////////////////////////")
+                    
                     print("pris de l'option : ", float(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else float(record.opt_protection.opt.prix))
                     print("///////////////////////////////////////////////////")
                     options_total += float(record.opt_protection.opt.prix) * total_days if record.opt_protection.opt.type_tarif == "jour" else float(record.opt_protection.opt.prix)
