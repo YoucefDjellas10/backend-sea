@@ -884,6 +884,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             prix_jour = cout_total_tarif / jours_couverts
 
+            print("prix par jour : ", prix_jour)
+
             # ── Appliquer promotion par modèle si nécessaire ─────────────────
             modele_id = record.modele.id if record.modele else None
             modeles_promo = [m.id for m in [model_one, model_two, model_three, model_four, model_five] if m is not None]
@@ -929,7 +931,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                             else:
                                 chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
-                total_fixe += Decimal(meilleur_cout or 0)
+                prix_jour += Decimal(meilleur_cout or 0)
+            
+            print(" total 1 : ", total_fixe)
             
             supplements_one = Supplement.objects.filter(
                 Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
@@ -941,6 +945,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 Q(heure_debut__lte=heure_retour, heure_fin__gte=heure_retour)
             ).first()
             total_fixe += Decimal(supplements_two.montant) if supplements_two else 0
+
+            print(" total 2 : ", total_fixe)
 
             supplements_valeur = Supplement.objects.filter(valeur__gt=0)
             total_primary = float(total_fixe)
@@ -993,14 +999,19 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
                     options_total += float(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else float(record.opt_siege_c.prix)
 
+            print(" options_total : ", options_total)
             # ── Total brut et réduit ──────────────────────────────────────────
             total_brut = total_primary + cout_total_tarif + options_total
+
+            print(" total_brut 1 : ", total_brut)
 
             if effective_promotion > 0:
                 tarif_reduit = ((100 - effective_promotion) * prix_jour / 100) * total_days
                 total_new = total_primary + tarif_reduit + options_total
             else:
                 total_new = total_brut
+            
+            print(" total_new 1 : ", total_new)
 
             # ── Taux de change ────────────────────────────────────────────────
             taux = TauxChange.objects.filter(id=2).first()
@@ -1008,6 +1019,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             old_total = float(get_total) * taux_change if country_code == "DZ" else float(get_total)
             new_total = float(total_new) * taux_change if country_code == "DZ" else float(total_new)
+
+            print(" new_total 2 : ", new_total)
 
             # ── KLM limits ───────────────────────────────────────────────────
             if record.opt_klm_name:
@@ -1047,6 +1060,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     new_total = old_total
 
             frais = float(new_total) - float(old_total)
+
+            print(" new_total 3 : ", new_total)
 
             result.append({
                 'is_available': "yes",
