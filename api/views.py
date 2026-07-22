@@ -4640,7 +4640,7 @@ def stripe_webhook_reservation_(request):
                     did_by = 52 ,
                     payment = None
                 )
-
+            reservation.refresh_from_db() 
             print("##### resultats",resultats,"#####")
             
             reservation.changes = "no"
