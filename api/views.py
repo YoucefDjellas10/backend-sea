@@ -3011,6 +3011,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 fail_silently=False,
                             )
 
+                    print("######################")
+
                     reservation_obj.du_au_modifier = reservation_obj.du_au
                     reservation_obj.du_au = f"{date_depart_obj.strftime('%d/%m/%Y')} {heure_depart} → {date_retour_obj.strftime('%d/%m/%Y')} {heure_retour}"
                     reservation_obj.date_depart_char = date_depart_obj.strftime("%d/%m/%Y")
@@ -4963,8 +4965,6 @@ def stripe_webhook_reservation_(request):
                 )
             
             print(f"Paiement réussi pour l'ajout des options pour la réservation ID: {reservation_id}")
-
-
         elif type_id == "Complet":
             reservation_id = session.get("metadata", {}).get("reservation_id")
             reste_payer = session.get("metadata", {}).get("reste_payer")
@@ -5008,7 +5008,6 @@ def stripe_webhook_reservation_(request):
                 for lv in livraison:
                     lv.total_reduit_euro -= montant
                     lv.save()
-
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
 
