@@ -2953,8 +2953,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "return_place": reservation_obj.lieu_retour.name,
                                 "current_total_days": current_total_days,
                                 "diff_days": diff_days,
-                                "old_total": round(old_total, 22),
-                                "new_total": round(float(old_total) - float(new_total), 2),
+                                "old_total": round(old_total, 2),
+                                "new_total": round(credit_amount * 2, 2),
                                 "credit_amount":round(credit_amount, 2),
 
                             })
