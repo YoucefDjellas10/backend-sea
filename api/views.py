@@ -220,8 +220,6 @@ def checklist_mail_view(request):
         response_data = json.loads(response.content)
         url = response_data.get("payment_url")
  
-        print("url : ", url)
-
         sujet = f"Checklist finale SAFAR EL AMIR - Bonjour { reservation.client.name } : Votre checklist finale — Bientôt là​ !"
         expediteur = settings.DEFAULT_FROM_EMAIL
         html_message = render_to_string('email/coming_soon_email.html', {
@@ -728,7 +726,6 @@ def ajuster_les_duree(request):
         reservations = Reservation.objects.all()
 
         for reservation in reservations:
-            print("reservation number : ", reservation.name)
             try:
                 date_depart_obj = datetime.strptime(reservation.date_depart_char, "%d/%m/%Y").date()
                 date_retour_obj = datetime.strptime(reservation.date_retour_char, "%d/%m/%Y").date()
@@ -1141,7 +1138,6 @@ def combined_document_download(request):
         "sb_b": "✓ Siège enfant (9–13 kg)" if livraison.reservation.opt_siege_b_name else None,
         "sb_c": "✓ Siège enfant (10–18 kg)" if livraison.reservation.opt_siege_c_name else None,
     }
-    print("-------------------- ici 11111")
     birthday_contract = None
     permis_contract = None
 
@@ -1175,7 +1171,6 @@ def combined_document_download(request):
         "PROTECTION_NAME": protection_name,
         "DESCRIPTION_PROTECTION": protection_dercription,
     }
-    print("-------------------- ici 222222")
 
     # Charger l'image en base64
     image_path = os.path.join(settings.BASE_DIR, 'api', 'static', 'images', 'nom (1).jpg')
@@ -1191,7 +1186,6 @@ def combined_document_download(request):
         "Prenom": livraison.prenom,
         "background_image": background_image,
     }
-    print("-------------------- ici 33333333333")
 
     # Générer les pages séparément
     confirmation_html_string = render_to_string("confirmation_pdf.html", confirmation_context)
@@ -1273,9 +1267,6 @@ def confirmation_download(request):
     else :
         protection_name = " "
         protection_dercription = " "
-
-    print("protection name : ", protection_name)
-    print("protection desc")
 
     reservation = livraison
     nd_clinet = None
@@ -1732,12 +1723,6 @@ def contract_download_(request):
     else :
         protection_name = " "
         protection_dercription = " "
-
-    print("protection : ",protection)
-    print("protection code : ", protection.option_code)
-
-    print("protection name : ", protection_name)
-    print("protection desc")
 
     reservation = livraison.reservation
     nd_clinet = None
@@ -2436,7 +2421,6 @@ def ajouter_liste_attente(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            print("data :",data)
             
             client_id = data.get('client_id')
             if client_id == "":
@@ -2508,17 +2492,11 @@ def ajouter_liste_attente(request):
 def create_contact_message(request):
     if request.method == 'POST':
         try:
-            print("inside")
             data = json.loads(request.body.decode('utf-8'))
             nom_complet = data.get('nom_complet')
             email = data.get('email')
             message_text = data.get('message') 
             client_id = data.get('client_id')
-
-            print(nom_complet)
-            print(email)
-            print(message_text)
-
 
             if not nom_complet or not email or not message_text : 
                 return JsonResponse({"created": False, "message": "les champs nom_complet et email et message_text sont requis."}, status=405)
@@ -2730,18 +2708,6 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
 
 def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by, payment):
     
-    print("########## verify_and_do - paramètres reçus #########")
-    print("ref :", ref)
-    print("lieu_depart :", lieu_depart)
-    print("lieu_retour :", lieu_retour)
-    print("date_depart :", date_depart)
-    print("heure_depart :", heure_depart)
-    print("date_retour :", date_retour)
-    print("heure_retour :", heure_retour)
-    print("backoffice :", backoffice)
-    print("did_by :", did_by)
-    print("payment :", payment)
-
     try:
         verify_value = verify_and_calculate(
             ref,
@@ -2801,7 +2767,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             if backoffice == "yes" or (payment != "yes" and payment_required != "yes"):
-                print("############# First condition ############")
                 
                 if diff_prix < 0:
                     if refund == "yes":
@@ -2970,10 +2935,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             )
                         
                         elif credit == "yes":
-                            print("Solde (before): ",reservation_obj.client.solde)
                             reservation_obj.client.solde = reservation_obj.client.solde + Decimal(credit_amount) if reservation_obj.client.solde is not None else Decimal(credit_amount)
                             reservation_obj.save()
-                            print("Solde (after): ",reservation_obj.client.solde)
                             sujet_credit = f"SAFAR EL AMIR - Retour anticipé confirmé pour la reservation {reservation_obj.name}"
                             expediteur_credit = settings.DEFAULT_FROM_EMAIL
 
@@ -3080,26 +3043,19 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             caution.save()
         
                 if reservation_obj.lieu_depart != lieu_depart_obj or reservation_obj.lieu_retour != lieu_retour_obj :
-                    print("######### changement lieux  #########")
-                    print("lieu_retour_obj : ", lieu_retour_obj)
                     reservation_obj.ancien_lieu = f"{reservation_obj.lieu_depart.name} → {reservation_obj.lieu_retour.name}"
                     reservation_obj.depart_retour = f"{lieu_depart_obj.name} → {lieu_retour_obj.name}"
-                    print("reservation_obj.depart_retour :", reservation_obj.depart_retour)
                     reservation_obj.lieu_depart = lieu_depart_obj
                     reservation_obj.lieu_retour = lieu_retour_obj
                     reservation_obj.save()
-                    print("reservation_obj.lieu_retour :", reservation_obj.lieu_retour)
                 reservation_obj.save()
-                print("lieu_retour_obj : ", lieu_retour_obj)
-                print("reservation_obj.lieu_retour :", reservation_obj.lieu_retour)
-
+                
                 return {"success": "yes" , 
                     "prolongation_id": prolongation_id,
                     "retour_avance_id":retour_avance_id, 
                     "reservation":reservation_obj.id}
 
             elif backoffice != "yes" and (payment == "yes" or payment_required == "yes"):
-                print("############# Second condition ############")
                 lieu_depart_name = Lieux.objects.filter(id=lieu_depart).first()
                 lieu_retour_name = Lieux.objects.filter(id=lieu_retour).first()
                 request_factory = RequestFactory()
@@ -3141,7 +3097,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         "payment_url": payment_url,
                         "reservation":reservation_obj.id}
             else:
-                print("############# third condition ############")
                 return {"success": "no"}
 
         
@@ -4610,7 +4565,6 @@ def stripe_webhook_reservation_(request):
                 print(f"Paiement réussi pour la réservation ID: {reservation_id}")
         elif type_id == "verify_calculate":
             session = event["data"]["object"]
-            print("########## 1 #########")
             reservation_id = session.get("metadata", {}).get("reservation_id")
             lieu_depart_id = session.get("metadata", {}).get("lieu_depart_id")
             lieu_retour_id = session.get("metadata", {}).get("lieu_retour_id")
@@ -4620,20 +4574,14 @@ def stripe_webhook_reservation_(request):
             heure_retour = session.get("metadata", {}).get("heure_retour")
             montant_paye = session.get("metadata", {}).get("montant_paye")
 
-            print("########## 2 #########") 
-
             reservation = Reservation.objects.get(id=reservation_id)
             
-            print("########## 3 #########") 
-
             if reservation.changes == "yes":
 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
 
                 montant = float(montant_paye)/100
-
-                print("########## 4 #########") 
 
                 payment = Payment.objects.create(
                     reservation=reservation,
@@ -4654,19 +4602,6 @@ def stripe_webhook_reservation_(request):
                 )
                 payment.save()
 
-                print("########## 5 #########") 
-                print("Paramètres envoyés à verify_and_do :")
-                print("ref :", reservation.name)
-                print("lieu_depart :", lieu_depart_id)
-                print("lieu_retour :", lieu_retour_id)
-                print("date_depart :", date_depart)
-                print("heure_depart :", heure_depart)
-                print("date_retour :", date_retour)
-                print("heure_retour :", heure_retour)
-                print("backoffice :", "yes")
-                print("did_by :", 52)
-                print("payment :", "no")
-
                 resultats = verify_and_do(
                     ref=reservation.name,
                     lieu_depart = lieu_depart_id,
@@ -4679,8 +4614,6 @@ def stripe_webhook_reservation_(request):
                     did_by = 52 ,
                     payment = None
                 )
-                print("resultats : ", resultats)
-            print("########## 6 #########") 
             
             reservation.changes = "no"
             reservation.montant_paye += Decimal(str(montant))
@@ -4784,10 +4717,6 @@ def stripe_webhook_reservation_(request):
             montant_caution = session.get("metadata", {}).get("montant_caution")
             payment_intent_id = session.get("payment_intent")
             stripe_charge_id = None
-            print("#######################################")
-            print("ref :",ref)
-            print("montant_caution :",montant_caution)
-            print("payment_intent_id :", payment_intent_id)
 
             if payment_intent_id:
                 payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
@@ -5481,11 +5410,7 @@ def add_options_put_view(request):
                 klm_discount = klm_put.get("klM_last_price",None)
                 category = reservation.categorie
                 klm_name = klm_put.get("klM_name",None)
-                print("#############################")
-                print("klm_name : ", klm_name)
-                print("category : ", category)
-                print("lieu_depart_obj.zone : ", lieu_depart_obj.zone)
-                print("#############################")
+
                 klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
                 if klm_option is None: 
                     return JsonResponse({"modified":False ,"message": "klm_option is none"}, status=400)
@@ -7060,8 +6985,6 @@ def cancel_receipt_download(request):
     un_jour = cancellation_data["cancellation_fee"] if cancellation_data["cancellation_fee"] and cancellation_data["cancellation_fee"] > 0 else 0.00
     montant_rembourse = cancellation_data["refund_amount"] if cancellation_data ["refund_amount"] and cancellation_data["refund_amount"] > 0 else 0.00
     total = reservation.montant_paye if reservation.montant_paye and reservation.montant_paye > 0 else 0.00
-
-    print("cancel date : ",reservation.cancelation_date.date())
 
     context = {
         "ref": ref,

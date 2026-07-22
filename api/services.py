@@ -347,8 +347,6 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
 
-        print("-----------country_code  : ", country_code)
-
         result["currency"]="DA" if country_code == "DZ" else "EUR"
 
         if klm == "yes" and not reservations.opt_klm_name:
@@ -640,41 +638,30 @@ def cencel_request(ref,country_code):
         ma_reservation = Reservation.objects.filter(name=ref)
         if not ma_reservation.exists():
             return {"message": "Réservation non trouvée."}
-        
-        print("######### start ###########")
-        
+                
         for record in ma_reservation:
-            print("######## in loop ##########")
             if record.status != 'confirmee' and record.etat_reservation != "reserve" and country_code != "ABC":
                 return ValueError("Cette opération n'est possible que pour les réservations confirmées.")
-            print("######## status confirmé #######")
             total = record.montant_paye
             date_reservation = record.date_heure_debut.date()
             periode_existe = Periode.objects.filter(
                     date_debut__lte=date_reservation,
                     date_fin__gte=date_reservation
                 ).first()
-            print("######## befor existance #######")
             if periode_existe :
-                print("######## periode existanted #######")
                 annulation = ConditionAnnulation.objects.filter(id=1).first()
                 jours_restants = (date_reservation - today).days
                 if (periode_existe.saison == annulation.haute_saison and jours_restants < annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants < annulation.basse_montant):
-                    print("######## st conditiuon in existence #######")
                     un_jour = record.prix_jour + 15
                 elif (periode_existe.saison == annulation.haute_saison and jours_restants >= annulation.haute_montant) or (periode_existe.saison == annulation.basse_saison and jours_restants >= annulation.basse_montant):
-                    print("######## nd condition in existence #######")
                     un_jour = 15
             else:
-                print("######## periode not existed #######")
                 un_jour = record.prix_jour + 15
                 
             if total and float(total) > float(un_jour) :
-                print("######## st conditiuon calculate #######")
                 rembourssement = True
                 montant_rembourse = float(total) - float(un_jour) 
             else:
-                print("######## nd conditiuon calculate #######")
                 rembourssement = False
                 montant_rembourse = 00.0
 
@@ -691,7 +678,6 @@ def cencel_request(ref,country_code):
                 }
                 for raison in raisons_annulation
             ]
-            print("######## cancellation_reasons :",cancellation_reasons)
         
         taux = TauxChange.objects.filter(id=2).first()
         taux_change = taux.montant
@@ -712,7 +698,6 @@ def cencel_request(ref,country_code):
             "caution": caution,
 
         }
-        print("######## cancellation_data :",cancellation_data)
 
         return {
             "success": True,
@@ -884,7 +869,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             prix_jour = cout_total_tarif / jours_couverts
 
-            print("prix par jour : ", prix_jour)
 
             # ── Appliquer promotion par modèle si nécessaire ─────────────────
             modele_id = record.modele.id if record.modele else None
@@ -933,7 +917,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
                 prix_jour += Decimal(meilleur_cout or 0)
             
-            print(" total 1 : ", total_fixe)
             
             supplements_one = Supplement.objects.filter(
                 Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
@@ -946,7 +929,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             ).first()
             total_fixe += Decimal(supplements_two.montant) if supplements_two else 0
 
-            print(" total 2 : ", total_fixe)
 
             supplements_valeur = Supplement.objects.filter(valeur__gt=0)
             total_primary = float(total_fixe)
@@ -964,10 +946,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             else:
                 free_options = {}
 
-            print("#####################################")
-            print("free options :", free_options)
-            print("#####################################")
-
             options_total = 0
             if record.opt_payment_name:
                 options_total += float(record.opt_payment_total) if record.opt_payment_total else 0
@@ -978,8 +956,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if not (free_options.get("option_eight") and "MAX" in record.opt_protection.option_code):
                     options_total += float(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else float(record.opt_protection.prix)
             
-            print("options_total :", options_total)
-
             if record.opt_nd_driver:
                 if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
                     options_total += float(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else float(record.opt_nd_driver.prix)
@@ -996,11 +972,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
                     options_total += float(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else float(record.opt_siege_c.prix)
 
-            print(" options_total : ", options_total)
             # ── Total brut et réduit ──────────────────────────────────────────
             total_brut = total_primary + cout_total_tarif + options_total
 
-            print(" total_brut 1 : ", total_brut)
 
             if effective_promotion > 0:
                 tarif_reduit = ((100 - effective_promotion) * prix_jour / 100) * total_days
@@ -1008,16 +982,12 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             else:
                 total_new = total_brut
             
-            print(" total_new 1 : ", total_new)
-
             # ── Taux de change ────────────────────────────────────────────────
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = float(taux.montant)
 
             old_total = float(get_total) * taux_change if country_code == "DZ" else float(get_total)
             new_total = float(total_new) * taux_change if country_code == "DZ" else float(total_new)
-
-            print(" new_total 2 : ", new_total)
 
             # ── KLM limits ───────────────────────────────────────────────────
             if record.opt_klm_name:
@@ -1057,8 +1027,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     new_total = old_total
 
             frais = float(new_total) - float(old_total)
-
-            print(" new_total 3 : ", new_total)
 
             result.append({
                 'is_available': "yes",
@@ -1656,8 +1624,6 @@ def rechercher_tarifs(lieu_depart_id, lieu_retour_id, date_depart, heure_depart,
                 "prix": prix_par_jour
             })
     
-    print('Resultats ',resultats)
-
     return resultats
 
 def check_client(id):
@@ -1677,9 +1643,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
     date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
 
     buffer_retour_hours = 1  
-    print("###################### begining  ########################")
-    print("lieu depart : ", lieu_depart_id)
-    print("lieu de retour : ",lieu_retour_id)
+
     if lieu_depart_id and lieu_retour_id:
         try:
             ld = Lieux.objects.filter(id=lieu_depart_id).first()
@@ -1690,33 +1654,26 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                 zone_retour = lr.zone
 
                 if zone_depart and zone_retour and zone_depart.id != zone_retour.id:
-                    print("######### Case 1 #########")
                     buffer_retour_hours = 24
 
                 elif zone_depart and zone_depart.id in [1, 2, 16]:
-                    print("######### Case 2 #########")
                     buffer_retour_hours = 1
 
                 elif ld.id == 4 and lr.id == 4:
-                    print("######### Case 3 #########")
                     buffer_retour_hours = 1
 
                 else:
-                    print("######### Case 4 #########")
                     buffer_retour_hours = 5
 
         except Exception:
-            print("######### exeption Case #########")
             buffer_retour_hours = 1
 
     buffer_retour = timedelta(hours=buffer_retour_hours)
-    print("################## buffer_retour :",buffer_retour)
 
     buffer_depart_defaut = timedelta(hours=1)
 
     date_heure_debut_avec_buffer = date_heure_debut - buffer_depart_defaut
     date_heure_fin_avec_buffer = date_heure_fin + buffer_retour
-    print("################## date_heure_fin_avec_buffer :",date_heure_fin_avec_buffer)
 
     reserved_vehicles = Reservation.objects.filter(
         Q(date_heure_debut__lt=date_heure_fin_avec_buffer,
