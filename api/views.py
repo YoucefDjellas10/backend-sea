@@ -2840,7 +2840,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 html_message=html_message_prologation_after,
                                 fail_silently=False,
                             )
-                            print("######################")
+                            
                         else:
                             sujet_update = f"SAFAR EL AMIR - Reservation : {reservation_obj.name} - Confirmation de Mise à jour de votre réservation"
                             expediteur_update = settings.DEFAULT_FROM_EMAIL
@@ -2884,8 +2884,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 fail_silently=False,
                             )
 
-
+                        
                     elif nouvelle_date_heure_fin <= reservation_obj.date_heure_fin:
+                        print("######################")
                         retour_avance_obj = RetourAvance.objects.create(
                             reservation=reservation_obj,
                             lieu_depart=lieu_depart_obj,
