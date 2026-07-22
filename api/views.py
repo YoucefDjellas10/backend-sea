@@ -4998,7 +4998,7 @@ def stripe_webhook_reservation_(request):
                 )
                 payment.save()
 
-                reservation.reste_payer = reservation.reste_payer - float(montant)
+                reservation.reste_payer = reservation.reste_payer - Decimal(montant)
                 reservation.montant_paye += float(montant)
                 reservation.total_revenue += float(montant)
                 reservation.is_complement = False
