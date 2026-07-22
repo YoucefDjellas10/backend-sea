@@ -3013,40 +3013,16 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 fail_silently=False,
                             )
 
-
-                    print("##############################################")
-
                     reservation_obj.du_au_modifier = reservation_obj.du_au
-                    print(f"du_au_modifier: {reservation_obj.du_au_modifier}")
-
                     reservation_obj.du_au = f"{date_depart_obj.strftime('%d/%m/%Y')} {heure_depart} → {date_retour_obj.strftime('%d/%m/%Y')} {heure_retour}"
-                    print(f"du_au: {reservation_obj.du_au}")
-
                     reservation_obj.date_depart_char = date_depart_obj.strftime("%d/%m/%Y")
-                    print(f"date_depart_char: {reservation_obj.date_depart_char}")
-
                     reservation_obj.date_retour_char = date_retour_obj.strftime("%d/%m/%Y")
-                    print(f"date_retour_char: {reservation_obj.date_retour_char}")
-
                     reservation_obj.heure_depart_char = heure_depart
-                    print(f"heure_depart_char: {reservation_obj.heure_depart_char}")
-
                     reservation_obj.heure_retour_char = heure_retour
-                    print(f"heure_retour_char: {reservation_obj.heure_retour_char}")
-
                     reservation_obj.nbr_jour_reservation = new_total_days
-                    print(f"nbr_jour_reservation: {reservation_obj.nbr_jour_reservation}")
-
                     reservation_obj.duree_dereservation = f"{new_total_days} jours"
-                    print(f"duree_dereservation: {reservation_obj.duree_dereservation}")
-
                     reservation_obj.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
-                    print(f"date_heure_debut: {reservation_obj.date_heure_debut}")
-
                     reservation_obj.date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
-                    print(f"date_heure_fin: {reservation_obj.date_heure_fin}")
-
-                    print("##############################################")
 
                     for lv in lvs:
                         lv.date_heure_debut = datetime.combine(date_depart_obj, heure_depart_obj)
@@ -4641,7 +4617,6 @@ def stripe_webhook_reservation_(request):
                     payment = None
                 )
             reservation.refresh_from_db() 
-            print("##### resultats",resultats,"#####")
             
             reservation.changes = "no"
             reservation.montant_paye += Decimal(str(montant))
