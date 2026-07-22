@@ -3013,6 +3013,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 fail_silently=False,
                             )
 
+
+                    print("##############################################")
+
                     reservation_obj.du_au_modifier = reservation_obj.du_au
                     reservation_obj.du_au = f"{date_depart_obj.strftime('%d/%m/%Y')} {heure_depart} → {date_retour_obj.strftime('%d/%m/%Y')} {heure_retour}"
                     reservation_obj.date_depart_char = date_depart_obj.strftime("%d/%m/%Y")
