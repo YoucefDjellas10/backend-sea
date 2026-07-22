@@ -4998,9 +4998,9 @@ def stripe_webhook_reservation_(request):
                 )
                 payment.save()
 
-                reservation.reste_payer -= montant
-                reservation.montant_paye += montant
-                reservation.total_revenue += montant
+                reservation.reste_payer -= float(montant)
+                reservation.montant_paye += float(montant)
+                reservation.total_revenue += float(montant)
                 reservation.is_complement = False
                 reservation.save()
 
