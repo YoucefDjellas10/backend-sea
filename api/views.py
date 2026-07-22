@@ -5007,7 +5007,7 @@ def stripe_webhook_reservation_(request):
                 livraison = Livraison.objects.filter(reservation=reservation)
                 
                 for lv in livraison:
-                    lv.total_reduit_euro -= montant
+                    lv.total_reduit_euro -= Decimal(montant)
                     lv.save()
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
