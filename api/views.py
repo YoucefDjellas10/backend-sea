@@ -2886,7 +2886,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
                         
                     elif nouvelle_date_heure_fin <= reservation_obj.date_heure_fin:
-                        print("######################")
+                        
                         retour_avance_obj = RetourAvance.objects.create(
                             reservation=reservation_obj,
                             lieu_depart=lieu_depart_obj,
@@ -4616,6 +4616,8 @@ def stripe_webhook_reservation_(request):
                     did_by = 52 ,
                     payment = None
                 )
+
+            print("##### resultats",resultats,"#####")
             
             reservation.changes = "no"
             reservation.montant_paye += Decimal(str(montant))
