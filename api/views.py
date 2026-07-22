@@ -2840,6 +2840,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 html_message=html_message_prologation_after,
                                 fail_silently=False,
                             )
+                            print("######################")
                         else:
                             sujet_update = f"SAFAR EL AMIR - Reservation : {reservation_obj.name} - Confirmation de Mise à jour de votre réservation"
                             expediteur_update = settings.DEFAULT_FROM_EMAIL
@@ -3010,8 +3011,6 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 html_message=html_message_update,
                                 fail_silently=False,
                             )
-
-                    print("######################")
 
                     reservation_obj.du_au_modifier = reservation_obj.du_au
                     reservation_obj.du_au = f"{date_depart_obj.strftime('%d/%m/%Y')} {heure_depart} → {date_retour_obj.strftime('%d/%m/%Y')} {heure_retour}"
