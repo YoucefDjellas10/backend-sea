@@ -1523,7 +1523,7 @@ def otp_verify(email, otp, client_id):
         elif str(client.otp) != str(otp) and client.otp:
             client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
             client.save()
-            return {"success": False, "incorrect":True}
+            return {"success": False, "incorrect":True, "otp_attempts": client.otp_attempts}
         else:
             return {"success": False}
     except Exception as e:
