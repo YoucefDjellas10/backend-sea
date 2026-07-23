@@ -1521,7 +1521,7 @@ def otp_verify(email, otp, client_id):
             client.save()
             return {"success": False, "expired":True}
         elif str(client.otp) != str(otp) and client.otp:
-            client.otp_attempts += 1
+            client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
             return {"success": False, "incorrect":True}
         else:
             return {"success": False}
