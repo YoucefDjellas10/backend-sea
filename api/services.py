@@ -1618,8 +1618,8 @@ def otp_verify(email, otp, client_id):
 
         if timezone.is_naive(otp_time):
             otp_time = timezone.make_aware(otp_time)
-        
-        otp_time += timedelta(hours=1)
+
+        # ❌ Supprimé : otp_time += timedelta(hours=1)
 
         if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=5):
             client.otp = None
@@ -1627,14 +1627,15 @@ def otp_verify(email, otp, client_id):
             client.otp_attempts = 0
             client.save()
             return {"success": True}
+
         elif client.otp_attempts >= 3:
             client.otp = None
             client.otp_created_at = None
             client.otp_attempts = 0
             client.save()
-            return {"success": False, "expired":True, "extra_attempts": True}
-        elif (str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=5)):
+            return {"success": False, "expired": True, "extra_attempts": True}
 
+        elif (str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=5)):
             elapsed = timezone.now() - otp_time
             client.otp = None
             client.otp_created_at = None
@@ -1645,18 +1646,18 @@ def otp_verify(email, otp, client_id):
                 "success": False,
                 "expired": True,
                 "time": format_duration(elapsed),
-                "otp_time": otp_time.strftime("%d/%m/%Y %H:%M")
+                "otp_time": timezone.localtime(otp_time).strftime("%d/%m/%Y %H:%M")
             }
 
         elif str(client.otp) != str(otp) and client.otp:
             client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
             client.save()
-            return {"success": False, "incorrect":True, "otp_attempts": client.otp_attempts}
+            return {"success": False, "incorrect": True, "otp_attempts": client.otp_attempts}
+
         else:
             return {"success": False}
     except Exception as e:
         return {"success": False, "message": f"Erreur inattendue : {str(e)}"}
-
 def rechercher_vehicules_disponibles(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour):
 
     try:
