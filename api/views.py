@@ -5082,7 +5082,7 @@ def refund_caution(request):
         caution_id = data.get("caution_id")
         montant_remboursement = data.get("montant_remboursement")
         raison = data.get("raison", "Remboursement de caution")
-        restitution_id = data.get("restitution_id")
+        changement = data.get("changement")
 
         if not caution_id:
             return JsonResponse({"error": "Le champ 'caution_id' est requis"}, status=400)
@@ -5139,12 +5139,13 @@ def refund_caution(request):
         gestion_caution.stripe_refund_id = refund.id
         gestion_caution.montant_rembourse = total_rembourse
         gestion_caution.date_remboursement = timezone.now()
-        if total_rembourse == float(gestion_caution.caution):
-            gestion_caution.status = 'rembourse' 
-        elif total_rembourse > 0 and  total_rembourse < float(gestion_caution.caution) :
-            gestion_caution.status = 'partiel_rembourse'
-        elif total_rembourse == 0:
-            gestion_caution.status = 'pas_rembourse'
+        if changement != "yes":
+            if total_rembourse == float(gestion_caution.caution):
+                gestion_caution.status = 'rembourse' 
+            elif total_rembourse > 0 and  total_rembourse < float(gestion_caution.caution) :
+                gestion_caution.status = 'partiel_rembourse'
+            elif total_rembourse == 0:
+                gestion_caution.status = 'pas_rembourse'
 
         gestion_caution.save()
 
@@ -5162,7 +5163,6 @@ def refund_caution(request):
                 'referance': gestion_caution.reservation.name,
                 'montant_rembourse':round(montant_remboursement, 2),
                 'caution_totale': gestion_caution.caution,
-                'restitution_id': restitution_id,
                 'solde_restant': round(solde_restant, 2),
                 'remboursement_total': round(remboursement_total, 2),
                 'url' : f"{settings.API_BASE_URL}/caution-receipt-download/?livraison_id={gestion_caution.reservation.id}"
