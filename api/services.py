@@ -1623,7 +1623,7 @@ def otp_verify(email, otp, client_id):
 
         otp_time += timedelta(hours=1)
 
-        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=65):
+        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=5):
             client.otp = None
             client.otp_created_at = None
             client.otp_attempts = 0
@@ -1658,6 +1658,7 @@ def otp_verify(email, otp, client_id):
 
         elif str(client.otp) != str(otp) and client.otp:
             client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
+            client.otp_created_at = otp_time + timedelta(minutes=120)
             client.save()
             return {"success": False, "incorrect": True, "otp_attempts": client.otp_attempts}
 
