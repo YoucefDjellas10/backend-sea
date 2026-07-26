@@ -4632,6 +4632,7 @@ def stripe_webhook_reservation_(request):
 
             protection = Options.objects.get(id=protection_id)
             reservation = Reservation.objects.get(id=reservation_id)
+            caution_actual = reservation.opt_protection_caution
 
             reservation.opt_protection = protection 
             reservation.opt_protection_name = protection.name
@@ -4670,6 +4671,35 @@ def stripe_webhook_reservation_(request):
             payment.save()
 
             livraison = Livraison.objects.filter(reservation=reservation)
+
+            caution_record = GestionCaution.objects.filter(reservation=reservation).first()
+
+            if caution_record:
+                to_refund = caution_actual - protection.caution
+                if to_refund > 0:
+                    fake_request = RequestFactory().post(
+                        "/refund-caution/",
+                        data=json.dumps({
+                            "caution_id": caution_record.id,
+                            "montant_remboursement": to_refund,
+                            "changement": "yes"
+                        }),
+                        content_type="application/json"
+                    )
+                    refund_response = refund_caution(fake_request)
+
+                    try:
+                        refund_data = json.loads(refund_response.content)
+                        if refund_response.status_code != 200:
+                            logger.error(
+                                "Erreur remboursement caution_id=%s : %s",
+                                caution_record.id, refund_data.get("error")
+                            )
+                    except json.JSONDecodeError:
+                        logger.error(
+                            "Réponse invalide lors du remboursement caution_id=%s",
+                            caution_record.id
+                        )
 
             for lv in livraison:
                 lv.total_reduit_euro = reservation.reste_payer if reservation.reste_payer else lv.total_reduit_euro
