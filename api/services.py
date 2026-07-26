@@ -1629,11 +1629,13 @@ def otp_verify(email, otp, client_id):
             client.save()
             return {"success": False, "expired":True, "extra_attempts": True}
         elif (str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=5)):
+
+            time = otp_time > timedelta(minutes=5)
             client.otp = None
             client.otp_created_at = None
             client.otp_attempts = 0
             client.save()
-            return {"success": False, "expired":True}
+            return {"success": False, "expired":True, "time": time}
         elif str(client.otp) != str(otp) and client.otp:
             client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
             client.save()
