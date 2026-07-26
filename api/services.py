@@ -1602,7 +1602,13 @@ def otp_send(email):
             return {"sent": False,"message": f"Erreur lors de l'envoi de l'email : {str(e)}", "client_id": client.id}
     except Exception as e:
         return {"sent": False,"message": f"Erreur inattendue : {str(e)}", "client_id": None}
-    
+
+def format_duration(td):
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}"
+
 def otp_verify(email, otp, client_id):
     try:
         client = ListeClient.objects.filter(id=client_id).first()
