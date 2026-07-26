@@ -578,6 +578,8 @@ def add_options_request(ref, klm, nd_driver, carburant, sb_a, sb_b, sb_c, countr
             
         if to_pay_total > 0 :
             result["total_price"] = to_pay_total
+        else:
+            result["total_price"] = 0
                 
         return result
     except Exception as e:
