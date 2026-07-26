@@ -1630,7 +1630,7 @@ def otp_verify(email, otp, client_id):
             return {"success": False, "expired":True, "extra_attempts": True}
         elif (str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=5)):
 
-            expiration_delay = timedelta(minutes=5)
+            elapsed = timezone.now() - otp_time
             client.otp = None
             client.otp_created_at = None
             client.otp_attempts = 0
@@ -1639,9 +1639,10 @@ def otp_verify(email, otp, client_id):
             return {
                 "success": False,
                 "expired": True,
-                "time": str(expiration_delay),  # ou formaté ci-dessous
+                "time": format_duration(elapsed),
                 "otp_time": otp_time.strftime("%d/%m/%Y %H:%M")
             }
+
         elif str(client.otp) != str(otp) and client.otp:
             client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
             client.save()
