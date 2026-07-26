@@ -1619,7 +1619,8 @@ def otp_verify(email, otp, client_id):
         if timezone.is_naive(otp_time):
             otp_time = timezone.make_aware(otp_time)
 
-        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=5):
+
+        if str(client.otp) == str(otp) and timezone.now() - otp_time < timedelta(minutes=65):
             client.otp = None
             client.otp_created_at = None
             client.otp_attempts = 0
@@ -1633,7 +1634,7 @@ def otp_verify(email, otp, client_id):
             client.save()
             return {"success": False, "expired": True, "extra_attempts": True}
 
-        elif (str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=5)):
+        elif (str(client.otp) == str(otp) and timezone.now() - otp_time > timedelta(minutes=65)):
             elapsed = timezone.now() - otp_time
             client.otp = None
             client.otp_created_at = None
@@ -1661,6 +1662,7 @@ def otp_verify(email, otp, client_id):
             return {"success": False}
     except Exception as e:
         return {"success": False, "message": f"Erreur inattendue : {str(e)}"}
+    
 def rechercher_vehicules_disponibles(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour):
 
     try:
