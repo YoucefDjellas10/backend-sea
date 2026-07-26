@@ -1642,6 +1642,11 @@ def otp_verify(email, otp, client_id):
             client.otp_attempts = 0
             client.save()
 
+            print("now UTC:", timezone.now())
+            print("now local:", timezone.localtime(timezone.now()))
+            print("otp_time UTC:", otp_time)
+            print("otp_time local:", timezone.localtime(otp_time))
+
             return {
                 "success": False,
                 "expired": True,
