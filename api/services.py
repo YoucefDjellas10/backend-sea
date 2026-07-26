@@ -1605,9 +1605,8 @@ def otp_send(email):
 
 def format_duration(td):
     total_seconds = int(td.total_seconds())
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, _ = divmod(remainder, 60)
-    return f"{hours:02d}:{minutes:02d}"
+    minutes, seconds = divmod(total_seconds, 60)
+    return f"{minutes:02d}:{seconds:02d}"
 
 def otp_verify(email, otp, client_id):
     try:
