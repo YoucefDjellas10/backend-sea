@@ -1658,7 +1658,7 @@ def otp_verify(email, otp, client_id):
 
         elif str(client.otp) != str(otp) and client.otp:
             client.otp_attempts = client.otp_attempts + 1 if client.otp_attempts or client.otp_attempts > 0 else 1
-            client.otp_created_at = otp_time + timedelta(minutes=60)
+            client.otp_created_at = otp_time + timedelta(minutes=0)
             client.save()
             return {"success": False, "incorrect": True, "otp_attempts": client.otp_attempts}
 
