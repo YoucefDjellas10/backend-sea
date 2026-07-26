@@ -1577,7 +1577,7 @@ def otp_send(email):
 
         otp_code = f"{random.randint(100000, 999999)}"
         client.otp = otp_code
-        client.otp_created_at = datetime.now()
+        client.otp_created_at = timezone.now()
         client.save(update_fields=['otp', 'otp_created_at'])
 
         sujet = f"Votre code OTP {otp_code}"
