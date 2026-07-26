@@ -1115,8 +1115,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     refund_amount = (old_total - new_total)
                     new_total = old_total - refund_amount
                     refund = "yes"
-                    print(f"*** [refund] refund=yes refund_amount={refund_amount} new_total={new_total}")
-                else:
+                    print(f"*** [refund] refund=yes refund_amount={refund_amount} new_total={new_total}")                    
+
+                elif remaining_date < 14:
                     new_total = old_total
                     print(f"*** [pas de refund] new_total force a old_total = {new_total}")
 
