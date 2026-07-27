@@ -2324,7 +2324,7 @@ def protection_put_view(request):
                     fail_silently=False,
                 )
 
-                return JsonResponse({"message": "Aucune modification requise."}, status=200)
+                return JsonResponse({"message": "Modification effectuée avec succès.."}, status=200)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
