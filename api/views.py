@@ -2706,7 +2706,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     
 
-def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by, payment, amount_paid):
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by, payment, amount__paid):
     
     try:
         verify_value = verify_and_calculate(
@@ -2868,9 +2868,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "old_total": round(old_total, 2),
                                 "new_total": round(frais, 2),
                                 "new_total_last": round(new_total, 2),
-                                "montant_payer": round(amount_paid, 2),
+                                "montant_payer": round(amount_paid, 2) if not amount_paid or amount_paid == 0 else round(Decimal(amount_paid) + Decimal(amount__paid), 2),
                                 "credit_amount": round(credit_amount, 2),
-                                "remaining_to_pay": round(remaining_to_pay, 2),
+                                "remaining_to_pay": round(remaining_to_pay, 2) if not amount_paid or amount_paid == 0 else round(Decimal(remaining_to_pay) - Decimal(amount__paid), 2),
                                 "base_url": {settings.API_BASE_URL}
 
                             })
@@ -2997,9 +2997,9 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "old_total": round(old_total, 2),
                                 "new_total": round(frais, 2),
                                 "new_total_last": round(new_total, 2),
-                                "montant_payer": round(amount_paid, 2),
+                                "montant_payer": round(amount_paid, 2) if not amount_paid or amount_paid == 0 else round(Decimal(amount_paid) + Decimal(amount__paid), 2),
                                 "credit_amount":round(credit_amount, 2),
-                                "remaining_to_pay": round(remaining_to_pay, 2),
+                                "remaining_to_pay": round(remaining_to_pay, 2) if not amount_paid or amount_paid == 0 else round(Decimal(remaining_to_pay) - Decimal(amount__paid), 2),
                                 "base_url": {settings.API_BASE_URL}
 
                             })
@@ -3256,7 +3256,7 @@ def verify_and_do_view(request):
             backoffice = backoffice,
             did_by = did_by,
             payment = payment,
-            amount_paid = 0
+            amount__paid = 0
         )
         
         if resultats.get('success') == "yes":
@@ -4616,7 +4616,7 @@ def stripe_webhook_reservation_(request):
                     backoffice = "yes",
                     did_by = 52 ,
                     payment = None,
-                    amount_paid = Decimal(str(montant))
+                    amount__paid = Decimal(str(montant))
                 )
             reservation.refresh_from_db() 
             
