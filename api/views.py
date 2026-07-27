@@ -2706,7 +2706,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
         return {"message": f"Erreur: {str(e)}"}
     
 
-def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by, payment):
+def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, backoffice, did_by, payment, amount_paid):
     
     try:
         verify_value = verify_and_calculate(
@@ -3255,7 +3255,8 @@ def verify_and_do_view(request):
             heure_retour = heure_retour,
             backoffice = backoffice,
             did_by = did_by,
-            payment = payment
+            payment = payment,
+            amount_paid = 0
         )
         
         if resultats.get('success') == "yes":
@@ -4614,7 +4615,8 @@ def stripe_webhook_reservation_(request):
                     heure_retour = heure_retour,
                     backoffice = "yes",
                     did_by = 52 ,
-                    payment = None
+                    payment = None,
+                    amount_paid = Decimal(str(montant))
                 )
             reservation.refresh_from_db() 
             
