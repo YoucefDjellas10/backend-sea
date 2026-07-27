@@ -72,6 +72,8 @@ def protections(ref, email, country_code):
         reduction = 1
         if free_options[0].get("option_eight") == True:
             reduction = 0
+
+        print(" --------------------   reduction : ", reduction,"--------------------")
         
 
         # Taux de change
