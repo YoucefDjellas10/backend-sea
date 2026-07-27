@@ -58,12 +58,6 @@ def vip_reduction(country_code):
         return {"message": f"Erreur: {str(e)}"}
 
 def protections(ref, email, country_code):
-    """
-    Retourne un dict de protections indexé par clefs:
-      - selected (nom de la protection choisie)
-      - basic, standard, maximum (détails prix/total/caution)
-    Application du taux DZ si nécessaire.
-    """
     try:
         reservation = Reservation.objects.filter(name=ref, email=email).first()
         if not reservation:
@@ -73,6 +67,12 @@ def protections(ref, email, country_code):
         category_id = getattr(reservation.categorie, "id", None)
         zone_id     = getattr(reservation.zone, "id", None)
         selected    = reservation.opt_protection_name or ""
+
+        free_options = free_options_f(reservation.client.id)
+        reduction = 1
+        if free_options[0].get("option_eight") == True:
+            reduction = 0
+        
 
         # Taux de change
         country_upper = (country_code or "").upper()
@@ -106,8 +106,8 @@ def protections(ref, email, country_code):
 
             item = {
                 "protection_name":  prot.name,
-                "protection_prix":  prot.min_prix / nb_jour if prot.min_prix and prix * nb_jour < prot.min_prix else prix,
-                "protection_total": prot.min_prix if prot.min_prix and prix * nb_jour < prot.min_prix else prix * nb_jour,
+                "protection_prix":  prot.min_prix / nb_jour * reduction if prot.min_prix and prix * nb_jour < prot.min_prix else prix * reduction,
+                "protection_total": prot.min_prix * reduction if prot.min_prix and prix * nb_jour < prot.min_prix else prix * nb_jour * reduction,
                 "protection_caution": (prot.caution or 0) * taux_change,
             }
 
@@ -121,7 +121,6 @@ def protections(ref, email, country_code):
         return result
 
     except Exception:
-        # Remonte l'exception pour qu'elle soit gérée dans la vue
         raise
 
 def modify_protection_request(ref, protection,country_code):
