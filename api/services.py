@@ -72,11 +72,7 @@ def protections(ref, email, country_code):
         reduction = 1
         if free_options[0].get("option_eight") == True:
             reduction = 0
-
-        print(" --------------------   reduction : ", reduction,"--------------------")
-        
-
-        # Taux de change
+       
         country_upper = (country_code or "").upper()
         taux_change = 1
         if country_upper == "DZ":
@@ -228,22 +224,26 @@ def modify_protection_request(ref, protection,country_code):
                 prix = opt_protection.prix
                 total = prix * nb_jour if prix * nb_jour >= opt_protection.min_prix else opt_protection.min_prix
 
+                free_options = free_options_f(reservation.client.id)
+                reduction = 1
+                if free_options[0].get("option_eight") == True:
+                    reduction = 0
                 if total >= reservation.opt_protection_total:
                     total_pay = total - reservation.opt_protection_total
                     if not reservation.opt_payment_name:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":float(prix) * float(taux),
-                            "new_protection_total":float(total) * float(taux),
-                            "to_pay":float(total_pay) * float(taux)
+                            "new_protection_price":float(prix) * float(taux) * float(reduction),
+                            "new_protection_total":float(total) * float(taux) * float(reduction),
+                            "to_pay":float(total_pay) * float(taux) * float(reduction)
                             }
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":float(prix) * float(taux),
-                            "new_protection_total":float(total) * float(taux),
+                            "new_protection_price":float(prix) * float(taux) * float(reduction),
+                            "new_protection_total":float(total) * float(taux) * float(reduction),
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
@@ -251,16 +251,16 @@ def modify_protection_request(ref, protection,country_code):
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":float(prix) * float(taux),
-                            "new_protection_total":float(total) * float(taux),
-                            "to_refund":float(to_refund) * float(taux)
+                            "new_protection_price":float(prix) * float(taux) * float(reduction),
+                            "new_protection_total":float(total) * float(taux) * float(reduction),
+                            "to_refund":float(to_refund) * float(taux) * float(reduction)
                             }
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":float(prix) * float(taux),
-                            "new_protection_total":float(total) * float(taux),
+                            "new_protection_price":float(prix) * float(taux) * float(reduction),
+                            "new_protection_total":float(total) * float(taux) * float(reduction),
                             }
                     
             else : 
