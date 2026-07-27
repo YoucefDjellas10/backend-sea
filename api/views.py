@@ -2206,7 +2206,7 @@ def protection_put_view(request):
             to_pay_value = resultats.get("to_pay")
             protection_id = resultats.get("protection")
 
-            if to_pay_value is not None:
+            if to_pay_value is not None and to_pay_value > 0:
                 request_factory = RequestFactory()
                 fake_request = request_factory.post(
                     path="/create-payment-session-protection/",
@@ -2237,7 +2237,94 @@ def protection_put_view(request):
 
                 return JsonResponse({"refund_message": False, "message": "Modification effectuée avec succès.", "session_id": session_id, "payment_url": payment_url}, status=200)
 
-            return JsonResponse({"message": "Aucune modification requise."}, status=200)
+            else:
+    
+                protection = Options.objects.get(id=protection_id)
+                caution_actual = reservation.opt_protection_caution
+                reservation.opt_protection = protection 
+                reservation.opt_protection_name = protection.name
+                reservation.opt_protection_price = 0
+                reservation.opt_protection_total = 0
+                reservation.opt_protection_caution = protection.caution
+                reservation.opt_protection_date = date.today()
+                reservation.save()
+                    
+                livraison = Livraison.objects.filter(reservation=reservation)
+    
+                caution_record = GestionCaution.objects.filter(reservation=reservation).first()
+    
+                if caution_record:
+                    to_refund = caution_actual - protection.caution
+                    if to_refund > 0:
+                        fake_request = RequestFactory().post(
+                            "/refund-caution/",
+                            data=json.dumps({
+                                "caution_id": caution_record.id,
+                                "montant_remboursement": to_refund,
+                                "changement": "yes"
+                            }),
+                            content_type="application/json"
+                        )
+                        refund_response = refund_caution(fake_request)
+    
+                        try:
+                            refund_data = json.loads(refund_response.content)
+                            if refund_response.status_code != 200:
+                                logger.error(
+                                    "Erreur remboursement caution_id=%s : %s",
+                                    caution_record.id, refund_data.get("error")
+                                )
+                        except json.JSONDecodeError:
+                            logger.error(
+                                "Réponse invalide lors du remboursement caution_id=%s",
+                                caution_record.id
+                            )
+    
+                for lv in livraison:
+                    lv.opt_protection_caution = protection.caution
+    
+                sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
+                expediteur = settings.DEFAULT_FROM_EMAIL
+    
+                html_message = render_to_string('email/confirmation_email.html', {
+                    "id":reservation.id,
+                    "referance":reservation.name,
+                    "mobile_one":reservation.lieu_depart.mobile,
+                    "adresse_one":reservation.lieu_depart.address,
+                    "mobile_two":reservation.lieu_retour.mobile,
+                    "adresse_two":reservation.lieu_retour.address,
+                    'client': reservation.client.nom,
+                    'client_prenom':reservation.client.prenom,
+                    'durrée':reservation.duree_dereservation,
+                    'model_name':reservation.model_name,
+                    'reste_paye':reservation.reste_payer,
+                    'caution':reservation.opt_protection_caution,
+                    "date_depart_char" : reservation.date_depart_char,
+                    "date_retour_char" : reservation.date_retour_char,
+                    "heure_depart_char" : reservation.heure_depart_char,
+                    "heure_retour_char" : reservation.heure_retour_char,
+                    'date_depart':reservation.date_depart_char,
+                    'heure_depart':reservation.heure_depart_char,
+                    'date_retoure':reservation.date_retour_char,
+                    'haure_retour':reservation.heure_retour_char,
+                    'lieu_depart':reservation.lieu_depart.name,
+                    'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
+                    'lieu_retour':reservation.lieu_retour.name,
+                    'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+                    'base_url': {settings.API_BASE_URL}
+    
+                })
+    
+                send_mail(
+                    sujet,
+                    strip_tags(html_message),  
+                    expediteur,
+                    [reservation.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+
+                return JsonResponse({"message": "Aucune modification requise."}, status=200)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
