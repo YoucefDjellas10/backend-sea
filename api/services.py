@@ -1131,7 +1131,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                   f"refund_amount={refund_amount}, old_total={old_total}, new_total={new_total}, "
                   f"frais={frais}, credit={credit}, credit_amount={credit_amount}")
 
-            remaining_to_pay = round(new_total - float(record.montant_paye), 2) if country_code != "DZ" else round(new_total - (float(record.montant_paye) * float(taux_change)), 2)
+            remaining_to_pay = round(new_total - float(record.montant_paye), 2) if country_code != "DZ" else round(new_total - (float(record.montant_paye) * Decimal(taux_change)), 2)
 
             result.append({
                 'is_available': "yes",
@@ -1147,7 +1147,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 'old_total': old_total,
                 'new_total': new_total,
                 'frais': frais,
-                'amount_paid': round(record.montant_paye, 2) if country_code != "DZ" else round(record.montant_paye, 2) * float(taux_change),
+                'amount_paid': round(record.montant_paye, 2) if country_code != "DZ" else round(record.montant_paye, 2) * Decimal(taux_change),
                 'remaining_to_pay': round(new_total - float(record.montant_paye), 2),
                 "credit": credit,
                 "credit_amount": credit_amount
