@@ -105,13 +105,20 @@ def protections(ref, email, country_code):
         for prot in protections_qs:
             name_l = (prot.name or "").lower()
             prix   = (prot.prix or 0) * taux_change
-
-            item = {
-                "protection_name":  prot.name,
-                "protection_prix":  prot.min_prix / nb_jour * reduction if prot.min_prix and prix * nb_jour < prot.min_prix else prix * reduction,
-                "protection_total": prot.min_prix * reduction if prot.min_prix and prix * nb_jour < prot.min_prix else prix * nb_jour * reduction,
-                "protection_caution": (prot.caution or 0) * taux_change,
-            }
+            if "MAX" in prot.option_code:
+                item = {
+                    "protection_name":  prot.name,
+                    "protection_prix":  prot.min_prix / nb_jour * reduction if prot.min_prix and prix * nb_jour < prot.min_prix else prix * reduction,
+                    "protection_total": prot.min_prix * reduction if prot.min_prix and prix * nb_jour < prot.min_prix else prix * nb_jour * reduction,
+                    "protection_caution": (prot.caution or 0) * taux_change,
+                }
+            else: 
+                item = {
+                    "protection_name":  prot.name,
+                    "protection_prix":  prot.min_prix / nb_jour if prot.min_prix and prix * nb_jour < prot.min_prix else prix,
+                    "protection_total": prot.min_prix if prot.min_prix and prix * nb_jour < prot.min_prix else prix * nb_jour,
+                    "protection_caution": (prot.caution or 0) * taux_change,
+                }
 
             if "bas" in name_l:
                 result["basic"]    = item
