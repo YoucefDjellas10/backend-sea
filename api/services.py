@@ -226,16 +226,16 @@ def modify_protection_request(ref, protection,country_code):
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":prix * taux,
-                            "new_protection_total":total * taux,
-                            "to_pay":total_pay * taux
+                            "new_protection_price":float(prix) * float(taux),
+                            "new_protection_total":float(total) * float(taux),
+                            "to_pay":float(total_pay) * float(taux)
                             }
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":prix * taux,
-                            "new_protection_total":total * taux,
+                            "new_protection_price":float(prix) * float(taux),
+                            "new_protection_total":float(total) * float(taux),
                             }
                 else : 
                     to_refund = reservation.opt_protection_total - total
@@ -243,16 +243,16 @@ def modify_protection_request(ref, protection,country_code):
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":prix * taux,
-                            "new_protection_total":total * taux,
-                            "to_refund":to_refund * taux
+                            "new_protection_price":float(prix) * float(taux),
+                            "new_protection_total":float(total) * float(taux),
+                            "to_refund":float(to_refund) * float(taux)
                             }
                     else:
                         return {
                             "currency":"DA" if country_code == "DZ" else "EUR",
                             "protection": opt_protection.id,
-                            "new_protection_price":prix * taux,
-                            "new_protection_total":total * taux,
+                            "new_protection_price":float(prix) * float(taux),
+                            "new_protection_total":float(total) * float(taux),
                             }
                     
             else : 
