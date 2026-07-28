@@ -1047,7 +1047,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             if record.opt_protection:
                 if not (free_options.get("option_eight") and "MAX" in record.opt_protection.option_code):
                     protection_price = float(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else float(record.opt_protection.prix)
-                    options_total += protection_price if protection_price > record.opt_protection.min_prix else record.opt_protection.min_prix
+                    options_total += protection_price if protection_price and record.opt_protection.min_prix and protection_price > record.opt_protection.min_prix else record.opt_protection.min_prix
                     print(f"*** options_total (apres opt_protection) = {options_total}")
 
             if record.opt_nd_driver:
