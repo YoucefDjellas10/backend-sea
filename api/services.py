@@ -995,7 +995,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
                 print(f"*** meilleur_cout FINAL (chemin indirect) = {meilleur_cout}")
-                prix_jour += Decimal(meilleur_cout or 0)
+                prix_jour += float(meilleur_cout or 0)
+                prix_jour = Decimal(prix_jour)
                 print(f"*** prix_jour (apres ajout meilleur_cout) = {prix_jour}")
 
             supplements_one = Supplement.objects.filter(
