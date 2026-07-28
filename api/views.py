@@ -4954,8 +4954,8 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_nd_driver_total = nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += nd_driver_option.prix * reservation.nbr_jour_reservation
-                    reservation.save()
-                    
+                    reservation.opt_nd_driver_date = date.today()
+                    reservation.save()               
 
                 klm_put = request_result.get("klm", None)
                 if klm_put is not None :
@@ -4969,6 +4969,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_klm_total = klm_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += klm_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_klm_date = date.today()
                     reservation.save()
 
                 carburant_put = request_result.get("carburant", None)
@@ -4982,6 +4983,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_plein_carburant_total = carburant_option.prix
                     reservation.reste_payer += carburant_option.prix 
                     reservation.total_reduit_euro += carburant_option.prix
+                    reservation.opt_plein_carburant_date = date.today()
                     reservation.save()
 
                 sb_a_put = request_result.get("sb_a", None)
@@ -4995,8 +4997,8 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_siege_a_total = sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_a_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_siege_a_date = date.today()
                     reservation.save()
-
 
                 sb_b_put = request_result.get("sb_b", None)
                 if sb_b_put is not None :
@@ -5009,8 +5011,8 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_siege_b_total = sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_b_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_siege_b_date = date.today()
                     reservation.save()
-
 
                 sb_c_put = request_result.get("sb_c", None)
                 if sb_c_put is not None :
@@ -5022,6 +5024,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_siege_c_total = sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_c_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_siege_c_date = date.today()
                     reservation.save()
                 
                 taux = TauxChange.objects.filter(id=2).first()
@@ -5516,6 +5519,7 @@ def add_options_put_view(request):
                     reservation.opt_nd_driver_total = nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += nd_driver_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_nd_driver_date = date.today()
                     reservation.save()
             else:
                 reservation.nom_nd_condicteur = nom
@@ -5526,6 +5530,7 @@ def add_options_put_view(request):
                 reservation.opt_nd_driver_name = nd_driver_option.name
                 reservation.opt_nd_driver_price = 0
                 reservation.opt_nd_driver_total = 0
+                reservation.opt_nd_driver_date = date.today()
                 reservation.save()
 
         klm_put = request_result.get("klm", None)
@@ -5551,12 +5556,14 @@ def add_options_put_view(request):
                     reservation.opt_klm_total = klm_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += klm_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_klm_date = date.today()
                     reservation.save()
             else:
                 reservation.opt_klm = klm_option
                 reservation.opt_klm_name = klm_option.name
                 reservation.opt_klm_price = 0
                 reservation.opt_klm_total = 0
+                reservation.opt_klm_date = date.today()
                 reservation.save()
 
         carburant_put = request_result.get("carburant", None)
@@ -5576,12 +5583,14 @@ def add_options_put_view(request):
                     reservation.opt_plein_carburant_total = carburant_option.prix
                     reservation.reste_payer += carburant_option.prix 
                     reservation.total_reduit_euro += carburant_option.prix
+                    reservation.opt_plein_carburant_date = date.today()
                     reservation.save()
             else:
                 reservation.opt_plein_carburant = carburant_option
                 reservation.opt_plein_carburant_name = carburant_option.name
                 reservation.opt_plein_carburant_prix = 0
                 reservation.opt_plein_carburant_total = 0
+                reservation.opt_plein_carburant_date = date.today()
                 reservation.save()
         
         sb_a_put = request_result.get("sb_a", None)
@@ -5601,12 +5610,14 @@ def add_options_put_view(request):
                     reservation.opt_siege_a_total = sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_a_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_siege_a_date = date.today()
                     reservation.save()
             else:
                 reservation.opt_siege_a = sb_a_option
                 reservation.opt_siege_a_name = sb_a_option.name
                 reservation.opt_siege_a_prix = 0
                 reservation.opt_siege_a_total = 0
+                reservation.opt_siege_a_date = date.today()
                 reservation.save()
 
         sb_b_put = request_result.get("sb_b", None)
@@ -5626,12 +5637,14 @@ def add_options_put_view(request):
                     reservation.opt_siege_b_total = sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_b_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_siege_b_date = date.today()
                     reservation.save()
             else:
                 reservation.opt_siege_b = sb_b_option
                 reservation.opt_siege_b_name = sb_b_option.name
                 reservation.opt_siege_b_prix = 0
                 reservation.opt_siege_b_total = 0
+                reservation.opt_siege_b_date = date.today()
                 reservation.save()
 
         sb_c_put = request_result.get("sb_c", None)
@@ -5651,12 +5664,14 @@ def add_options_put_view(request):
                     reservation.opt_siege_c_total = sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_c_option.prix * reservation.nbr_jour_reservation
+                    reservation.opt_siege_c_date = date.today()
                     reservation.save()
             else:
                 reservation.opt_siege_c = sb_c_option
                 reservation.opt_siege_c_name = sb_c_option.name
                 reservation.opt_siege_c_prix = 0
                 reservation.opt_siege_c_total = 0
+                reservation.opt_siege_c_date = date.today()
                 reservation.save()
         
         if is_edit == "yes":
