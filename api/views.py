@@ -2206,6 +2206,9 @@ def protection_put_view(request):
             to_pay_value = resultats.get("to_pay")
             protection_id = resultats.get("protection")
 
+            new_prot_total = resultats.get("new_protection_total")
+            new_prot_price = resultats.get("new_protection_price")
+
             if to_pay_value is not None and to_pay_value > 0:
                 request_factory = RequestFactory()
                 fake_request = request_factory.post(
@@ -2243,12 +2246,12 @@ def protection_put_view(request):
                 caution_actual = reservation.opt_protection_caution
                 reservation.opt_protection = protection 
                 reservation.opt_protection_name = protection.name
-                reservation.opt_protection_price = protection.prix
-                reservation.opt_protection_total = protection.prix * reservation.nbr_jour_reservation
+                reservation.opt_protection_price = float(new_prot_price)
+                reservation.opt_protection_total = int(new_prot_total)
                 reservation.opt_protection_caution = protection.caution
                 reservation.opt_protection_date = date.today()
-                reservation.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservation) - Decimal(old_total)
-                reservation.reste_payer += Decimal(protection.prix * reservation.nbr_jour_reservation) - Decimal(old_total)
+                reservation.total_reduit_euro += Decimal(new_prot_total) - Decimal(old_total)
+                reservation.reste_payer += Decimal(new_prot_total) - Decimal(old_total)
                 reservation.save()
                     
                 livraison = Livraison.objects.filter(reservation=reservation)
