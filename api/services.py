@@ -815,6 +815,17 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 date_fin__gte=date_depart_obj,
                 active_passive=True
             ).first()
+            if promotions and promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
+                promotions_records = Promotion.objects.filter(
+                        debut_visibilite__lte=today,
+                        fin_visibilite__gte=today,
+                        date_debut__lte=date_retour, 
+                        date_fin__gte=date_depart,    
+                        active_passive=True
+                    )
+                for promo in promotions_records :
+                    if promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+                        promotions = promo
             print(f"*** promotions trouvee = {promotions}")
 
             promotion_value = 0
@@ -2055,6 +2066,17 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         date_fin__gte=date_depart,    
         active_passive=True
     ).first()
+    if promotions and promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+        promotions_records = Promotion.objects.filter(
+                debut_visibilite__lte=today,
+                fin_visibilite__gte=today,
+                date_debut__lte=date_retour, 
+                date_fin__gte=date_depart,    
+                active_passive=True
+            )
+        for promo in promotions_records :
+            if promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+                promotions = promo
 
     promotion_name = promotions.name if promotions is not None else None
     promotion_value = 0
