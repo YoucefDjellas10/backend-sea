@@ -1036,6 +1036,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             print(f"*** free_options = {free_options}")
 
             options_total = 0
+            protection_price = 0
             if record.opt_payment_name:
                 options_total += float(record.opt_payment_total) if record.opt_payment_total else 0
                 print(f"*** options_total (apres opt_payment) = {options_total}")
