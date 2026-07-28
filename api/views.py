@@ -2997,10 +2997,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         reservation_obj.reste_payer = diff_prix if not reservation_obj.reste_payer else float(reservation_obj.reste_payer) + float(diff_prix)
 
                         if date_depart_obj < datetime.now().date() and credit != "yes":
-                            sujet_prologation_after = "SAFAR EL AMIR - Prolongation confirmé"
+                            sujet_prologation_after = "SAFAR EL AMIR - Retour à l'avance confirmé"
                             expediteur_prologation_after = settings.DEFAULT_FROM_EMAIL
 
-                            html_message_prologation_after = render_to_string('email/prolongation_accorde_email.html', {
+                            html_message_prologation_after = render_to_string('email/retour_avance_apres_email.html', {
                                 "client_name": reservation_obj.client.name,
                                 "ref": reservation_obj.name,
                                 "return_date": date_retour_obj.strftime('%d/%m/%Y'),
