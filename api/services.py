@@ -1131,7 +1131,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     new_total = old_total
                     print(f"*** [pas de refund] new_total force a old_total = {new_total}")
 
-            frais = float(new_total) - float(old_total)
+            if credit == "no":
+                frais = float(new_total) - float(old_total)
+            else:
+                frais = credit_amount * 2 
             print(f"*** frais = {frais}")
 
             print("*** RESULTAT ligne construite pour ce record:")
