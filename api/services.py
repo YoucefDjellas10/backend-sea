@@ -809,16 +809,12 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             # ── Promotions (même logique que search_result_vehicule) ──────────
             promotions = Promotion.objects.filter(
-                debut_visibilite__lte=today,
-                fin_visibilite__gte=today,
                 date_debut__lte=date_retour_obj,
                 date_fin__gte=date_depart_obj,
                 active_passive=True
             ).first()
             if promotions and promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
                 promotions_records = Promotion.objects.filter(
-                        debut_visibilite__lte=today,
-                        fin_visibilite__gte=today,
                         date_debut__lte=date_retour, 
                         date_fin__gte=date_depart,    
                         active_passive=True
