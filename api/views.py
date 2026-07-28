@@ -2244,11 +2244,11 @@ def protection_put_view(request):
                 reservation.opt_protection = protection 
                 reservation.opt_protection_name = protection.name
                 reservation.opt_protection_price = protection.prix
-                reservation.opt_protection_total = protection.prix * reservation.nbr_jour_reservatio
+                reservation.opt_protection_total = protection.prix * reservation.nbr_jour_reservation
                 reservation.opt_protection_caution = protection.caution
                 reservation.opt_protection_date = date.today()
-                reservation.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservatio) - Decimal(old_total)
-                reservation.reste_payer += Decimal(protection.prix * reservation.nbr_jour_reservatio) - Decimal(old_total)
+                reservation.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservation) - Decimal(old_total)
+                reservation.reste_payer += Decimal(protection.prix * reservation.nbr_jour_reservation) - Decimal(old_total)
                 reservation.save()
                     
                 livraison = Livraison.objects.filter(reservation=reservation)
@@ -2284,7 +2284,7 @@ def protection_put_view(request):
     
                 for lv in livraison:
                     lv.opt_protection_caution = protection.caution
-                    lv.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservatio) - Decimal(old_total)
+                    lv.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservation) - Decimal(old_total)
 
     
                 sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
