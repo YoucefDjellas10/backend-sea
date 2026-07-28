@@ -3522,15 +3522,15 @@ def add_reservation_post_view(request):
                 date_fin__gte=date_depart_obj,     
                 active_passive=True
             ).first()
-
-            if promotions and promotions.zone_one != depart.zone and promotions.zone_three != depart.zone and promotions.zone_two != depart.zone:
+            
+            if promotions and promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
                 promotions_records = Promotion.objects.filter(
                         date_debut__lte=date_retour, 
                         date_fin__gte=date_depart,    
                         active_passive=True
                     )
                 for promo in promotions_records :
-                    if promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+                    if promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
                         promotions = promo
 
             promo_value = 0
