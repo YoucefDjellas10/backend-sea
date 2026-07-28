@@ -1219,6 +1219,9 @@ def option_ma_reservation(ref, email, country_code):
             "KLM_ILLIMITED":  "opt_klm",
         }
 
+        free_options = free_options_f(reservation.client.id)
+        reduction = 1
+
         result = {}
         for opt in options_qs:
             code      = (opt.option_code or "").upper()
@@ -1233,10 +1236,23 @@ def option_ma_reservation(ref, email, country_code):
             prix_unitaire = prix_base * taux_change
             total = prix_unitaire * nb_jour if tarif == "jour" else prix_unitaire
 
+            if "KLM_ILLIMITED" in code and free_options[0].get("option_seven") == True:
+                reduction = 0
+            elif "ND_DRIVER" in code and free_options[0].get("option_one") == True:
+                reduction = 0
+            elif "P_CARBURANT" in code and free_options[0].get("option_two") == True:
+                reduction = 0
+            elif "S_BEBE_5" in code and free_options[0].get("option_three") == True:
+                reduction = 0
+            elif "S_BEBE_13" in code and free_options[0].get("option_four") == True:
+                reduction = 0
+            elif "S_BEBE_18" in code and free_options[0].get("option_five") == True:
+                reduction = 0
+
             entry = {
                 "option_name":  opt.name or "",
-                "option_prix":  prix_unitaire,
-                "option_total": total,
+                "option_prix":  prix_unitaire * reduction,
+                "option_total": total * reduction,
             }
 
             if "KLM_ILLIMITED" in code:

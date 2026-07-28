@@ -2238,15 +2238,17 @@ def protection_put_view(request):
                 return JsonResponse({"refund_message": False, "message": "Modification effectuée avec succès.", "session_id": session_id, "payment_url": payment_url}, status=200)
 
             else:
-    
+                old_total = reservation.opt_protection_total
                 protection = Options.objects.get(id=protection_id)
                 caution_actual = reservation.opt_protection_caution
                 reservation.opt_protection = protection 
                 reservation.opt_protection_name = protection.name
-                reservation.opt_protection_price = 0
-                reservation.opt_protection_total = 0
+                reservation.opt_protection_price = protection.prix
+                reservation.opt_protection_total = protection.prix * reservation.nbr_jour_reservatio
                 reservation.opt_protection_caution = protection.caution
                 reservation.opt_protection_date = date.today()
+                reservation.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservatio) - Decimal(old_total)
+                reservation.reste_payer += Decimal(protection.prix * reservation.nbr_jour_reservatio) - Decimal(old_total)
                 reservation.save()
                     
                 livraison = Livraison.objects.filter(reservation=reservation)
@@ -2282,6 +2284,8 @@ def protection_put_view(request):
     
                 for lv in livraison:
                     lv.opt_protection_caution = protection.caution
+                    lv.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservatio) - Decimal(old_total)
+
     
                 sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
                 expediteur = settings.DEFAULT_FROM_EMAIL
