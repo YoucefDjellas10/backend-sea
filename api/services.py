@@ -2508,7 +2508,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     debut = getattr(t, debut_field)
                     fin = getattr(t, fin_field)
                     if debut and fin and debut <= date_retour and fin >= date_depart:
-                        periodes_prix.append((debut, fin, t.prix))
+                        if t.prix is not None and float(t.prix) > 0:
+                            periodes_prix.append((debut, fin, t.prix))
 
             # Calculer le coût total en fonction du chevauchement de chaque période
             cout_total_tarif = 0
@@ -2522,7 +2523,11 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     jours_couverts += jours
                     cout_total_tarif += jours * float(prix) * taux_change # multiplier par taux_change si DZ
 
-            tarif = len(periodes_prix) > 0  # joue le rôle du "if tarif:"
+            # Si tous les jours du séjour ne sont pas couverts par un prix valide, on exclut ce véhicule
+            if jours_couverts < total_days:
+                continue
+
+            tarif = len(periodes_prix) > 0   # joue le rôle du "if tarif:"
 
             if tarif and jours_couverts > 0:
                 prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
@@ -3169,7 +3174,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     debut = getattr(t, debut_field)
                     fin = getattr(t, fin_field)
                     if debut and fin and debut <= date_retour and fin >= date_depart:
-                        periodes_prix.append((debut, fin, t.prix))
+                        if t.prix is not None and float(t.prix) > 0:
+                            periodes_prix.append((debut, fin, t.prix))
 
             # Calculer le coût total en fonction du chevauchement de chaque période
             cout_total_tarif = 0
@@ -3181,9 +3187,13 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 jours = (chevauchement_fin - chevauchement_debut).days
                 if jours > 0:
                     jours_couverts += jours
-                    cout_total_tarif += jours * float(prix)  # multiplier par taux_change si DZ
+                    cout_total_tarif += jours * float(prix) * taux_change # multiplier par taux_change si DZ
 
-            tarif = len(periodes_prix) > 0  # joue le rôle du "if tarif:"
+            # Si tous les jours du séjour ne sont pas couverts par un prix valide, on exclut ce véhicule
+            if jours_couverts < total_days:
+                continue
+
+            tarif = len(periodes_prix) > 0   # joue le rôle du "if tarif:"
 
             if tarif and jours_couverts > 0:
                 prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
