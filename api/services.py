@@ -822,7 +822,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                         active_passive=True
                     )
                 for promo in promotions_records :
-                    if promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+                    if promotions.zone_one != date_depart_obj.zone and promotions.zone_three != date_depart_obj.zone and promotions.zone_two != date_depart_obj.zone:
                         promotions = promo
             print(f"*** promotions trouvee = {promotions}")
 
