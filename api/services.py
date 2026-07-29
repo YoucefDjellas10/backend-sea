@@ -3187,13 +3187,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 jours = (chevauchement_fin - chevauchement_debut).days
                 if jours > 0:
                     jours_couverts += jours
-                    cout_total_tarif += jours * float(prix) * taux_change # multiplier par taux_change si DZ
+                    cout_total_tarif += jours * float(prix)  
 
-            # Si tous les jours du séjour ne sont pas couverts par un prix valide, on exclut ce véhicule
             if jours_couverts < total_days:
                 continue
 
-            tarif = len(periodes_prix) > 0   # joue le rôle du "if tarif:"
+            tarif = len(periodes_prix) > 0   
 
             if tarif and jours_couverts > 0:
                 prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
