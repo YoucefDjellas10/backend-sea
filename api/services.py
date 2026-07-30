@@ -1136,7 +1136,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             if new_total < old_total:
                 print(f"*** new_total ({new_total}) < old_total ({old_total})")
                 if not record.opt_payment_name and new_total < float(record.montant_paye) and remaining_date > 14:
-                    refund_amount = (old_total - new_total)
+                    
+                    refund_amount = (old_total - new_total) 
                     new_total = old_total - refund_amount
                     refund = "yes"
                     print(f"*** [refund] refund=yes refund_amount={refund_amount} new_total={new_total}")                    
@@ -1285,13 +1286,11 @@ def option_ma_reservation(ref, email, country_code):
         return result
 
     except Exception as e:
-        # On remonte l'erreur pour être gérée dans la vue
         raise
     
 def ma_reservation_detail(ref, email, country_code):
     try:
         ma_reservation =Reservation.objects.filter(name=ref).first()
-
 
         if not ma_reservation :
             return {"error": "reservation non trouvé"}

@@ -13,24 +13,26 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            
+            /* background: linear-gradient(45deg, #64748b 0%, #f9fafb 100%);*/
+            
+            background: linear-gradient(45deg, #f6f7fb 0%, #f9fafb 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
-        .container {
-            max-width: 1200px;
+        .container { 
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 20px 20px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(155deg, #141b34 27%, #1c2547 37%, #bc2a44 95%, #bc2a44 100%);
             color: white;
-            padding: 40px;
+            padding: 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -65,7 +67,7 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .company-logo img {
-            width: 25%;
+            max-width: 240px;
             height: auto;
             object-fit: contain;
         }
@@ -79,15 +81,15 @@
         .contract-info {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            gap: 10px; 
+
         }
 
         .info-card {
             background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
+            padding: 10px;
+            border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.2);
         }
 
@@ -104,18 +106,18 @@
 
         .inspection-title {
             text-align: center;
-            padding: 40px;
-            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            padding: 20px;
+            background: linear-gradient(to right, #f8f9fa, #f8f9fa);
         }
 
         .inspection-title h2 {
-            color: #495057;
+            color: #64748b;
             font-size: 28px;
             margin-bottom: 10px;
         }
 
         .inspection-subtitle {
-            color: #6c757d;
+            color: #64748b;
             font-size: 16px;
         }
 
@@ -123,13 +125,13 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 25px;
-            padding: 40px;
+            padding: 15px;
             background: #f8f9fa;
         }
 
         .photo-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -155,7 +157,7 @@
         .photo-placeholder {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #f6f7fb,  #4e5675);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -192,9 +194,9 @@
         }
 
         .footer {
-            background: #495057;
+            background: #64748b;
             color: white;
-            padding: 30px 40px;
+            padding: 30px 20px;
             text-align: center;
         }
 
@@ -207,14 +209,14 @@
 
         .footer-section h4 {
             margin-bottom: 10px;
-            color: #667eea;
+            color: #f6f7fb;
         }
 
         .print-button {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #f6f7fb, #4e5675);
             color: white;
             border: none;
             width: 60px;
@@ -244,7 +246,8 @@
             color: white;
             font-size: 14px;
             font-weight: 500;
-            margin-top: 10px;
+            margin-top: 0px;
+            max-width: 210px;
         }
         .modal {
             display: none; 
@@ -261,9 +264,9 @@
 
         /* Contenu de la modale */
         .modal-content {
-            background: #fff;
+            background: #f6f7fb;
             margin: auto;
-            padding: 20px;
+            padding: 10px;
             border-radius: 15px;
             width: 90%;
             max-width: 900px;
@@ -285,7 +288,7 @@
             margin-top: 15px;
             font-size: 18px;
             font-weight: 500;
-            color: #333;
+            color: #64748b;
         }
 
         /* Bouton de fermeture */
@@ -295,7 +298,7 @@
             right: 20px;
             font-size: 30px;
             font-weight: bold;
-            color: #333;
+            color: #64748b;
             cursor: pointer;
             transition: color 0.2s ease;
         }
@@ -315,6 +318,14 @@
         <!-- Header avec informations client -->
         <div class="header">
             <div class="header-content">
+           
+
+
+
+              <div class="contract-info">
+                
+            <div class="status-badge" >✓ Véhicule Pris en Charge</div> 
+        </div>
                 <div class="company-logo">
                     <img src="https://img.mailinblue.com/9020115/images/content_library/original/68b96b18b0d8422b00841eba.png" alt="SAFAR EL AMIR - Location de Voitures">
                 </div>
@@ -337,15 +348,26 @@
                         <div class="info-value">{{ pickup_date }} - {{ pickup_time }}</div>
                     </div>
                 </div>
-                <div class="status-badge">✓ Véhicule Pris en Charge</div>
+                
             </div>
         </div>
 
-        <!-- Titre de la section inspection -->
-        <div class="inspection-title">
-            <h2>📸 Rapport d'Inspection Véhicule</h2>
-            <p class="inspection-subtitle">Photos prises lors de la prise en charge du véhicule</p>
-        </div>
+             <!-- Titre de la section inspection -->
+     <div class="inspection-title">
+            <h1 style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
+font-size:25px;font-style:normal;
+font-weight:bold;line-height:1.4;
+text-align:left;
+color:#202f36">
+📑 Rapport d'Inspection Véhicule
+</h1>
+ <p class="inspection-subtitle" style="text-align:left;"> Dans ce rapport, vous trouverez le récapitulatif de votre location  : état de restitution du véhicule, kilométrage, niveau de carburant, photos du constat ainsi que les éventuelles observations relevées lors de la restitution.
+</p>
+
+<hr style="margin: 10px;">
+        </div> 
+
+ 
 
         <!-- Grille des photos -->
         <div class="photos-grid">
@@ -360,10 +382,17 @@
                 </div>
             </div>
             {% endfor %}
-        </div>
 
+            
+        </div>
+<p style="background-color:#f6f7fb;border-left:4px solid #f0b429;padding:8px 12px;border-radius:6px;color:#4a3a01;font-family:Arial,sans-serif;font-size:14px;line-height:21px;margin:20px">
+⚠️ <strong>Important :</strong> Les photos du constat sont horodatées, géolocalisées (GPS) et conservées 30 jours dans nos serveurs pour garantir une totale transparence lors de la restitution du véhicule.
+</p>
         <!-- Footer -->
         <div class="footer">
+            
+            
+            
             <div class="footer-info">
                 <div class="footer-section">
                     <h4>Contact</h4>
@@ -381,8 +410,8 @@
                     <p>Service client disponible</p>
                 </div>
             </div>
-            <div style="border-top: 1px solid #6c757d; padding-top: 20px; margin-top: 20px;">
-                <p>&copy; 2003 SAFAR EL AMIR - Tous droits réservés | 22 ans d'excellence en location de voitures</p>
+            <div style="border-top: 1px solid #64748b; padding-top: 20px; margin-top: 20px;">
+                <p>&copy; 2026 SAFAR EL AMIR - Tous droits réservés | + 23 ans d'excellence en location de voitures</p>
             </div>
         </div>
     </div>
