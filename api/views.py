@@ -2858,12 +2858,17 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
         taux_change = TauxChange.objects.get(id=2)
         taux = taux_change.montant
+        klm_diff = 0
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             if backoffice == "yes" or (payment != "yes" and payment_required != "yes"):
                 
                 if diff_prix < 0:
                     if refund == "yes":
+                        if not reservation_obj.opt_klm_name:
+                            klm_diff = diff_days * 275 if "VIP" in reservation_obj.categorie_client.name else diff_days * 250
+                            reservation_obj.kilometrage_autorise = reservation_obj.kilometrage_autorise - klm_diff
+                            reservation_obj.save()
                         refund_obj = RefundTable.objects.create(
                             reservation=reservation_obj,
                             amount=refund_amount,
