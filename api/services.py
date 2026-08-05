@@ -1135,9 +1135,11 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             if new_total < old_total:
                 print(f"*** new_total ({new_total}) < old_total ({old_total})")
-                if not record.opt_payment_name and new_total < float(record.montant_paye) and remaining_date > 14:
+                if not record.opt_payment_name and new_total < float(record.montant_paye) and remaining_date > 14 and record.nbr_jour_reservation > 3:
                     
-                    refund_amount = (old_total - new_total) 
+                    refund_amount = (float(record.montant_paye) - float(new_total))
+                    therty_percent = float(record.montant_paye) * 0.3
+                    refund_amount = therty_percent if refund_amount > therty_percent else refund_amount
                     new_total = old_total - refund_amount
                     refund = "yes"
                     print(f"*** [refund] refund=yes refund_amount={refund_amount} new_total={new_total}")                    
