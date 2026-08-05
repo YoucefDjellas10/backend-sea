@@ -4244,6 +4244,13 @@ def add_reservation_post_view(request):
                     last_total = float(last_total) - float(prime_red) 
                 else : 
                     prime_red = 0
+
+        kilometrage_autorise = 0
+
+        if "VIP" in client.categorie_client.name:
+            kilometrage_autorise = total_days * 275
+        else:
+            kilometrage_autorise = total_days * 250
         
         reservation = Reservation.objects.create(
             create_date=timezone.now(),
@@ -4358,6 +4365,7 @@ def add_reservation_post_view(request):
             update_category = "non",
             feuil_red = - prime_red,
             parrain = parent_client,
+            kilometrage_autorise = kilometrage_autorise
         )  
         montant_a_paye = to_pay if to_pay>0 else last_total
 
