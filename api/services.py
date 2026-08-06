@@ -1081,6 +1081,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             print(f"*** options_total FINAL = {options_total}")
 
             # ── Total brut et réduit ──────────────────────────────────────────
+            print(f"######## total_primary = {total_primary}")
+            print(f"######## cout_total_tarif = {cout_total_tarif}")
+            print(f"######## options_total = {options_total}")
+            print(f"######## total_brut = {total_brut}")
             total_brut = total_primary + cout_total_tarif + options_total
             print(f"*** total_brut = {total_brut}")
 
