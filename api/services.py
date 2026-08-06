@@ -946,15 +946,16 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             if promotions and promotions.tout_modele in ["non", "aleatoire"] and modele_id in modeles_promo:
                 effective_promotion = promotion_value
                 print(f"*** effective_promotion mis a jour (modele dans promo) = {effective_promotion}")
-            elif client_pr > promotion_value:
-                effective_promotion = client_pr
-                print(f"*** effective_promotion mis a jour (client_pr > promotion_value) = {effective_promotion}")
             elif promotions and promotions.tout_modele == "oui":
                 effective_promotion = promotion_value
                 print(f"*** effective_promotion mis a jour (tout_modele=oui) = {effective_promotion}")
             else:
                 effective_promotion = 0
 
+            if client_pr > effective_promotion:
+                effective_promotion = client_pr
+                print(f"*** effective_promotion mis a jour (client_pr > promotion_value) = {effective_promotion}")
+                
             print(f"*** effective_promotion FINAL = {effective_promotion}")
 
             # ── Frais fixes ──────────────────────────────────────────────────
