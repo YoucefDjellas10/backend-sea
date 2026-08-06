@@ -952,6 +952,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             elif promotions and promotions.tout_modele == "oui":
                 effective_promotion = promotion_value
                 print(f"*** effective_promotion mis a jour (tout_modele=oui) = {effective_promotion}")
+            else:
+                effective_promotion = 0
 
             print(f"*** effective_promotion FINAL = {effective_promotion}")
 
@@ -1088,7 +1090,6 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             print(f"######## total_brut = {total_brut}")
             total_brut = total_primary + cout_total_tarif + options_total
             print(f"*** total_brut = {total_brut}")
-
 
             print(f"######## effective_promotion = {effective_promotion}")
             if effective_promotion > 0:
