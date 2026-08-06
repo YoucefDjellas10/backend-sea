@@ -1089,6 +1089,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             total_brut = total_primary + cout_total_tarif + options_total
             print(f"*** total_brut = {total_brut}")
 
+
+            print(f"######## effective_promotion = {effective_promotion}")
             if effective_promotion > 0:
                 tarif_reduit = ((100 - effective_promotion) * prix_jour / 100) * total_days
                 total_new = float(total_primary) + float(tarif_reduit) + float(options_total)
