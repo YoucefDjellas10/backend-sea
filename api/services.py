@@ -969,6 +969,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             print(f"*** lieu_depart_int={lieu_depart_int} lieu_retour_int={lieu_retour_int}")
 
             frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_obj, retour_id=lieu_depart_obj)
+            print(f"*** frais_livraison list = {frais_livraison}")
             print(f"*** frais_livraison direct count = {frais_livraison.count() if frais_livraison else 0}")
             if frais_livraison:
                 for frais in frais_livraison:
