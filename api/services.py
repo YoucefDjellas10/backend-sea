@@ -983,7 +983,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 print("*** Pas de frais_livraison direct -> recherche de chemin via escales")
                 # cas indirect : on cherche un chemin via escales
                 trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-                chemins_possibles = [(lieu_depart_obj, 0, set())]  # (position, total, lieux_visités)
+                chemins_possibles = [(lieu_depart_int, 0, set())]  # (position, total, lieux_visités)
 
                 meilleur_cout = None
 
