@@ -1908,6 +1908,13 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
             zone_depart_res = ld_res.zone if ld_res else None
             zone_retour_res = lr_res.zone if lr_res else None
 
+            # La voiture est-elle rendue au MÊME lieu que le nouveau départ ?
+            meme_lieu = (
+                lr_res is not None
+                and lieu_depart_id is not None
+                and lr_res.id == int(lieu_depart_id)
+            )
+
             if zone_depart_res and zone_retour_res and zone_depart_res.id != zone_retour_res.id:
                 buffer_depart_hours = 24
 
@@ -1915,7 +1922,10 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                 buffer_depart_hours = 1
 
             elif (ld_res and ld_res.id == 4) or (lr_res and lr_res.id == 4):
-                buffer_depart_hours = 1
+                if int(zone) == 3 and not meme_lieu:
+                    buffer_depart_hours = 5
+                else:
+                    buffer_depart_hours = 1
 
             else:
                 buffer_depart_hours = 5
