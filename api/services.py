@@ -2561,6 +2561,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     is_prime = True
                     percentage = client_pr
                     montant_code_prime = prix_jour * client_pr / 100 * total_days
+                    montant_promotion = montant_code_prime
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
@@ -2612,6 +2613,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_solde = True
                     solde_anterieur = client_sold
+                    montant_promotion = solde_anterieur
                     percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
@@ -2620,6 +2622,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_parrainage = True
                     montant_code_prime = prime_red
+                    montant_promotion = montant_promotion
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
@@ -3237,6 +3240,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     is_prime = True
                     percentage = client_pr
                     montant_code_prime = prix_jour * client_pr / 100 * total_days
+                    montant_promotion = montant_code_prime
                     total_red =  (100 - percentage) * total_brut / 100
                     prix_unitaire_red = total_red / total_days
                 elif promotion_value > int(client_pr) and promotions.tout_modele == "oui":
@@ -3287,6 +3291,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_solde = True
                     solde_anterieur = client_sold
+                    montant_promotion = solde_anterieur
                     percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
@@ -3295,6 +3300,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_parrainage = True
                     montant_code_prime = prime_red
+                    montant_promotion = montant_code_prime
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
