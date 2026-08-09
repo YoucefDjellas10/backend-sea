@@ -2074,6 +2074,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     total_primary = 0
     montant_promotion = 0
     montant_code_prime = 0
+    is_promo = False
+    is_solde =False
+    is_prime = False
+    is_parrainage = False
 
     promotions = Promotion.objects.filter(
         debut_visibilite__lte=today,
@@ -2554,6 +2558,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 prix_unitaire = total_brut / total_days
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
+                    is_prime = True
                     percentage = client_pr
                     montant_code_prime = prix_jour * client_pr / 100 * total_days
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
@@ -2605,6 +2610,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 solde_anterieur = 0
                 if int(client_sold) > 0 : 
                     promotion = "yes"
+                    is_solde = True
                     solde_anterieur = client_sold
                     percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
@@ -2612,6 +2618,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
+                    is_parrainage = True
                     montant_code_prime = prime_red
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
@@ -2625,6 +2632,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
+                        "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
+                        "is_prime": is_prime,
+                        "is_parrainage": is_parrainage,
+                        "is_sold":is_solde,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -2725,6 +2736,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
+                        "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
+                        "is_prime": is_prime,
+                        "is_parrainage": is_parrainage,
+                        "is_sold":is_solde,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -2825,6 +2840,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
+                        "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
+                        "is_prime": is_prime,
+                        "is_parrainage": is_parrainage,
+                        "is_sold":is_solde,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -3215,6 +3234,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
                 if int(client_pr) > promotion_value :
                     promotion = "yes"
+                    is_prime = True
                     percentage = client_pr
                     montant_code_prime = prix_jour * client_pr / 100 * total_days
                     total_red =  (100 - percentage) * total_brut / 100
@@ -3265,6 +3285,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 solde_anterieur = 0
                 if int(client_sold) > 0 : 
                     promotion = "yes"
+                    is_solde = True
                     solde_anterieur = client_sold
                     percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(client_sold)
@@ -3272,6 +3293,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
+                    is_parrainage = True
                     montant_code_prime = prime_red
                     percentage = round(float(prime_red) * 100 / float(total_brut),2)
                     total_red = float(total_brut) - float(prime_red)
@@ -3285,6 +3307,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
+                        "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
+                        "is_prime": is_prime,
+                        "is_parrainage": is_parrainage,
+                        "is_sold":is_solde,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -3386,6 +3412,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
+                        "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
+                        "is_prime": is_prime,
+                        "is_parrainage": is_parrainage,
+                        "is_sold":is_solde,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -3486,6 +3516,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
                         "promotion_name":promotion_name,
+                        "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
+                        "is_prime": is_prime,
+                        "is_parrainage": is_parrainage,
+                        "is_sold":is_solde,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
