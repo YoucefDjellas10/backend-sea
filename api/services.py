@@ -1859,7 +1859,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                     buffer_retour_hours = 5
 
         except Exception:
-            buffer_retour_hours = 1
+            buffer_retour_hours = 5
 
     buffer_retour = timedelta(hours=buffer_retour_hours)
 
@@ -1921,7 +1921,7 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
                 buffer_depart_hours = 5
 
         except Exception:
-            buffer_depart_hours = 1
+            buffer_depart_hours = 5
 
         buffer_depart = timedelta(hours=buffer_depart_hours)
 
