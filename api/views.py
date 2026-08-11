@@ -4413,6 +4413,21 @@ def add_reservation_post_view(request):
             parrain = parent_client,
             kilometrage_autorise = kilometrage_autorise
         )  
+
+        if parent_client and prime_red != 0:
+            historique_one = HistoriqueSolde.objects.create(
+                client = client,
+                reservation = reservation,
+                create_date = timezone.now(),
+                type= "filleul",
+            )
+            historique_two = HistoriqueSolde.objects.create(
+                client = client,
+                reservation = reservation,
+                create_date = timezone.now(),
+                type= "consomation",
+            )
+
         montant_a_paye = to_pay if to_pay>0 else last_total
 
         if ccountry_code == "DZ" :
