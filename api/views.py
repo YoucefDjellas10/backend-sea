@@ -3078,7 +3078,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                         
                         elif credit == "yes":
                             reservation_obj.client.solde =  Decimal(credit_amount) if reservation_obj.client.solde == None or reservation_obj.client.solde  == 0 else reservation_obj.client.solde + Decimal(credit_amount)
-                            reservation_obj.save()
+                            reservation_obj.client.save()
 
                             historique = HistoriqueSolde.objects.create(
                                 client = reservation_obj.client,
