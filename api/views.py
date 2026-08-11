@@ -1963,9 +1963,9 @@ def solde_history_view_(request):
         if history_page is not None:
             for record in history_page:
                 if record.type == "parrain":
-                    label_fr = f"Vous avez parrainé le client {record.reservation.client}."
-                    label_ar = f"لقد قمتَ بإحالة العميل {record.reservation.client} "
-                    label_en = f"You referred the customer {record.reservation.client}."
+                    label_fr = f"Vous avez parrainé le client {record.reservation.client.prenom}."
+                    label_ar = f"لقد قمتَ بإحالة العميل {record.reservation.client.prenom} "
+                    label_en = f"You referred the customer {record.reservation.client.prenom}."
                     res = -1
                     statut = "parrain"
                 elif record.type == "retour":
@@ -1981,9 +1981,9 @@ def solde_history_view_(request):
                     res = -1
                     statut = "jeste"
                 elif record.type == "filleul":
-                    label_fr = f"Vous avez été parrainé par le client {record.reservation.parrain} pour la réservation n°{record.reservation.name}."
-                    label_ar = f"تمت إحالتكم من طرف العميل {record.reservation.parrain} للحجز رقم {record.reservation.name}."
-                    label_en = f"You were referred by {record.reservation.parrain} for reservation #{record.reservation.name}."
+                    label_fr = f"Vous avez été parrainé par le client {record.reservation.parrain.prenom} pour la réservation n°{record.reservation.name}."
+                    label_ar = f"تمت إحالتكم من طرف العميل {record.reservation.parrain.prenom} للحجز رقم {record.reservation.name}."
+                    label_en = f"You were referred by {record.reservation.parrain.prenom} for reservation #{record.reservation.name}."
                     res = -1
                     statut = "filleul"
                 elif record.type == "consomation":
