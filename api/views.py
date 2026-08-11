@@ -1981,15 +1981,15 @@ def solde_history_view_(request):
                     res = -1
                     statut = "jeste"
                 elif record.type == "filleul":
-                    label_fr = f"Vous avez été parrainé par le client {record.reservation.parrain.prenom} pour la réservation n°{record.reservation.name}."
-                    label_ar = f"تمت إحالتكم من طرف العميل {record.reservation.parrain.prenom} للحجز رقم {record.reservation.name}."
-                    label_en = f"You were referred by {record.reservation.parrain.prenom} for reservation #{record.reservation.name}."
+                    label_fr = f"Vous avez été parrainé par le client {record.reservation.parrain.prenom} "
+                    label_ar = f"تمت إحالتكم من طرف العميل {record.reservation.parrain.prenom}"
+                    label_en = f"You were referred by {record.reservation.parrain.prenom}"
                     res = -1
                     statut = "filleul"
                 elif record.type == "consomation":
-                    label_fr = f"Solde utilisé pour la réservation n°{record.reservation.name}."
-                    label_ar = f"الرصيد المستخدم للحجز رقم {record.reservation.name}"
-                    label_en = f"Balance used for reservation #{record.reservation.name}"
+                    label_fr = f"Solde consommé."
+                    label_ar = f"الرصيد المستهلك"
+                    label_en = f"Balance used"
                     statut = "consomation"
                 else:
                     label_fr = {record.reservation.name}
