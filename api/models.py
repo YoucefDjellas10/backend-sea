@@ -1598,6 +1598,14 @@ class HistoriqueSolde(models.Model):
     reservation = models.ForeignKey(Reservation,db_column='reservation', on_delete=models.CASCADE, related_name='historique_soldes')
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     create_date = models.DateTimeField()
+    TYPE_CHOICES = [
+            ("parrain", "Parrain"),
+            ("retour", "Retour anticipé"),
+            ("jeste", "Jeste commercial"),
+            ("consomation", "Consomation"),
+            ("filleul", "Filleul")
+    ]
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     
     def __str__(self):
         return f"{self.name} - {self.client} - {self.montant}"
