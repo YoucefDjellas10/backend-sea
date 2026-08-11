@@ -1969,9 +1969,9 @@ def solde_history_view_(request):
                     res = -1
                     statut = "parrain"
                 elif record.type == "retour":
-                    label_fr = f"Solde restant dû suite au retour anticipé de la réservation n°{record.reservation.name}."
-                    label_ar = f"الرصيد المتبقي المستحق بعد الإرجاع المبكر للحجز رقم{record.reservation.name} "
-                    label_en = f"Remaining balance due following the early return of reservation #{record.reservation.name}."
+                    label_fr = f"Solde credité."
+                    label_ar = f"الرصيد المُودَع"
+                    label_en = f"Credited balance"
                     res = -1
                     statut = "retour"
                 elif record.type == "jeste":
@@ -1981,9 +1981,9 @@ def solde_history_view_(request):
                     res = -1
                     statut = "jeste"
                 elif record.type == "filleul":
-                    label_fr = f"Vous avez été parrainé par le client {record.reservation.parrain.prenom} "
-                    label_ar = f"تمت إحالتكم من طرف العميل {record.reservation.parrain.prenom}"
-                    label_en = f"You were referred by {record.reservation.parrain.prenom}"
+                    label_fr = f"Solde parrainage"
+                    label_ar = f"رصيد الإحالة"
+                    label_en = f"Referral balance"
                     res = -1
                     statut = "filleul"
                 elif record.type == "consomation":
