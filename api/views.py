@@ -4565,6 +4565,7 @@ def stripe_webhook_reservation_(request):
 
                 if reservation.solde_utilise and reservation.solde_utilise > 0:
                     reservation.client.solde = reservation.client.solde - reservation.solde_utilise
+                    reservation.client.save()
                     historique_two = HistoriqueSolde.objects.create(
                         client = reservation.client,
                         reservation = reservation,
