@@ -1103,7 +1103,7 @@ def combined_document_download(request):
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
 
-    limit_klm = livraison.nbr_jour_reservation * 250
+    limit_klm = livraison.nbr_jour_reservation * 275 if "VIP" in livraison.client.categorie_client.name else livraison.nbr_jour_reservation * 250 
 
     confirmation_context = {
         "REF": reservation.name,
@@ -1286,7 +1286,7 @@ def confirmation_download(request):
         nd_client_name = " "
         permi_desc = " "
 
-    limit_klm = livraison.nbr_jour_reservation * 250
+    limit_klm = livraison.nbr_jour_reservation * 275 if "VIP" in livraison.client.categorie_client.name else livraison.nbr_jour_reservation * 250
     
     context = {
         "REF": livraison.name,
