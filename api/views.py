@@ -1963,9 +1963,9 @@ def solde_history_view_(request):
         if history_page is not None:
             for record in history_page:
                 if record.type == "parrain":
-                    label_fr = f"Filleul  {record.reservation.client.prenom}."
-                    label_ar = f"المُحال  {record.reservation.client.prenom} "
-                    label_en = f"Referee  {record.reservation.client.prenom}."
+                    label_fr = f"Filleul  (Parrainage) {record.reservation.client.prenom}."
+                    label_ar = f"المُحال (الإحالة) {record.reservation.client.prenom} "
+                    label_en = f"Referee (Referral) {record.reservation.client.prenom}."
                     res = -1
                     statut = "parrain"
                 elif record.type == "retour":
