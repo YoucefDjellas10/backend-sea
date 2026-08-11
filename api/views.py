@@ -4415,16 +4415,19 @@ def add_reservation_post_view(request):
         )  
 
         if parent_client and prime_red != 0:
+            solde_rec = SoldeParrainage.objects.filter(id=1).first()
             historique_one = HistoriqueSolde.objects.create(
                 client = client,
                 reservation = reservation,
                 create_date = timezone.now(),
+                montant = solde_rec.parrain_solde,
                 type= "filleul",
             )
             historique_two = HistoriqueSolde.objects.create(
                 client = client,
                 reservation = reservation,
                 create_date = timezone.now(),
+                montant = solde_rec.parrain_solde,
                 type= "consomation",
             )
 

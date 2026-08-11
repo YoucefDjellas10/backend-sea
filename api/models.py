@@ -390,6 +390,7 @@ class CategorieClient(models.Model):
 
 
 class SoldeParrainage(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255, verbose_name="Nom")
     parrain_solde = models.DecimalField(
         max_digits=10,
