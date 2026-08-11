@@ -3507,6 +3507,7 @@ def add_reservation_post_view(request):
         total_option = 0
         promo_value = 0
         client_solde = 0
+        solde_consome = 0
 
         prime_red = 0
         parent_client = None
@@ -3779,13 +3780,12 @@ def add_reservation_post_view(request):
 
 
             if client_solde > 0:
-                last_total = total - client_solde
-                client.solde_consomer = client.solde_consomer or 0
-                client.solde_total = client.solde_total or 0
-                client.solde = 0.00
-                client.solde_consomer += client_solde if client_solde else 0
-                client.solde_total += client_solde if client_solde else 0
-                client.save()
+                if client_solde > (total - 5):
+                    solde_consome = total - 5
+                    last_total = 5
+                else:
+                    solde_consome = client_solde
+                    last_total = total - client_solde
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         last_total = Decimal(last_total)
@@ -4411,25 +4411,9 @@ def add_reservation_post_view(request):
             update_category = "non",
             feuil_red = - prime_red,
             parrain = parent_client,
-            kilometrage_autorise = kilometrage_autorise
+            kilometrage_autorise = kilometrage_autorise,
+            solde_utilise = solde_consome
         )  
-
-        if parent_client and prime_red != 0:
-            solde_rec = SoldeParrainage.objects.filter(id=1).first()
-            historique_one = HistoriqueSolde.objects.create(
-                client = client,
-                reservation = reservation,
-                create_date = timezone.now(),
-                montant = solde_rec.parrain_solde,
-                type= "filleul",
-            )
-            historique_two = HistoriqueSolde.objects.create(
-                client = client,
-                reservation = reservation,
-                create_date = timezone.now(),
-                montant = solde_rec.parrain_solde,
-                type= "consomation",
-            )
 
         montant_a_paye = to_pay if to_pay>0 else last_total
 
@@ -4559,7 +4543,36 @@ def stripe_webhook_reservation_(request):
                 reservation.status ="confirmee"
                 reservation.montant_paye = montant_paye_dec
                 reservation.reste_payer = float(reservation.total_reduit_euro) - float(montant_paye_dec)
+
                 reservation.save()
+
+                if reservation.parrain and reservation.feuil_red != 0:
+                    solde_rec = SoldeParrainage.objects.filter(id=1).first()
+                    historique_one = HistoriqueSolde.objects.create(
+                        client = reservation.client,
+                        reservation = reservation,
+                        create_date = timezone.now(),
+                        montant = solde_rec.parrain_solde,
+                        type= "filleul",
+                    )
+                    historique_two = HistoriqueSolde.objects.create(
+                        client = reservation.client,
+                        reservation = reservation,
+                        create_date = timezone.now(),
+                        montant = solde_rec.parrain_solde,
+                        type= "consomation",
+                    )
+
+                if reservation.solde_utilise and reservation.solde_utilise > 0:
+                    reservation.client.solde = reservation.client.solde - reservation.solde_utilise
+                    historique_two = HistoriqueSolde.objects.create(
+                        client = reservation.client,
+                        reservation = reservation,
+                        create_date = timezone.now(),
+                        montant = reservation.solde_utilise,
+                        type= "consomation",
+                    )
+
                 
 
                 date_heure_depart = reservation.date_heure_debut

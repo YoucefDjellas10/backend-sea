@@ -1012,7 +1012,7 @@ class Reservation(models.Model):
     date_fin_service = models.DateField(editable=False, null=True, blank=True)
     matricule = models.CharField(max_length=50, editable=False, null=True, blank=True)
     numero = models.CharField(max_length=50, editable=False, null=True, blank=True)
-
+    solde_utilise = models.IntegerField(null=True, blank=True)
     type_caution = models.CharField(max_length=20, choices=[
         ('espece', 'Espèce'),
         ('depose', 'Déposée'),
