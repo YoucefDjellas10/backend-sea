@@ -1995,8 +1995,9 @@ def solde_history_view_(request):
                     'label':  label_fr,
                     'label_en': label_en,
                     'label_ar': label_ar,
-                    'montant': float(record.montant) * float(taux) * float(res) if record.montant is not None else 0,
+                    'montant': float(record.montant) * float(taux) if record.montant is not None else 0,
                     'status':"paiement",
+                    "signe": "psitif" if res == 1 else "negatif",
                     'reservation': record.reservation.name
                 }
                 history_data.append(record_dict)
