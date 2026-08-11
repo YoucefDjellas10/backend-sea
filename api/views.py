@@ -1956,6 +1956,7 @@ def solde_history_view_(request):
         label_ar = None
         label_en = None
         res = 1
+        status = "paiement"
         
         history_data = []
         if history_page is not None:
@@ -1965,38 +1966,42 @@ def solde_history_view_(request):
                     label_ar = f"لقد قمتَ بإحالة العميل {record.reservation.client} "
                     label_en = f"You referred the customer {record.reservation.client}."
                     res = -1
+                    status = "parrain"
                 elif record.type == "retour": 
                     label_fr = f"Solde restant dû suite au retour anticipé de la réservation n°{record.reservation.name}."
                     label_ar = f"الرصيد المتبقي المستحق بعد الإرجاع المبكر للحجز رقم{record.reservation.name} "
                     label_en = f"Remaining balance due following the early return of reservation #{record.reservation.name}."
                     res = -1
+                    status = "retour"
                 elif record.type == "jeste":
                     label_fr = f"Crédit commercial accordé au client à titre de geste commercial."
                     label_ar = f"تمت إضافة رصيد تجاري إلى حسابكم كإجراء تعويضي وحسن نية."
                     label_en = f"Commercial credit granted to the customer as a goodwill gesture."
                     res = -1
+                    status = "jeste"
                 elif record.type == "filleul":
                     label_fr = f"Vous avez été parrainé par le client {record.reservation.parrain} pour la réservation n°{record.reservation.name }."
                     label_ar = f"تمت إحالتكم من طرف العميل {record.reservation.parrain} للحجز رقم {record.reservation.name}."
                     label_en = f"You were referred by {record.reservation.parrain} for reservation #{record.reservation.name}."
                     res = -1
+                    status = "filleul"
                 elif record.type == "consomation":
                     label_fr = f"Solde utilisé pour la réservation n°{record.reservation.name}."
                     label_ar = f"الرصيد المستخدم للحجز رقم {record.reservation.name}"
                     label_en = f"Balance used for reservation #{record.reservation.name}"
+                    status = "consomation"
                 else:
                     label_fr = {record.reservation.name}
                     label_ar = {record.reservation.name}
                     label_en = {record.reservation.name}
-
-                                    
+             
                 record_dict = {
                     'currency': currency,
                     'label':  label_fr,
                     'label_en': label_en,
                     'label_ar': label_ar,
                     'montant': float(record.montant) * float(taux) if record.montant is not None else 0,
-                    'status':"paiement",
+                    'status': status,
                     "signe": "psitif" if res == 1 else "negatif",
                     'reservation': record.reservation.name
                 }
