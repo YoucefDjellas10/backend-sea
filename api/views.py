@@ -50,6 +50,8 @@ def parrainage_email(request):
             expediteur = settings.DEFAULT_FROM_EMAIL
             html_message = render_to_string('email/update_parrainnage_email.html', {
                 'client_name':reservation.client.name,
+                'parrain':reservation.parrain.name,
+                'solde':reservation.feuil_red,
                 'link':reservation.zone.avis_google           
             })
             send_mail(
