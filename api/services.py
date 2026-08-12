@@ -1135,6 +1135,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             credit = "no"
             credit_amount = 0.0
 
+            if remaining_date >= 0 and record.zone != lieu_retour_obj.zone:
+                return {"message": "pas possible de changer la zone de depart"}
+
             if float(get_total) > float(total_new) and remaining_date_retour >= 4 and remaining_date <= 0:
                 credit = "yes"
                 credit_amount = (float(get_total) - float(total_new)) / 2.0
@@ -1142,6 +1145,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             if remaining_date > 0 or (float(new_total) - float(record.montant_paye)) < 1:
                 payment_required = "no"
+                
             else:
                 payment_required = "yes"
             print(f"*** payment_required = {payment_required}")
@@ -1321,6 +1325,7 @@ def ma_reservation_detail(ref, email, country_code):
             klm_limit = "illimitée"
         date = ma_reservation.date_heure_debut.date()
         today = datetime.today().date()
+        
         can_cancel = "yes" 
         can_midify = "yes" if (date - today).days > 2 else "no"
         retour = ma_reservation.date_heure_fin.date()
@@ -1347,6 +1352,7 @@ def ma_reservation_detail(ref, email, country_code):
         return_date = False
         count_button = False
         cancel_button = False
+        hors_zone = False
 
         now = datetime.now()
         if ma_reservation.date_heure_debut > now + timedelta(hours=49):
@@ -1357,6 +1363,7 @@ def ma_reservation_detail(ref, email, country_code):
             return_date = True
             count_button = True
             cancel_button = True
+            hors_zone = True
         elif ma_reservation.date_heure_debut <= now + timedelta(hours=49) and  ma_reservation.date_heure_fin > now + timedelta(hours=13):
             return_place = True
             return_date = True
@@ -1370,6 +1377,7 @@ def ma_reservation_detail(ref, email, country_code):
             return_date = False
             count_button = False
             cancel_button = False
+            hors_zone = False
         
         modify_status.append({
             "add_options": add_options,
@@ -1379,7 +1387,8 @@ def ma_reservation_detail(ref, email, country_code):
             "return_place": return_place,
             "return_date": return_date,
             "count_button": count_button,
-            "cancel_button": cancel_button
+            "cancel_button": cancel_button,
+            "hors_zone": hors_zone
         })
 
         if country_code =="DZ":
