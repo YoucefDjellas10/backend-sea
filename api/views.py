@@ -35,6 +35,7 @@ from utils.client_info import ClientInfoExtractor
 from django.http import HttpResponseForbidden
 from django.core.signing import BadSignature, SignatureExpired
 from .utils import verify_pickup_token
+import traceback
 
 
 logger = logging.getLogger(__name__)
