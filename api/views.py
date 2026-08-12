@@ -2359,7 +2359,7 @@ def protection_put_view(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                    'base_url': {settings.API_BASE_URL}
+                    'base_url': settings.API_BASE_URL
     
                 })
     
@@ -4626,7 +4626,7 @@ def stripe_webhook_reservation_(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                    'base_url': {settings.API_BASE_URL}
+                    'base_url': settings.API_BASE_URL
 
                 })
 
@@ -4934,7 +4934,7 @@ def stripe_webhook_reservation_(request):
                 'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
                 'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                'base_url': {settings.API_BASE_URL}
+                'base_url': settings.API_BASE_URL
 
             })
 
@@ -5188,7 +5188,7 @@ def stripe_webhook_reservation_(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                    'base_url': {settings.API_BASE_URL}
+                    'base_url': settings.API_BASE_URL
                 })
 
                 send_mail(
@@ -5809,7 +5809,7 @@ def add_options_put_view(request):
                 'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
                 'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                'base_url': {settings.API_BASE_URL}
+                'base_url': settings.API_BASE_URL
 
             })
 
