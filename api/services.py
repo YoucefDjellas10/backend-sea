@@ -1135,7 +1135,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             credit = "no"
             credit_amount = 0.0
 
-            if remaining_date >= 0 and record.zone != lieu_retour_obj.zone:
+            if remaining_date <= 0 and record.zone != lieu_retour_obj.zone:
                 return {"message": "pas possible de changer la zone de depart"}
 
             if float(get_total) > float(total_new) and remaining_date_retour >= 4 and remaining_date <= 0:
