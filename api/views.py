@@ -3011,7 +3011,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "montant_payer": round(amount_paid, 2) if not amount_paid or amount_paid == 0 else round(Decimal(amount_paid) + Decimal(amount__paid), 2),
                                 "credit_amount": round(credit_amount, 2),
                                 "remaining_to_pay": round(remaining_to_pay, 2) if not amount_paid or amount_paid == 0 else round(Decimal(remaining_to_pay) - Decimal(amount__paid), 2),
-                                "base_url": settings.API_BASE_URL
+                                "base_url": settings.API_BASE_URL,
+                                "id": reservation_obj.id
 
                             })
 
@@ -3150,7 +3151,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 "montant_payer": round(amount_paid, 2) if not amount_paid or amount_paid == 0 else round(Decimal(amount_paid) + Decimal(amount__paid), 2),
                                 "credit_amount":round(credit_amount, 2),
                                 "remaining_to_pay": round(remaining_to_pay, 2) if not amount_paid or amount_paid == 0 else round(Decimal(remaining_to_pay) - Decimal(amount__paid), 2),
-                                "base_url": settings.API_BASE_URL
+                                "base_url": settings.API_BASE_URL,
+                                "id": reservation_obj.id
 
                             })
 
