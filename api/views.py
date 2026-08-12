@@ -39,6 +39,32 @@ from .utils import verify_pickup_token
 
 logger = logging.getLogger(__name__)
 
+
+def refund_mail_view(request):
+    try:
+        reservation_id = request.GET.get("reservation_id")
+
+        reservation = Reservation.objects.get(id=reservation_id)
+        sujet = f"Confirmation de remboursement de votre réservation {reservation.name}"
+        expediteur = settings.DEFAULT_FROM_EMAIL
+        html_message = render_to_string('email/refund_email.html', {
+            'reference':reservation.name,
+            'client':reservation.client.name,
+            'url':f"{settings.API_BASE_URL}/cancel-receipt-download/?reservation_id={reservation.id}"
+        })
+        send_mail(
+            sujet,
+            strip_tags(html_message),  
+            expediteur,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return JsonResponse({"message": "mail de relance envoyé."}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 def parrainage_email(request):
     try:
         reservation_id = request.GET.get("reservation_id")
