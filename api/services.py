@@ -2084,6 +2084,21 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     if not zone_id:
         return {"message": "Zone introuvable pour ce lieu de départ"}
 
+    return_place = Lieux.objects.filter(id=lieu_retour_id).first()
+
+    hors_zone = False
+    hors_ville = False
+
+    if return_place.zone != lieu_depart.zone:
+        hors_zone = True
+    elif return_place.zone == lieu_depart.zone and (lieu_depart.id != 4 or lieu_depart.id != 4):
+        hors_ville = True
+    else:
+        hors_zone = False
+        hors_ville = False
+
+
+
     result = []
     client_pr = 0 
     client_sold = 0
@@ -2753,6 +2768,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
+                        "hors_zone":hors_zone,
+                        "hors_ville":hors_ville,
                     })
                 
                 if vehicle.categorie.id == base_b_category :
@@ -2857,6 +2874,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
+                        "hors_zone":hors_zone,
+                        "hors_ville":hors_ville,
                     })
 
                 if vehicle.categorie.id == base_c_category :
@@ -2961,6 +2980,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
+                        "hors_zone":hors_zone,
+                        "hors_ville":hors_ville,
                     })
     else :
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
@@ -3431,6 +3452,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
+                        "hors_zone":hors_zone,
+                        "hors_ville":hors_ville,
                     })
 
                 
@@ -3536,6 +3559,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
+                        "hors_zone":hors_zone,
+                        "hors_ville":hors_ville,
                     })
 
                 if vehicle.categorie.id == base_c_category :
@@ -3632,6 +3657,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         'sticker': vehicle.sticker,
                         'vehicule_type':vehicle.modele.vehicule_type,
                         "date_annulation":date_annulation,
+                        "hors_zone":hors_zone,
+                        "hors_ville":hors_ville,
                     })
 
     result.sort(key=lambda x: x["last_total"])

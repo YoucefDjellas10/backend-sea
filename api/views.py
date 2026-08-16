@@ -6252,6 +6252,16 @@ def search_result_view(request):
             prime_code=prime_code,
             country_code=country_code,
         )
+
+        if isinstance(resultats, list):
+            resultats = [
+                vehicule for vehicule in resultats
+                if not (
+                    (vehicule.get("hors_zone") or vehicule.get("hors_ville"))
+                    and vehicule.get("last_total", 0) < 230
+                )
+            ]
+
         free_options = []
         if client_id :
             free_options = free_options_f(client_id)
