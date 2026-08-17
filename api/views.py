@@ -73,7 +73,7 @@ def parrainage_email(request):
 
         if reservation:
 
-            sujet = "Mise a jour parrainnage"
+            sujet = "Mise a jour parrainage"
             expediteur = settings.DEFAULT_FROM_EMAIL
             html_message = render_to_string('email/update_parrainnage_email.html', {
                 'client_name':reservation.client.name,
