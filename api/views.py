@@ -5411,6 +5411,8 @@ def refund_caution(request):
 
             solde_restant = float(gestion_caution.caution) - total_rembourse
             remboursement_total = total_rembourse >= float(gestion_caution.caution)
+            restitution = Livraison.objects.filter(reservation=gestion_caution.reservation,lv_type='restitution').first()
+            livraison_id = restitution.id if restitution else None
 
             html_message = render_to_string('email/caution_remboursee_email.html', {
                 'client': gestion_caution.reservation.client.name,
@@ -5419,7 +5421,7 @@ def refund_caution(request):
                 'caution_totale': gestion_caution.caution,
                 'solde_restant': round(solde_restant, 2),
                 'remboursement_total': round(remboursement_total, 2),
-                'url' : f"{settings.API_BASE_URL}/caution-receipt-download/?livraison_id={gestion_caution.reservation.id}"
+                'url' : f"{settings.API_BASE_URL}/caution-receipt-download/?livraison_id={livraison_id}"
             })
 
             send_mail(

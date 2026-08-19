@@ -1232,6 +1232,7 @@ class Reservation(models.Model):
         return self.name
 
 class Livraison(models.Model):
+    id = models.AutoField(db_column='id', primary_key=True)
     name = models.CharField(max_length=255, verbose_name='Nom')
     reservation = models.ForeignKey('Reservation', on_delete=models.CASCADE,db_column='reservation', related_name='livraisons', verbose_name='Reservation')
     total_prolone = models.IntegerField(verbose_name='Prolongation', null=True, blank=True)
