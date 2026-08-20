@@ -4844,6 +4844,11 @@ def stripe_webhook_reservation_(request):
             reservation.reste_payer = reservation.reste_payer - Decimal(str(montant))
             reservation.save()
 
+            livraisons = Livraison.objects.filter(reservation=reservation)
+            for liv in livraisons:
+                liv.total_reduit_euro = reservation.reste_payer - Decimal(str(montant))
+                liv.save()
+
             print(f"Paiement réussi pour la modification du réservation ID: {reservation_id}")
         elif type_id == "protection":
             session = event["data"]["object"]
@@ -4924,6 +4929,8 @@ def stripe_webhook_reservation_(request):
 
             for lv in livraison:
                 lv.total_reduit_euro = reservation.reste_payer if reservation.reste_payer else lv.total_reduit_euro
+                lv.opt_protection_caution = reservation.opt_protection_caution
+                lv.save()
 
             sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
             expediteur = settings.DEFAULT_FROM_EMAIL
