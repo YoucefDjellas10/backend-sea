@@ -6263,13 +6263,22 @@ def search_result_view(request):
         )
 
         if isinstance(resultats, list):
-            resultats = [
-                vehicule for vehicule in resultats
-                if not (
-                    (vehicule.get("hors_zone") or vehicule.get("hors_ville"))
-                    and vehicule.get("last_total", 0) < 230
-                )
-            ]
+            if country_code != "DZ":
+                resultats = [
+                    vehicule for vehicule in resultats
+                    if not (
+                        (vehicule.get("hors_zone") or vehicule.get("hors_ville"))
+                        and vehicule.get("last_total", 0) < 230
+                    )
+                ]
+            else:
+                resultats = [
+                    vehicule for vehicule in resultats
+                    if not (
+                        (vehicule.get("hors_zone") or vehicule.get("hors_ville"))
+                        and vehicule.get("last_total", 0) < 62100
+                    )
+                ]
 
         free_options = []
         if client_id :
