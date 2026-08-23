@@ -2091,7 +2091,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
     if return_place.zone != lieu_depart.zone:
         hors_zone = True
-    elif return_place.zone == lieu_depart.zone and  lieu_depart.zone.id == 3 and  (lieu_depart.id != 4 or lieu_depart.id != 4):
+    elif return_place.zone == lieu_depart.zone and  lieu_depart.zone.id == 3 and  (lieu_depart.id != 4 or return_place.id != 4):
         hors_ville = True
     else:
         hors_zone = False
