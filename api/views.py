@@ -5350,7 +5350,7 @@ def refund_caution(request):
             return JsonResponse({"error": "Le champ 'caution_id' est requis"}, status=400)
 
         if montant_remboursement is None:
-            return JsonResponse({"error": "Le champ 'montant_remboursement' est requis"}, status=400)
+            montant_remboursement = 0
 
         try:
             montant_remboursement = float(montant_remboursement)
@@ -5397,6 +5397,9 @@ def refund_caution(request):
                 return JsonResponse({"error": f"Erreur Stripe: {str(e)}"}, status=400)
 
         total_rembourse = montant_deja_rembourse + montant_remboursement
+        reservation = gestion_caution.reservation
+        taux = TauxChange.objects.get(id=2)
+        taux_change = taux.montant
 
         gestion_caution.stripe_refund_id = refund.id
         gestion_caution.montant_rembourse = total_rembourse
@@ -5406,8 +5409,50 @@ def refund_caution(request):
                 gestion_caution.status = 'rembourse' 
             elif total_rembourse > 0 and  total_rembourse < float(gestion_caution.caution) :
                 gestion_caution.status = 'partiel_rembourse'
+                total = float(gestion_caution.caution) - float(total_rembourse)
+                payment = Payment.objects.create(
+                    reservation=reservation,
+                    vehicule=reservation.vehicule,  
+                    modele=reservation.modele,  
+                    zone=reservation.lieu_depart.zone,  
+                    total_reduit_euro=total,
+                    montant=total,
+                    montant_dzd=0,
+                    montant_eur_dzd=float(total) * float(taux_change),
+                    montant_dzd_eur=0,  
+                    note="Paiement effectué via Stripe",  
+                    total_reduit_dinar=float(total) * float(taux_change),
+                    ecart_eur=0,
+                    ecart_da=0,
+                    mode_paiement="carte", 
+                    total_encaisse=total,  
+                    create_date=timezone.now()
+                )
+                payment.save()
+                
             elif total_rembourse == 0:
                 gestion_caution.status = 'pas_rembourse'
+                total = float(solde_restant)
+                payment = Payment.objects.create(
+                    reservation=reservation,
+                    vehicule=reservation.vehicule,  
+                    modele=reservation.modele,  
+                    zone=reservation.lieu_depart.zone,  
+                    total_reduit_euro=total,
+                    montant=total,
+                    montant_dzd=0,
+                    montant_eur_dzd=float(total) * float(taux_change),
+                    montant_dzd_eur=0,  
+                    note="Paiement effectué via Stripe",  
+                    total_reduit_dinar=float(total) * float(taux_change),
+                    ecart_eur=0,
+                    ecart_da=0,
+                    mode_paiement="carte", 
+                    total_encaisse=total,  
+                    create_date=timezone.now()
+                )
+                payment.save()
+                
 
         gestion_caution.save()
 
