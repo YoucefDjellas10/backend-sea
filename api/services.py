@@ -18,6 +18,8 @@ import re
 from django.utils.timezone import now
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from datetime import timezone as dt_timezone
+from .utils import generate_account_token
 
 
 def vip_reduction(country_code):
@@ -3683,3 +3685,134 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
 
 
+
+
+# =============================================================================
+# Nouveau flux compte client : envoi OTP -> verification OTP -> infos compte
+# Coexiste avec otp_send / otp_verify ci-dessus, qui restent inchanges.
+# =============================================================================
+
+OTP_VALIDITY_MINUTES = 5
+OTP_MAX_ATTEMPTS = 3
+
+# Champs jamais renvoyes par get_account_info : ce sont les identifiants de
+# connexion eux-memes.
+ACCOUNT_HIDDEN_FIELDS = {'otp', 'otp_created_at', 'otp_attempts'}
+
+
+def _find_client_by_email(email):
+    """
+    Retrouve le client a partir de son email.
+    Insensible a la casse, et si plusieurs comptes partagent l'adresse on
+    prend le plus ancien (id le plus petit) pour que le resultat soit stable
+    d'un appel a l'autre.
+    """
+    if not email:
+        return None
+    return ListeClient.objects.filter(email__iexact=email.strip()).order_by('id').first()
+
+
+def _aware(dt):
+    """Securise les dates ecrites en base par Odoo, qui peuvent etre naives."""
+    if dt is not None and timezone.is_naive(dt):
+        return timezone.make_aware(dt, dt_timezone.utc)
+    return dt
+
+
+def send_otp_code(email):
+    """
+    Etape 1 : genere un OTP et l'envoie par mail.
+    Retourne (True, None) si l'envoi a reussi, sinon (False, motif).
+    """
+    client = _find_client_by_email(email)
+    if client is None:
+        return False, "unknown_email"
+
+    otp_code = f"{random.randint(100000, 999999)}"
+    client.otp = otp_code
+    client.otp_created_at = timezone.now()
+    client.otp_attempts = 0
+    client.save(update_fields=['otp', 'otp_created_at', 'otp_attempts'])
+
+    html_message = render_to_string('email/otp_email.html', {
+        'client': client.nom,
+        'client_prenom': client.prenom,
+        'otp_code': otp_code,
+    })
+
+    try:
+        send_mail(
+            f"Votre code OTP {otp_code}",
+            strip_tags(html_message),
+            settings.DEFAULT_FROM_EMAIL,
+            [client.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        return False, f"mail_error: {e}"
+
+    return True, None
+
+
+def check_otp_code(email, otp):
+    """
+    Etape 2 : verifie le code.
+    Succes  -> {"success": True, "client_id": int, "token": str}
+    Echec   -> {"success": False, "error": <motif>}
+    """
+    client = _find_client_by_email(email)
+    if client is None:
+        return {"success": False, "error": "unknown_email"}
+
+    if not client.otp or not client.otp_created_at:
+        return {"success": False, "error": "no_pending_otp"}
+
+    def _clear():
+        client.otp = None
+        client.otp_created_at = None
+        client.otp_attempts = 0
+        client.save(update_fields=['otp', 'otp_created_at', 'otp_attempts'])
+
+    # Peremption d'abord : un code juste mais expire doit etre refuse.
+    age = timezone.now() - _aware(client.otp_created_at)
+    if age > timedelta(minutes=OTP_VALIDITY_MINUTES):
+        _clear()
+        return {"success": False, "error": "expired"}
+
+    if str(client.otp) != str(otp).strip():
+        attempts = (client.otp_attempts or 0) + 1
+        if attempts >= OTP_MAX_ATTEMPTS:
+            _clear()
+            return {"success": False, "error": "too_many_attempts"}
+        client.otp_attempts = attempts
+        client.save(update_fields=['otp_attempts'])
+        return {
+            "success": False,
+            "error": "incorrect",
+            "attempts_left": OTP_MAX_ATTEMPTS - attempts,
+        }
+
+    # Code bon et encore valide : on brule l'OTP et on delivre le token.
+    _clear()
+    return {
+        "success": True,
+        "client_id": client.id,
+        "token": generate_account_token(client.id),
+    }
+
+
+def get_account_info(client_id):
+    """
+    Etape 3 : tous les champs de ListeClient pour ce client, sauf les champs
+    OTP. Retourne None si le client n'existe plus.
+    """
+    client = ListeClient.objects.filter(id=client_id).first()
+    if client is None:
+        return None
+
+    return {
+        field.attname: getattr(client, field.attname)
+        for field in ListeClient._meta.fields
+        if field.name not in ACCOUNT_HIDDEN_FIELDS
+    }

@@ -35,6 +35,8 @@ from utils.client_info import ClientInfoExtractor
 from django.http import HttpResponseForbidden
 from django.core.signing import BadSignature, SignatureExpired
 from .utils import verify_pickup_token
+from .utils import verify_account_token, ACCOUNT_TOKEN_MAX_AGE_DAYS
+from django.core.serializers.json import DjangoJSONEncoder
 import traceback
 
 
@@ -7423,3 +7425,128 @@ def create_complement_payment_reservation(request):
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+# =============================================================================
+# Nouveau flux compte client : otp-send -> otp-verify -> account
+# Les vues otp_send_client / otp_verify_client ci-dessus restent en service.
+# =============================================================================
+
+def _corps_json(request):
+    """Retourne (data, None) ou (None, reponse d'erreur)."""
+    try:
+        return json.loads(request.body.decode('utf-8')), None
+    except (ValueError, UnicodeDecodeError):
+        return None, JsonResponse(
+            {"success": False, "error": "invalid_json",
+             "message": "Corps de requête JSON invalide."}, status=400)
+
+
+@csrf_exempt
+def account_otp_send_view(request):
+    """Etape 1 : POST {"email": "..."} -> envoie le code OTP."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "method_not_allowed",
+                             "message": "Utilisez POST."}, status=405)
+
+    data, erreur = _corps_json(request)
+    if erreur:
+        return erreur
+
+    email = (data.get("email") or "").strip()
+    if not email:
+        return JsonResponse({"success": False, "error": "email_required",
+                             "message": "L'adresse email est requise."}, status=400)
+
+    envoye, motif = send_otp_code(email)
+    if envoye:
+        return JsonResponse({"success": True, "message": "Code envoyé."}, status=200)
+
+    if motif == "unknown_email":
+        return JsonResponse({"success": False, "error": "unknown_email",
+                             "message": "Aucun compte ne correspond à cette adresse email."},
+                            status=400)
+
+    # Panne SMTP : on trace le detail cote serveur, pas cote client.
+    logger.error("Envoi OTP impossible pour %s : %s", email, motif)
+    return JsonResponse({"success": False, "error": "mail_error",
+                         "message": "L'envoi de l'email a échoué, réessayez."}, status=502)
+
+
+@csrf_exempt
+def account_otp_verify_view(request):
+    """Etape 2 : POST {"email": "...", "otp": "..."} -> client_id + token."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "method_not_allowed",
+                             "message": "Utilisez POST."}, status=405)
+
+    data, erreur = _corps_json(request)
+    if erreur:
+        return erreur
+
+    email = (data.get("email") or "").strip()
+    otp = str(data.get("otp") or "").strip()
+    if not email or not otp:
+        return JsonResponse({"success": False, "error": "missing_fields",
+                             "message": "L'email et le code sont requis."}, status=400)
+
+    resultat = check_otp_code(email, otp)
+
+    if resultat["success"]:
+        return JsonResponse({
+            "success": True,
+            "client_id": resultat["client_id"],
+            "token": resultat["token"],
+            "expires_in": ACCOUNT_TOKEN_MAX_AGE_DAYS * 24 * 3600,
+        }, status=200)
+
+    messages = {
+        "unknown_email": "Aucun compte ne correspond à cette adresse email.",
+        "no_pending_otp": "Aucun code en attente. Demandez un nouveau code.",
+        "expired": "Ce code a expiré. Demandez un nouveau code.",
+        "too_many_attempts": "Trop de tentatives. Demandez un nouveau code.",
+        "incorrect": "Code incorrect.",
+    }
+    reponse = {
+        "success": False,
+        "error": resultat["error"],
+        "message": messages.get(resultat["error"], "Code invalide."),
+    }
+    if "attempts_left" in resultat:
+        reponse["attempts_left"] = resultat["attempts_left"]
+
+    return JsonResponse(reponse, status=400)
+
+
+def account_detail_view(request):
+    """
+    Etape 3 : GET avec l'entete `Authorization: Bearer <token>`.
+    Le client_id est lu DANS le token, jamais dans la requete : un porteur de
+    token ne peut donc consulter que son propre compte.
+    """
+    if request.method != "GET":
+        return JsonResponse({"success": False, "error": "method_not_allowed",
+                             "message": "Utilisez GET."}, status=405)
+
+    entete = request.headers.get("Authorization", "")
+    if not entete.startswith("Bearer "):
+        return JsonResponse({"success": False, "error": "missing_token",
+                             "message": "Entête Authorization: Bearer <token> requis."},
+                            status=401)
+
+    try:
+        client_id = verify_account_token(entete[7:].strip())
+    except SignatureExpired:
+        return JsonResponse({"success": False, "error": "token_expired",
+                             "message": "Session expirée, reconnectez-vous."}, status=401)
+    except (BadSignature, ValueError):
+        return JsonResponse({"success": False, "error": "invalid_token",
+                             "message": "Token invalide."}, status=401)
+
+    infos = get_account_info(client_id)
+    if infos is None:
+        return JsonResponse({"success": False, "error": "client_not_found",
+                             "message": "Ce compte n'existe plus."}, status=404)
+
+    return JsonResponse({"success": True, "client": infos},
+                        status=200, encoder=DjangoJSONEncoder)
