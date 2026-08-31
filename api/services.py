@@ -3816,3 +3816,70 @@ def get_account_info(client_id):
         for field in ListeClient._meta.fields
         if field.name not in ACCOUNT_HIDDEN_FIELDS
     }
+
+
+# =============================================================================
+# Nouveau flux "ma reservation" : otp-send -> otp-verify -> detail
+# Le token delivre est le MEME que celui du flux compte (meme signeur, meme
+# charge utile client_id), il fonctionne donc indifferemment sur les deux.
+# search-ma-reservation/ et ses services restent inchanges.
+# =============================================================================
+
+def _find_reservation(ref, email):
+    """
+    La reference ET l'email doivent correspondre, sinon rien.
+    C'est ce couple qui autorise l'envoi de l'OTP.
+    """
+    if not ref or not email:
+        return None
+    return Reservation.objects.filter(
+        name=str(ref).strip(), email__iexact=email.strip()
+    ).order_by('id').first()
+
+
+def send_reservation_otp(email, ref):
+    """
+    Etape 1 : verifie le couple (reference, email) puis envoie l'OTP.
+    Retourne (True, None) ou (False, motif).
+    """
+    if _find_reservation(ref, email) is None:
+        return False, "no_match"
+
+    envoye, motif = send_otp_code(email)
+    # Reservation trouvee mais aucune fiche client sur cet email : on ne
+    # distingue pas le cas cote client, ca reviendrait a confirmer la reference.
+    if not envoye and motif == "unknown_email":
+        return False, "no_match"
+    return envoye, motif
+
+
+def get_reservation_for_client(client_id, ref, country_code):
+    """
+    Etape 3 : meme contenu que search-ma-reservation/, mais la reservation
+    doit appartenir au porteur du token.
+    Retourne (payload, None) ou (None, motif).
+    """
+    client = ListeClient.objects.filter(id=client_id).first()
+    if client is None:
+        return None, "client_not_found"
+
+    reservation = Reservation.objects.filter(name=str(ref).strip()).first()
+    if reservation is None:
+        return None, "not_found"
+
+    # Le rapprochement se fait sur la fiche client OU sur l'email, pour couvrir
+    # le cas de plusieurs fiches partageant la meme adresse.
+    meme_fiche = reservation.client_id == client.id
+    meme_email = bool(reservation.email and client.email) and \
+        reservation.email.strip().lower() == client.email.strip().lower()
+    if not (meme_fiche or meme_email):
+        return None, "forbidden"
+
+    # On repasse l'email de la reservation : c'est lui qui sert de filtre dans
+    # protections() et option_ma_reservation().
+    email = reservation.email
+    return {
+        "protections": protections(ref=reservation.name, email=email, country_code=country_code),
+        "options": option_ma_reservation(ref=reservation.name, email=email, country_code=country_code),
+        "results": ma_reservation_detail(ref=reservation.name, email=email, country_code=country_code),
+    }, None

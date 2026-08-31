@@ -101,4 +101,9 @@ urlpatterns += [
     path("account/otp-verify/", account_otp_verify_view, name="account_otp_verify"),
     path("account/", account_detail_view, name="account_detail"),
 
+    # Nouveau flux "ma réservation" (search-ma-reservation/ reste actif)
+    path("reservation/otp-send/", reservation_otp_send_view, name="reservation_otp_send"),
+    path("reservation/otp-verify/", reservation_otp_verify_view, name="reservation_otp_verify"),
+    path("reservation/", reservation_detail_view, name="reservation_detail"),
+
 ]

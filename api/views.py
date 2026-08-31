@@ -7550,3 +7550,156 @@ def account_detail_view(request):
 
     return JsonResponse({"success": True, "client": infos},
                         status=200, encoder=DjangoJSONEncoder)
+
+
+# =============================================================================
+# Nouveau flux "ma reservation" : otp-send -> otp-verify -> detail
+# ma_reservation_view / search-ma-reservation/ restent en service.
+# =============================================================================
+
+def _client_du_token(request):
+    """
+    Lit `Authorization: Bearer <token>` et retourne (client_id, None)
+    ou (None, reponse d'erreur 401).
+    """
+    entete = request.headers.get("Authorization", "")
+    if not entete.startswith("Bearer "):
+        return None, JsonResponse(
+            {"success": False, "error": "missing_token",
+             "message": "Entête Authorization: Bearer <token> requis."}, status=401)
+    try:
+        return verify_account_token(entete[7:].strip()), None
+    except SignatureExpired:
+        return None, JsonResponse(
+            {"success": False, "error": "token_expired",
+             "message": "Session expirée, reconnectez-vous."}, status=401)
+    except (BadSignature, ValueError):
+        return None, JsonResponse(
+            {"success": False, "error": "invalid_token",
+             "message": "Token invalide."}, status=401)
+
+
+@csrf_exempt
+def reservation_otp_send_view(request):
+    """Etape 1 : POST {"email": "...", "ref": "..."} -> envoie le code OTP."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "method_not_allowed",
+                             "message": "Utilisez POST."}, status=405)
+
+    data, erreur = _corps_json(request)
+    if erreur:
+        return erreur
+
+    email = (data.get("email") or "").strip()
+    ref = str(data.get("ref") or "").strip()
+    if not email or not ref:
+        return JsonResponse({"success": False, "error": "missing_fields",
+                             "message": "L'email et la référence sont requis."}, status=400)
+
+    envoye, motif = send_reservation_otp(email, ref)
+    if envoye:
+        return JsonResponse({"success": True, "message": "Code envoyé."}, status=200)
+
+    if motif == "no_match":
+        # Motif unique : ne pas reveler si la reference existe.
+        return JsonResponse({"success": False, "error": "no_match",
+                             "message": "Aucune réservation ne correspond à cette référence et cet email."},
+                            status=400)
+
+    logger.error("Envoi OTP réservation impossible (%s / %s) : %s", ref, email, motif)
+    return JsonResponse({"success": False, "error": "mail_error",
+                         "message": "L'envoi de l'email a échoué, réessayez."}, status=502)
+
+
+@csrf_exempt
+def reservation_otp_verify_view(request):
+    """
+    Etape 2 : POST {"email": "...", "otp": "..."} -> client_id + token.
+    Meme verification et meme token que /account/otp-verify/.
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "method_not_allowed",
+                             "message": "Utilisez POST."}, status=405)
+
+    data, erreur = _corps_json(request)
+    if erreur:
+        return erreur
+
+    email = (data.get("email") or "").strip()
+    otp = str(data.get("otp") or "").strip()
+    if not email or not otp:
+        return JsonResponse({"success": False, "error": "missing_fields",
+                             "message": "L'email et le code sont requis."}, status=400)
+
+    resultat = check_otp_code(email, otp)
+
+    if resultat["success"]:
+        return JsonResponse({
+            "success": True,
+            "client_id": resultat["client_id"],
+            "token": resultat["token"],
+            "expires_in": ACCOUNT_TOKEN_MAX_AGE_DAYS * 24 * 3600,
+        }, status=200)
+
+    messages = {
+        "unknown_email": "Aucun compte ne correspond à cette adresse email.",
+        "no_pending_otp": "Aucun code en attente. Demandez un nouveau code.",
+        "expired": "Ce code a expiré. Demandez un nouveau code.",
+        "too_many_attempts": "Trop de tentatives. Demandez un nouveau code.",
+        "incorrect": "Code incorrect.",
+    }
+    reponse = {
+        "success": False,
+        "error": resultat["error"],
+        "message": messages.get(resultat["error"], "Code invalide."),
+    }
+    if "attempts_left" in resultat:
+        reponse["attempts_left"] = resultat["attempts_left"]
+
+    return JsonResponse(reponse, status=400)
+
+
+def reservation_detail_view(request):
+    """
+    Etape 3 : GET /reservation/?ref=250042 avec `Authorization: Bearer <token>`.
+    Meme payload que search-ma-reservation/, mais la reservation doit
+    appartenir au porteur du token.
+    """
+    if request.method != "GET":
+        return JsonResponse({"success": False, "error": "method_not_allowed",
+                             "message": "Utilisez GET."}, status=405)
+
+    client_id, erreur = _client_du_token(request)
+    if erreur:
+        return erreur
+
+    ref = (request.GET.get("ref") or "").strip()
+    if not ref:
+        return JsonResponse({"success": False, "error": "ref_required",
+                             "message": "Le paramètre 'ref' est requis."}, status=400)
+
+    country_code = request.headers.get("X-Country-Code")
+
+    try:
+        payload, motif = get_reservation_for_client(client_id, ref, country_code)
+    except Exception as e:
+        logger.exception("Lecture réservation %s échouée", ref)
+        return JsonResponse({"success": False, "error": "server_error",
+                             "message": str(e)}, status=500,
+                            json_dumps_params={"ensure_ascii": False})
+
+    if motif == "client_not_found":
+        return JsonResponse({"success": False, "error": "client_not_found",
+                             "message": "Ce compte n'existe plus."}, status=404)
+    if motif == "not_found":
+        return JsonResponse({"success": False, "error": "not_found",
+                             "message": "Réservation introuvable."}, status=404,
+                            json_dumps_params={"ensure_ascii": False})
+    if motif == "forbidden":
+        # Aucune donnee de la reservation n'est renvoyee ici.
+        return JsonResponse({"success": False, "error": "forbidden",
+                             "message": "Cette réservation ne vous appartient pas."},
+                            status=403, json_dumps_params={"ensure_ascii": False})
+
+    return JsonResponse({"success": True, **payload}, status=200,
+                        json_dumps_params={"ensure_ascii": False})
