@@ -6128,6 +6128,34 @@ def cancel_do_view(request):
         reservation.cancelation_date = timezone.now()
         reservation.save()
 
+        cautions = None
+        cautions = GestionCaution.objects.filter(reservation=reservation)
+
+        if cautions:
+            for caution in cautions:
+                fake_request = RequestFactory().post(
+                    "/refund-caution/",
+                    data=json.dumps({
+                        "caution_id": caution.id,
+                        "montant_remboursement": caution.caution,
+                    }),
+                    content_type="application/json"
+                )
+                refund_response = refund_caution(fake_request)
+
+                try:
+                    refund_data = json.loads(refund_response.content)
+                    if refund_response.status_code != 200:
+                        logger.error(
+                            "Erreur remboursement caution_id=%s : %s",
+                            caution.id, refund_data.get("error")
+                        )
+                except json.JSONDecodeError:
+                    logger.error(
+                        "Réponse invalide lors du remboursement caution_id=%s",
+                        caution.id
+                    ) 
+
         sujet = f"Annulation de votre reservation N°= {reservation.name}"
         expediteur = settings.DEFAULT_FROM_EMAIL
         
