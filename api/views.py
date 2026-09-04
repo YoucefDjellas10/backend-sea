@@ -1798,6 +1798,7 @@ def contract_download_(request):
         "DESCRIPTION_PROTECTION": protection_dercription,
 
     }
+    
 
     html_string = render_to_string("contract_pdf.html", context)
 
