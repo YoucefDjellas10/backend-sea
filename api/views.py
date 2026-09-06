@@ -2933,7 +2933,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
 
         if verify_value and verify_value[0].get('is_available') == "yes":
             if backoffice == "yes" or (payment != "yes" and payment_required != "yes"):
-                
+                if amount_paid > 0 or diff_days > 0:
+                    if new_klm_limit != reservation_obj.kilometrage_autorise:
+                        reservation_obj.kilometrage_autorise = new_klm_limit
+                        reservation_obj.save()
                 if diff_prix < 0:
                     if refund == "yes":
                         if new_klm_limit != reservation_obj.kilometrage_autorise:
@@ -2952,6 +2955,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     else:
                         new_total = old_total
                         diff_prix = 0
+
 
                 if (reservation_obj.date_heure_debut != datetime.combine(date_depart_obj, heure_depart_obj)) or (reservation_obj.date_heure_fin != datetime.combine(date_retour_obj, heure_retour_obj)):
                     nouvelle_date_heure_fin = datetime.combine(date_retour_obj, heure_retour_obj)
