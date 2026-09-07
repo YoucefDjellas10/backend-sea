@@ -633,8 +633,8 @@ def mes_reservations(client_id,country_code):
                 "date_retour_char": reservation.date_retour_char,
                 "heure_depart_char": reservation.heure_depart_char,
                 "heure_retour_char": reservation.heure_retour_char,
-                "reste_payer":reservation.reste_payer * taux_change if country_code =="DZ" else reservation.reste_payer,
-                "montant_payer":reservation.montant_paye * taux_change if country_code =="DZ" else reservation.montant_paye,
+                "reste_payer": float(reservation.reste_payer) * float(taux_change) if country_code =="DZ" else reservation.reste_payer,
+                "montant_payer": float(reservation.montant_paye) * float(taux_change) if country_code =="DZ" else reservation.montant_paye,
             })
 
         result.sort(key=lambda x: x["date_dapart"], reverse=True)
