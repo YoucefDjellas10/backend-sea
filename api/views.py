@@ -2409,7 +2409,7 @@ def protection_put_view(request):
                 sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
                 expediteur = settings.DEFAULT_FROM_EMAIL
     
-                html_message = render_to_string('email/confirmation_email.html', {
+                html_message = render_to_string('email/achat_protection_option_email.html', {
                     "id":reservation.id,
                     "referance":reservation.name,
                     "mobile_one":reservation.lieu_depart.mobile,
@@ -4986,7 +4986,7 @@ def stripe_webhook_reservation_(request):
             sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
             expediteur = settings.DEFAULT_FROM_EMAIL
 
-            html_message = render_to_string('email/confirmation_email.html', {
+            html_message = render_to_string('email/achat_protection_option_email.html', {
                 "id":reservation.id,
                 "referance":reservation.name,
                 "mobile_one":reservation.lieu_depart.mobile,
