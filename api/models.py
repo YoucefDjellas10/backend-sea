@@ -27,6 +27,16 @@ class LivraisonIrAttachmentRel(models.Model):
         managed = False
         unique_together = (('livraison_id', 'ir_attachment_id'),)
 
+class LivraisonPhotoDegatRel(models.Model):
+    """Table de relation Odoo du champ livraison.photo_degat (Many2many ir.attachment)."""
+    livraison_id = models.BigIntegerField()
+    ir_attachment_id = models.BigIntegerField(primary_key=True)
+
+    class Meta:
+        db_table = 'livraison_photo_degat_rel'
+        managed = False
+        unique_together = (('livraison_id', 'ir_attachment_id'),)
+
 class TauxChange(models.Model):
 
     name = models.CharField(

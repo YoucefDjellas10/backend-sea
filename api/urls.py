@@ -67,6 +67,7 @@ urlpatterns += [
     path('client-info/',client_info_view, name='client_info_view'),
     path('solde-history/',solde_history_view_, name='solde_history_view'),
     path('livraison/<int:livraison_id>/photo/<int:attachment_id>/', livraison_photo_by_res, name='livraison_photo'),
+    path('livraison/<int:livraison_id>/photo-degat/<int:attachment_id>/', livraison_photo_degat_by_res, name='livraison_photo_degat'),
     path('inspection-report/', success_pick_up_view, name='inspection_report'),
     path('inspection-report/generate-token/<int:livraison_id>/', generate_pickup_token_view, name='generate_pickup_token'),  # ✅ AJOUTER
     path('signature/<int:livraison_id>/', get_signature_by_id, name='signature_by_id'),

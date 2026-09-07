@@ -1896,6 +1896,19 @@ def success_pick_up_view(request):
                 "url": url
             })
 
+        photos_degat = LivraisonPhotoDegatRel.objects.filter(
+            livraison_id=livraison_id
+        ).order_by('ir_attachment_id')
+
+        photos_degat_list = []
+        for i, p in enumerate(photos_degat, start=1):
+            url = f'{settings.API_BASE_URL}/livraison/{livraison.id}/photo-degat/{p.ir_attachment_id}/'
+            photos_degat_list.append({
+                "number": i,
+                "label": f"Dégât {i}",
+                "url": url
+            })
+
         context = {
             'livraison': livraison,
             'contract_number': livraison.reservation.name,
@@ -1904,6 +1917,7 @@ def success_pick_up_view(request):
             'pickup_date': date_debut if date_debut else 'Date non définie',
             'pickup_time': heure_debut if heure_debut else 'Heure non définie',
             'photos': photos_list,
+            'photos_degat': photos_degat_list,
             'city': livraison.lieu_depart.city.name,
             'lieu': livraison.lieu_depart.name
         }
@@ -1943,6 +1957,37 @@ def livraison_photo_by_res(request, livraison_id, attachment_id):
 
     except Exception as e:
         logger.error(f"Erreur dans livraison_photo_by_res: {str(e)}")
+        raise
+
+def livraison_photo_degat_by_res(request, livraison_id, attachment_id):
+    """Sert une photo de degat (livraison.photo_degat) liee a cette livraison."""
+    logger.info(f"Requête photo dégât: livraison_id={livraison_id}, attachment_id={attachment_id}")
+
+    try:
+        rel_exists = LivraisonPhotoDegatRel.objects.filter(
+            livraison_id=livraison_id,
+            ir_attachment_id=attachment_id
+        ).exists()
+
+        if not rel_exists:
+            raise Http404("Ce fichier n'est pas lié aux dégâts de cette livraison")
+
+        att = get_object_or_404(IrAttachment, pk=attachment_id)
+
+        path = os.path.join(settings.ODOO_FILESTORE_DIR, *att.store_fname.split('/'))
+
+        if not os.path.exists(path):
+            logger.error(f"Fichier introuvable: {path}")
+            raise Http404(f"Fichier introuvable : {path}")
+
+        with open(path, 'rb') as f:
+            raw = f.read()
+
+        mimetype = att.mimetype or mimetypes.guess_type(att.name or '')[0] or 'application/octet-stream'
+        return HttpResponse(raw, content_type=mimetype)
+
+    except Exception as e:
+        logger.error(f"Erreur dans livraison_photo_degat_by_res: {str(e)}")
         raise
 
 def solde_history_view_(request):
