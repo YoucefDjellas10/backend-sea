@@ -4214,6 +4214,10 @@ def add_reservation_post_view(request):
                 protection_unit = 0
                 protection_total = 0
                 protection_caution = 0
+
+            if protection_total < 30 :
+                protection_total = 30
+                
             total += protection_total
             last_total += protection_total
             total_option += protection_total
