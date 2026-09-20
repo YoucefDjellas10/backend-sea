@@ -2359,6 +2359,7 @@ def protection_put_view(request):
             else:
                 old_total = reservation.opt_protection_total
                 protection = Options.objects.get(id=protection_id)
+                actual_protection = reservation.opt_protection
                 caution_actual = reservation.opt_protection_caution
                 reservation.opt_protection = protection 
                 reservation.opt_protection_name = protection.name
@@ -2369,6 +2370,22 @@ def protection_put_view(request):
                 reservation.total_reduit_euro += Decimal(new_prot_total) - Decimal(old_total)
                 reservation.reste_payer += Decimal(new_prot_total) - Decimal(old_total)
                 reservation.save()
+                protection_char = None
+                new_protection_char = None
+
+                if "MAX" in actual_protection.option_code:
+                    protection_char = "Maximale"
+                elif "STANDART" in actual_protection.option_code:
+                    protection_char = "Standart"
+                else:
+                    protection_char = "Basique"
+
+                if "MAX" in reservation.opt_protection.option_code:
+                    new_protection_char = "Maximale"
+                elif "STANDART" in reservation.opt_protection.option_code:
+                    new_protection_char = "Standart"
+                else:
+                    new_protection_char = "Basique"
                     
                 livraison = Livraison.objects.filter(reservation=reservation)
     
@@ -2434,7 +2451,25 @@ def protection_put_view(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                    'base_url': settings.API_BASE_URL
+                    'base_url': settings.API_BASE_URL,
+                    "protection_char": protection_char,
+                    "caution_actual": caution_actual,
+                    "nd_driver": reservation.opt_nd_driver_name, 
+                    "max_klm": reservation.opt_klm_name,
+                    "carburant": reservation.opt_plein_carburant_name,
+                    "sb_a": reservation.opt_siege_a_name,
+                    "sb_b": reservation.opt_siege_b_name,
+                    "sb_c": reservation.opt_siege_c_name,
+                    "new_protection_char": new_protection_char,
+                    "new_protection_price": reservation.opt_protection_total,
+                    "new_protection_caution": reservation.opt_protection_caution,
+                    "cation_diff": int(caution_actual) - int(reservation.opt_protection_caution),
+                    "initial_amount": old_total,
+                    "extra_fees": reservation.opt_protection_total,
+                    "total_amount": reservation.total_reduit_euro,
+                    "deposit_paid": reservation.montant_paye,
+                    "remaining_balance": reservation.reste_payer,
+                    "caution_deposer": "oui" if reservation.type_caution == "depose" else "non"
     
                 })
     
@@ -4910,9 +4945,12 @@ def stripe_webhook_reservation_(request):
             reservation_id = session.get("metadata", {}).get("reservation_id")
             to_pay = session.get("metadata", {}).get("to_pay")
             protection_id = session.get("metadata", {}).get("protection_id")
+            
 
             protection = Options.objects.get(id=protection_id)
             reservation = Reservation.objects.get(id=reservation_id)
+            old_total = reservation.total_reduit_euro
+            actual_protection = reservation.opt_protection
             caution_actual = reservation.opt_protection_caution
 
             reservation.opt_protection = protection 
@@ -4950,6 +4988,23 @@ def stripe_webhook_reservation_(request):
                 total_encaisse = float(reservation.montant_paye) + float(to_pay),  
             )
             payment.save()
+
+            protection_char = None
+            new_protection_char = None
+
+            if "MAX" in actual_protection.option_code:
+                protection_char = "Maximale"
+            elif "STANDART" in actual_protection.option_code:
+                protection_char = "Standart"
+            else:
+                protection_char = "Basique"
+
+            if "MAX" in reservation.opt_protection.option_code:
+                new_protection_char = "Maximale"
+            elif "STANDART" in reservation.opt_protection.option_code:
+                new_protection_char = "Standart"
+            else:
+                new_protection_char = "Basique"
 
             livraison = Livraison.objects.filter(reservation=reservation)
 
@@ -5015,7 +5070,25 @@ def stripe_webhook_reservation_(request):
                 'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
                 'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                'base_url': settings.API_BASE_URL
+                'base_url': settings.API_BASE_URL,
+                "protection_char": protection_char,
+                "caution_actual": caution_actual,
+                "nd_driver": reservation.opt_nd_driver_name, 
+                "max_klm": reservation.opt_klm_name,
+                "carburant": reservation.opt_plein_carburant_name,
+                "sb_a": reservation.opt_siege_a_name,
+                "sb_b": reservation.opt_siege_b_name,
+                "sb_c": reservation.opt_siege_c_name,
+                "new_protection_char": new_protection_char,
+                "new_protection_price": reservation.opt_protection_total,
+                "new_protection_caution": reservation.opt_protection_caution,
+                "cation_diff": int(caution_actual) - int(reservation.opt_protection_caution),
+                "initial_amount": old_total,
+                "extra_fees": reservation.opt_protection_total,
+                "total_amount": reservation.total_reduit_euro,
+                "deposit_paid": reservation.montant_paye,
+                "remaining_balance": reservation.reste_payer,
+                "caution_deposer": "oui" if reservation.type_caution == "depose" else "non"
 
             })
 

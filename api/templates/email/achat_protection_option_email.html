@@ -737,7 +737,7 @@ body{
                                         font-size: 23px;
                                       "
                                     >
-                                      <strong>Re-Bonjour ,&nbsp;</strong>
+                                      <strong>Re-Bonjour , </strong>
                                     </h4>
                                   </td>
                                 </tr>
@@ -990,14 +990,18 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                           <tr>
                             <td style="padding:12px 10px;">
                               <p style="margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  color:#141b34;border-bottom:1px solid #c6d1ff;">Avant</p>
-                              <p style="margin:0 0 6px 0;  font-weight:bold; color:#374151; text-decoration:line-through; ">Protection <span style="text-transform: uppercase;" > Basique</span></p>
-                              <p style="margin:0; font-size:12px;  color:#141b34;">Caution: <span style="text-decoration:line-through;font-size:12px;  color:#141b34;">500 €</span></p>
+                              <p style="margin:0 0 6px 0;  font-weight:bold; color:#374151; text-decoration:line-through; ">Protection <span style="text-transform: uppercase;" > {{ protection_char }}</span></p>
+                              <p style="margin:0; font-size:12px;  color:#141b34;">Caution: <span style="text-decoration:line-through;font-size:12px;  color:#141b34;">{{ caution_actual }} €</span></p>
                               <hr> 
 
                               <p style="margin:8px 0 6px 0;   font-weight:bold; color:#141b34; ">Options :</p>
                               <ul style="margin:0; padding:0; list-style:none;">
-                                   <li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Deuxième conducteur</span></li>
-                                <li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Siège bébé (3-9 Kg)</span> </li>
+                                {% if nd_driver %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ nd_driver }}</span></li>{% endif %}
+                                {% if max_klm %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ max_klm }}</span></li>{% endif %}
+                                {% if carburant %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ carburant }}</span></li>{% endif %}
+                                {% if sb_a %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_a }}</span></li>{% endif %}
+                                {% if sb_b %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_b }}</span></li>{% endif %}
+                                {% if sb_c %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_c }}</span></li>{% endif %}
                               </ul>
                             </td>
                           </tr>
@@ -1010,35 +1014,32 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                           <tr>
                             <td style="padding:12px 8px;">
                               <p style="text-align:justify; margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  color:#0066cc;border-bottom:1px solid #1fae8e;">Maintenant </p>
-                              <p style="margin:0 0 6px 0;  font-weight:bold; color:#0F1E34;">Protection Maximale    
+                              <p style="margin:0 0 6px 0;  font-weight:bold; color:#0F1E34;">Protection {{ new_protection_char }}    
                                 
 
                                 <!-- suppliment a payer -->
                                 <br>
-                                <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ (6080 DA)</span>
+                                <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ new_protection_price }} €)</span>
 
                               </p>
-                              <p style="margin:0;  font-weight:bold; color:#1fae8e;">Caution : 100 € </p>
+                              <p style="margin:0;  font-weight:bold; color:#1fae8e;">Caution : {{ new_protection_caution }} € </p>
                               
                               <hr>
                               <p style="margin:8px 0 6px 0;   font-weight:bold; color:#141b34; ">Options :</p>
                               <ul style="margin:0; padding:0; list-style:none;">
-                                <li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Deuxième conducteur</span></li>
-                                <li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Siège bébé (3-9 Kg)</span> </li>
-                                <li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Plein de carburant </span>
-                                  
-
-                                  <!-- suppliment a payer -->
-                                  <br>
-                                  <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;"> ↳ (3480 DA)</span>
-                                </li>
-                                 <li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Kilométrage illimité </span>
+                                {% if nd_driver %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ nd_driver }}</span></li>{% endif %}
+                                {% if max_klm %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ max_klm }}</span></li>{% endif %}
+                                {% if carburant %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ carburant }}</span></li>{% endif %}
+                                {% if sb_a %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_a }}</span></li>{% endif %}
+                                {% if sb_b %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_b }}</span></li>{% endif %}
+                                {% if sb_c %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_c }}</span></li>{% endif %}
+                                 <!--<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Kilométrage illimité </span>-->
                                   
                                   <!-- suppliment a payer -->
-                                     <br>
-                                  <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ (6080 DA)</span></li>
+                                     <!--<br>-->
+                                  <!--<span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ (6080 DA)</span></li>-->
                               </ul>
-                                <p style="text-align:justify; margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  padding-top: 6px; color:#0066cc;border-top:1px solid #1fae8e;">Total suppléments  <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:bold;font-size:13px;"> =   15640DA  </span> </p>
+                                <p style="text-align:justify; margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  padding-top: 6px; color:#0066cc;border-top:1px solid #1fae8e;">Total suppléments  <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:bold;font-size:13px;"> =   {{ new_protection_price }} €  </span> </p>
                             </td>
                           </tr>
                         </table>
@@ -1052,6 +1053,7 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                   </table>
 
                        <!-- BLOC PROTECTION Maximale -->
+                       {% if new_protection_char == "Maximale" %}
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border:1px solid #1fae8e; border-radius:12px; background-color:#f5f7fa;margin-top:20px;">
                     <tr>
                       <td style="padding:20px 18px;">
@@ -1070,22 +1072,22 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:12px;">
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Franchise limitée à votre caution de 100 &nbsp;€
+                              <span style="color:#0066cc; font-weight:bold;">✓</span>   Franchise limitée à votre caution de {{ new_protection_caution }} €
                             </td>
                           </tr>
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Assistance et dépannage 24/7
+                              <span style="color:#0066cc; font-weight:bold;">✓</span>   Assistance et dépannage 24/7
                             </td>
                           </tr>
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Protection des pneus et des vitres des portes
+                              <span style="color:#0066cc; font-weight:bold;">✓</span>   Protection des pneus et des vitres des portes
                             </td>
                           </tr>
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Protection contre le bris de glace
+                              <span style="color:#0066cc; font-weight:bold;">✓</span>   Protection contre le bris de glace
                             </td>
                           </tr>
                         </table> 
@@ -1093,8 +1095,10 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                       </td>
                     </tr>
                   </table>
+                       {% endif %}
 
                    <!-- BLOC PROTECTION Standard -->
+                   {% if new_protection_char == "Standart" %}
                       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border:1px solid #1fae8e; border-radius:12px; background-color:#f5f7fa;margin-top:20px;">
                     <tr>
                       <td style="padding:20px 18px;">
@@ -1113,17 +1117,17 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:12px;">
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Franchise limitée à votre caution de 100 &nbsp;€
+                              <span style="color:#0066cc; font-weight:bold;">✓</span> Franchise limitée à votre caution de {{ new_protection_caution }} €
                             </td>
                           </tr>
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Assistance et dépannage 24/7
+                              <span style="color:#0066cc; font-weight:bold;">✓</span>   Assistance et dépannage 24/7
                             </td>
                           </tr>
                           <tr>
                             <td style="padding:2px 0; font-family:Arial, Helvetica, sans-serif; line-height:20px; color:#374151;">
-                              <span style="color:#0066cc; font-weight:bold;">✓</span> &nbsp; Protection des pneus et des vitres des portes
+                              <span style="color:#0066cc; font-weight:bold;">✓</span>   Protection des pneus et des vitres des portes
                             </td>
                           </tr>
                           <tr>
@@ -1137,6 +1141,7 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                       </td>
                     </tr>
                   </table>
+                   {% endif %}
 
 
 
@@ -1146,21 +1151,22 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
               </tr>
 
               <!-- BLOC RESTITUTION -->
+              {% if caution_deposer == "oui" %}
               <tr>
                 <td style="padding:22px 4px;"> 
 
 
 <div style=" line-height:1.5;font-size:12px; color:#374151; padding:14px 16px; border:2px dashed #ffa7a7; border-radius:10px; background-color:#fdf1da;">
-  <p style="margin:0 0 7px 0; font-weight:700; color:#0F1E34; ">Important&nbsp;:</p>
+  <p style="margin:0 0 7px 0; font-weight:700; color:#0F1E34; ">Important :</p>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
     <tr>
       <td style="padding:0;">
         <ul style="margin:0; padding-left:18px; color:#374151;  ">
-          <li style="margin:4px 0;">Vous aviez déposé une <strong>caution de 500 €</strong>.</li>
-          <li style="margin:4px 0;">La nouvelle protection réduit votre caution à <strong>100 €</strong>.</li>
-          <li style="margin:4px 0;">La différence est donc de <strong>400 €</strong>.</li>
-          <li style="margin:4px 0;"><strong style="  color:#0F1E34; border-radius:4px;font-weight:bold;">Ces  400 € vous seront restitués</strong> dans un délai de <strong>1 à 7 jours</strong>.</li>
+          <li style="margin:4px 0;">Vous aviez déposé une <strong>caution de {{ caution_actual }} €</strong>.</li>
+          <li style="margin:4px 0;">La nouvelle protection réduit votre caution à <strong>{{ new_protection_caution }} €</strong>.</li>
+          <li style="margin:4px 0;">La différence est donc de <strong>{{ cation_diff }} €</strong>.</li>
+          <li style="margin:4px 0;"><strong style="  color:#0F1E34; border-radius:4px;font-weight:bold;">Ces  {{ cation_diff }} € vous seront restitués</strong> dans un délai de <strong>1 à 7 jours</strong>.</li>
         </ul>
       </td>
     </tr>
@@ -1172,6 +1178,7 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
             
                       </td>
                     </tr>
+              {% endif %}
                   </table>
   
   
@@ -1759,7 +1766,7 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                                       "
                                       class="p_option"
                                     >
-                                      Livraison - Pickup&nbsp;
+                                      Livraison - Pickup 
                                     </h2>
                                   </td>
                                 </tr>
