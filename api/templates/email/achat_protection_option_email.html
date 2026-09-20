@@ -996,12 +996,12 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
 
                               <p style="margin:8px 0 6px 0;   font-weight:bold; color:#141b34; ">Options :</p>
                               <ul style="margin:0; padding:0; list-style:none;">
-                                {% if nd_driver %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ nd_driver }}</span></li>{% endif %}
-                                {% if max_klm %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ max_klm }}</span></li>{% endif %}
-                                {% if carburant %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ carburant }}</span></li>{% endif %}
-                                {% if sb_a %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_a }}</span></li>{% endif %}
-                                {% if sb_b %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_b }}</span></li>{% endif %}
-                                {% if sb_c %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_c }}</span></li>{% endif %}
+                                {% if old_nd_driver %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ old_nd_driver }}</span></li>{% endif %}
+                                {% if old_max_klm %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ old_max_klm }}</span></li>{% endif %}
+                                {% if old_carburant %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ old_carburant }}</span></li>{% endif %}
+                                {% if old_sb_a %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ old_sb_a }}</span></li>{% endif %}
+                                {% if old_sb_b %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ old_sb_b }}</span></li>{% endif %}
+                                {% if old_sb_c %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ old_sb_c }}</span></li>{% endif %}
                               </ul>
                             </td>
                           </tr>
@@ -1792,7 +1792,7 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                                         font-size: 14px;
                                       "
                                     >
-                                      - Départ : {{DAte_depart_char }}
+                                      - Départ : {{ date_depart_char }}
                                     </p>
                                   </td>
                                 </tr>
@@ -2150,7 +2150,7 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                                       "
                                       class="p_option"
                                     >
-                                      - Retour : {{DAte_retour_char }}
+                                      - Retour : {{ date_retour_char }}
                                     </p>
                                   </td>
                                 </tr>

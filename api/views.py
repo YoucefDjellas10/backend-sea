@@ -2373,9 +2373,9 @@ def protection_put_view(request):
                 protection_char = None
                 new_protection_char = None
 
-                if "MAX" in actual_protection.option_code:
+                if actual_protection and "MAX" in actual_protection.option_code:
                     protection_char = "Maximale"
-                elif "STANDART" in actual_protection.option_code:
+                elif actual_protection and "STANDART" in actual_protection.option_code:
                     protection_char = "Standart"
                 else:
                     protection_char = "Basique"
@@ -2460,6 +2460,12 @@ def protection_put_view(request):
                     "sb_a": reservation.opt_siege_a_name,
                     "sb_b": reservation.opt_siege_b_name,
                     "sb_c": reservation.opt_siege_c_name,
+                    "old_nd_driver": reservation.opt_nd_driver_name,
+                    "old_max_klm": reservation.opt_klm_name,
+                    "old_carburant": reservation.opt_plein_carburant_name,
+                    "old_sb_a": reservation.opt_siege_a_name,
+                    "old_sb_b": reservation.opt_siege_b_name,
+                    "old_sb_c": reservation.opt_siege_c_name,
                     "new_protection_char": new_protection_char,
                     "new_protection_price": reservation.opt_protection_total,
                     "new_protection_caution": reservation.opt_protection_caution,
@@ -4992,9 +4998,9 @@ def stripe_webhook_reservation_(request):
             protection_char = None
             new_protection_char = None
 
-            if "MAX" in actual_protection.option_code:
+            if actual_protection and "MAX" in actual_protection.option_code:
                 protection_char = "Maximale"
-            elif "STANDART" in actual_protection.option_code:
+            elif actual_protection and "STANDART" in actual_protection.option_code:
                 protection_char = "Standart"
             else:
                 protection_char = "Basique"
@@ -5079,6 +5085,12 @@ def stripe_webhook_reservation_(request):
                 "sb_a": reservation.opt_siege_a_name,
                 "sb_b": reservation.opt_siege_b_name,
                 "sb_c": reservation.opt_siege_c_name,
+                "old_nd_driver": reservation.opt_nd_driver_name,
+                "old_max_klm": reservation.opt_klm_name,
+                "old_carburant": reservation.opt_plein_carburant_name,
+                "old_sb_a": reservation.opt_siege_a_name,
+                "old_sb_b": reservation.opt_siege_b_name,
+                "old_sb_c": reservation.opt_siege_c_name,
                 "new_protection_char": new_protection_char,
                 "new_protection_price": reservation.opt_protection_total,
                 "new_protection_caution": reservation.opt_protection_caution,
@@ -5184,6 +5196,24 @@ def stripe_webhook_reservation_(request):
 
             reservation = Reservation.objects.filter(name=ref).first()
             lieu_depart_obj = reservation.lieu_depart
+
+            # valeurs AVANT ajout des options (pour l'email comparatif)
+            old_total = reservation.total_reduit_euro
+            caution_actual = reservation.opt_protection_caution
+            actual_protection = reservation.opt_protection
+            old_nd_driver = reservation.opt_nd_driver_name
+            old_max_klm = reservation.opt_klm_name
+            old_carburant = reservation.opt_plein_carburant_name
+            old_sb_a = reservation.opt_siege_a_name
+            old_sb_b = reservation.opt_siege_b_name
+            old_sb_c = reservation.opt_siege_c_name
+
+            if actual_protection and "MAX" in actual_protection.option_code:
+                protection_char = new_protection_char = "Maximale"
+            elif actual_protection and "STANDART" in actual_protection.option_code:
+                protection_char = new_protection_char = "Standart"
+            else:
+                protection_char = new_protection_char = "Basique"
 
             if reservation.add_options == "yes":
 
@@ -5317,7 +5347,7 @@ def stripe_webhook_reservation_(request):
                 sujet = f"Confirmation de votre reservation N°= {reservation.name}"
                 expediteur = settings.DEFAULT_FROM_EMAIL
 
-                html_message = render_to_string('email/confirmation_email.html', {
+                html_message = render_to_string('email/achat_protection_option_email.html', {
                     "id":reservation.id,
                     "referance":reservation.name,
                     "mobile_one":reservation.lieu_depart.mobile,
@@ -5342,7 +5372,32 @@ def stripe_webhook_reservation_(request):
                     'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                     'lieu_retour':reservation.lieu_retour.name,
                     'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                    'base_url': settings.API_BASE_URL
+                    'base_url': settings.API_BASE_URL,
+                    "protection_char": protection_char,
+                    "caution_actual": caution_actual,
+                    "nd_driver": reservation.opt_nd_driver_name, 
+                    "max_klm": reservation.opt_klm_name,
+                    "carburant": reservation.opt_plein_carburant_name,
+                    "sb_a": reservation.opt_siege_a_name,
+                    "sb_b": reservation.opt_siege_b_name,
+                    "sb_c": reservation.opt_siege_c_name,
+                    "old_nd_driver": old_nd_driver,
+                    "old_max_klm": old_max_klm,
+                    "old_carburant": old_carburant,
+                    "old_sb_a": old_sb_a,
+                    "old_sb_b": old_sb_b,
+                    "old_sb_c": old_sb_c,
+                    "new_protection_char": new_protection_char,
+                    "new_protection_price": unit_amount,
+                    "new_protection_caution": reservation.opt_protection_caution,
+                    "cation_diff": 0,
+                    "initial_amount": old_total,
+                    "extra_fees": unit_amount,
+                    "total_amount": reservation.total_reduit_euro,
+                    "deposit_paid": reservation.montant_paye,
+                    "remaining_balance": reservation.reste_payer,
+                    "caution_deposer": "non"
+
                 })
 
                 send_mail(
