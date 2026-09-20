@@ -2475,7 +2475,16 @@ def protection_put_view(request):
                     "total_amount": reservation.total_reduit_euro,
                     "deposit_paid": reservation.montant_paye,
                     "remaining_balance": reservation.reste_payer,
-                    "caution_deposer": "oui" if reservation.type_caution == "depose" else "non"
+                    "caution_deposer": "oui" if reservation.type_caution == "depose" else "non",
+                    "mode": "protection",
+                    # en mode protection les options ne sont pas facturees -> aucun badge
+                    "nd_driver_price": None,
+                    "max_klm_price": None,
+                    "carburant_price": None,
+                    "sb_a_price": None,
+                    "sb_b_price": None,
+                    "sb_c_price": None,
+                    "total_supplements": reservation.opt_protection_total,
     
                 })
     
@@ -5100,7 +5109,16 @@ def stripe_webhook_reservation_(request):
                 "total_amount": reservation.total_reduit_euro,
                 "deposit_paid": reservation.montant_paye,
                 "remaining_balance": reservation.reste_payer,
-                "caution_deposer": "oui" if reservation.type_caution == "depose" else "non"
+                "caution_deposer": "oui" if reservation.type_caution == "depose" else "non",
+                "mode": "protection",
+                # en mode protection les options ne sont pas facturees -> aucun badge
+                "nd_driver_price": None,
+                "max_klm_price": None,
+                "carburant_price": None,
+                "sb_a_price": None,
+                "sb_b_price": None,
+                "sb_c_price": None,
+                "total_supplements": reservation.opt_protection_total,
 
             })
 
@@ -5207,6 +5225,8 @@ def stripe_webhook_reservation_(request):
             old_sb_a = reservation.opt_siege_a_name
             old_sb_b = reservation.opt_siege_b_name
             old_sb_c = reservation.opt_siege_c_name
+            # prix des options ajoutees PAR CETTE ACTION (None = pas touchee)
+            nd_driver_price = max_klm_price = carburant_price = sb_a_price = sb_b_price = sb_c_price = None
 
             if actual_protection and "MAX" in actual_protection.option_code:
                 protection_char = new_protection_char = "Maximale"
@@ -5242,6 +5262,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_nd_driver_name = nd_driver_option.name
                     reservation.opt_nd_driver_price = nd_driver_option.prix
                     reservation.opt_nd_driver_total = nd_driver_option.prix * reservation.nbr_jour_reservation
+                    nd_driver_price = nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_nd_driver_date = date.today()
@@ -5257,6 +5278,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_klm_name = klm_option.name
                     reservation.opt_klm_price = klm_option.prix
                     reservation.opt_klm_total = klm_option.prix * reservation.nbr_jour_reservation
+                    max_klm_price = klm_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_klm_date = date.today()
@@ -5271,6 +5293,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_plein_carburant_name = carburant_option.name
                     reservation.opt_plein_carburant_prix = carburant_option.prix
                     reservation.opt_plein_carburant_total = carburant_option.prix
+                    carburant_price = carburant_option.prix
                     reservation.reste_payer += carburant_option.prix 
                     reservation.total_reduit_euro += carburant_option.prix
                     reservation.opt_plein_carburant_date = date.today()
@@ -5285,6 +5308,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_siege_a_name = sb_a_option.name
                     reservation.opt_siege_a_prix = sb_a_option.prix
                     reservation.opt_siege_a_total = sb_a_option.prix * reservation.nbr_jour_reservation
+                    sb_a_price = sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_a_date = date.today()
@@ -5299,6 +5323,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_siege_b_name = sb_b_option.name
                     reservation.opt_siege_b_prix = sb_b_option.prix
                     reservation.opt_siege_b_total = sb_b_option.prix * reservation.nbr_jour_reservation
+                    sb_b_price = sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_b_date = date.today()
@@ -5312,6 +5337,7 @@ def stripe_webhook_reservation_(request):
                     reservation.opt_siege_c_name = sb_c_option.name
                     reservation.opt_siege_c_prix = sb_c_option.prix
                     reservation.opt_siege_c_total = sb_c_option.prix * reservation.nbr_jour_reservation
+                    sb_c_price = sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_c_date = date.today()
@@ -5396,7 +5422,16 @@ def stripe_webhook_reservation_(request):
                     "total_amount": reservation.total_reduit_euro,
                     "deposit_paid": reservation.montant_paye,
                     "remaining_balance": reservation.reste_payer,
-                    "caution_deposer": "non"
+                    "caution_deposer": "non",
+                    "mode": "options",
+                    # en mode options la protection ne bouge pas -> badges sur les options ajoutees
+                    "nd_driver_price": nd_driver_price,
+                    "max_klm_price": max_klm_price,
+                    "carburant_price": carburant_price,
+                    "sb_a_price": sb_a_price,
+                    "sb_b_price": sb_b_price,
+                    "sb_c_price": sb_c_price,
+                    "total_supplements": sum(v for v in [nd_driver_price, max_klm_price, carburant_price, sb_a_price, sb_b_price, sb_c_price] if v),
 
                 })
 
@@ -5873,6 +5908,8 @@ def add_options_put_view(request):
         old_sb_a = reservation.opt_siege_a_name
         old_sb_b = reservation.opt_siege_b_name
         old_sb_c = reservation.opt_siege_c_name
+        # prix des options ajoutees PAR CETTE ACTION (None = pas touchee)
+        nd_driver_price = max_klm_price = carburant_price = sb_a_price = sb_b_price = sb_c_price = None
 
         if actual_protection and "MAX" in actual_protection.option_code:
             protection_char = new_protection_char = "Maximale"
@@ -5929,6 +5966,7 @@ def add_options_put_view(request):
                     reservation.opt_nd_driver_name = nd_driver_option.name
                     reservation.opt_nd_driver_price = nd_driver_option.prix
                     reservation.opt_nd_driver_total = nd_driver_option.prix * reservation.nbr_jour_reservation
+                    nd_driver_price = nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_nd_driver_date = date.today()
@@ -5942,6 +5980,7 @@ def add_options_put_view(request):
                 reservation.opt_nd_driver_name = nd_driver_option.name
                 reservation.opt_nd_driver_price = 0
                 reservation.opt_nd_driver_total = 0
+                nd_driver_price = 0
                 reservation.opt_nd_driver_date = date.today()
                 reservation.save()
 
@@ -5974,6 +6013,7 @@ def add_options_put_view(request):
                     reservation.opt_klm_name = klm_option.name
                     reservation.opt_klm_price = klm_option.prix
                     reservation.opt_klm_total = klm_option.prix * reservation.nbr_jour_reservation
+                    max_klm_price = klm_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_klm_date = date.today()
@@ -5983,6 +6023,7 @@ def add_options_put_view(request):
                 reservation.opt_klm_name = klm_option.name
                 reservation.opt_klm_price = 0
                 reservation.opt_klm_total = 0
+                max_klm_price = 0
                 reservation.opt_klm_date = date.today()
                 reservation.save()
 
@@ -6008,6 +6049,7 @@ def add_options_put_view(request):
                     reservation.opt_plein_carburant_name = carburant_option.name
                     reservation.opt_plein_carburant_prix = carburant_option.prix
                     reservation.opt_plein_carburant_total = carburant_option.prix
+                    carburant_price = carburant_option.prix
                     reservation.reste_payer += carburant_option.prix 
                     reservation.total_reduit_euro += carburant_option.prix
                     reservation.opt_plein_carburant_date = date.today()
@@ -6017,6 +6059,7 @@ def add_options_put_view(request):
                 reservation.opt_plein_carburant_name = carburant_option.name
                 reservation.opt_plein_carburant_prix = 0
                 reservation.opt_plein_carburant_total = 0
+                carburant_price = 0
                 reservation.opt_plein_carburant_date = date.today()
                 reservation.save()
         
@@ -6042,6 +6085,7 @@ def add_options_put_view(request):
                     reservation.opt_siege_a_name = sb_a_option.name
                     reservation.opt_siege_a_prix = sb_a_option.prix
                     reservation.opt_siege_a_total = sb_a_option.prix * reservation.nbr_jour_reservation
+                    sb_a_price = sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_a_date = date.today()
@@ -6051,6 +6095,7 @@ def add_options_put_view(request):
                 reservation.opt_siege_a_name = sb_a_option.name
                 reservation.opt_siege_a_prix = 0
                 reservation.opt_siege_a_total = 0
+                sb_a_price = 0
                 reservation.opt_siege_a_date = date.today()
                 reservation.save()
 
@@ -6076,6 +6121,7 @@ def add_options_put_view(request):
                     reservation.opt_siege_b_name = sb_b_option.name
                     reservation.opt_siege_b_prix = sb_b_option.prix
                     reservation.opt_siege_b_total = sb_b_option.prix * reservation.nbr_jour_reservation
+                    sb_b_price = sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_b_date = date.today()
@@ -6085,6 +6131,7 @@ def add_options_put_view(request):
                 reservation.opt_siege_b_name = sb_b_option.name
                 reservation.opt_siege_b_prix = 0
                 reservation.opt_siege_b_total = 0
+                sb_b_price = 0
                 reservation.opt_siege_b_date = date.today()
                 reservation.save()
 
@@ -6110,6 +6157,7 @@ def add_options_put_view(request):
                     reservation.opt_siege_c_name = sb_c_option.name
                     reservation.opt_siege_c_prix = sb_c_option.prix
                     reservation.opt_siege_c_total = sb_c_option.prix * reservation.nbr_jour_reservation
+                    sb_c_price = sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.reste_payer += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_c_date = date.today()
@@ -6119,6 +6167,7 @@ def add_options_put_view(request):
                 reservation.opt_siege_c_name = sb_c_option.name
                 reservation.opt_siege_c_prix = 0
                 reservation.opt_siege_c_total = 0
+                sb_c_price = 0
                 reservation.opt_siege_c_date = date.today()
                 reservation.save()
         
@@ -6185,7 +6234,16 @@ def add_options_put_view(request):
                 "total_amount": reservation.total_reduit_euro,
                 "deposit_paid": reservation.montant_paye,
                 "remaining_balance": reservation.reste_payer,
-                "caution_deposer": "non"
+                "caution_deposer": "non",
+                "mode": "options",
+                # en mode options la protection ne bouge pas -> badges sur les options ajoutees
+                "nd_driver_price": nd_driver_price,
+                "max_klm_price": max_klm_price,
+                "carburant_price": carburant_price,
+                "sb_a_price": sb_a_price,
+                "sb_b_price": sb_b_price,
+                "sb_c_price": sb_c_price,
+                "total_supplements": sum(v for v in [nd_driver_price, max_klm_price, carburant_price, sb_a_price, sb_b_price, sb_c_price] if v),
 
             })
 

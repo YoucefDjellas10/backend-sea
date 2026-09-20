@@ -990,8 +990,16 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                           <tr>
                             <td style="padding:12px 10px;">
                               <p style="margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  color:#141b34;border-bottom:1px solid #c6d1ff;">Avant</p>
+                              {% if mode == 'protection' %}
                               <p style="margin:0 0 6px 0;  font-weight:bold; color:#374151; text-decoration:line-through; ">Protection <span style="text-transform: uppercase;" > {{ protection_char }}</span></p>
+                              {% else %}
+                              <p style="margin:0 0 6px 0;  font-weight:bold; color:#374151;  ">Protection <span style="text-transform: uppercase;" > {{ protection_char }}</span></p>
+                              {% endif %}
+                              {% if mode == 'protection' %}
                               <p style="margin:0; font-size:12px;  color:#141b34;">Caution: <span style="text-decoration:line-through;font-size:12px;  color:#141b34;">{{ caution_actual }} €</span></p>
+                              {% else %}
+                              <p style="margin:0; font-size:12px;  color:#141b34;">Caution: <span style="font-size:12px;  color:#141b34;">{{ caution_actual }} €</span></p>
+                              {% endif %}
                               <hr> 
 
                               <p style="margin:8px 0 6px 0;   font-weight:bold; color:#141b34; ">Options :</p>
@@ -1017,29 +1025,29 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
                               <p style="margin:0 0 6px 0;  font-weight:bold; color:#0F1E34;">Protection {{ new_protection_char }}    
                                 
 
-                                <!-- suppliment a payer -->
+                                {% if mode == "protection" %}<!-- suppliment a payer -->
                                 <br>
                                 <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ new_protection_price }} €)</span>
-
+                                {% endif %}
                               </p>
                               <p style="margin:0;  font-weight:bold; color:#1fae8e;">Caution : {{ new_protection_caution }} € </p>
                               
                               <hr>
                               <p style="margin:8px 0 6px 0;   font-weight:bold; color:#141b34; ">Options :</p>
                               <ul style="margin:0; padding:0; list-style:none;">
-                                {% if nd_driver %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ nd_driver }}</span></li>{% endif %}
-                                {% if max_klm %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ max_klm }}</span></li>{% endif %}
-                                {% if carburant %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ carburant }}</span></li>{% endif %}
-                                {% if sb_a %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_a }}</span></li>{% endif %}
-                                {% if sb_b %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_b }}</span></li>{% endif %}
-                                {% if sb_c %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_c }}</span></li>{% endif %}
+                                {% if nd_driver %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ nd_driver }}</span>{% if nd_driver_price %}<br><span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ nd_driver_price }} €)</span>{% endif %}</li>{% endif %}
+                                {% if max_klm %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ max_klm }}</span>{% if max_klm_price %}<br><span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ max_klm_price }} €)</span>{% endif %}</li>{% endif %}
+                                {% if carburant %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ carburant }}</span>{% if carburant_price %}<br><span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ carburant_price }} €)</span>{% endif %}</li>{% endif %}
+                                {% if sb_a %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_a }}</span>{% if sb_a_price %}<br><span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ sb_a_price }} €)</span>{% endif %}</li>{% endif %}
+                                {% if sb_b %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_b }}</span>{% if sb_b_price %}<br><span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ sb_b_price }} €)</span>{% endif %}</li>{% endif %}
+                                {% if sb_c %}<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">{{ sb_c }}</span>{% if sb_c_price %}<br><span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ ({{ sb_c_price }} €)</span>{% endif %}</li>{% endif %}
                                  <!--<li style="margin:0 0 7px 0;   color:#141b34; "><span style="display:inline-block; color:#1fae8e; font-weight:bold; width:14px;">+</span><span style="font-size:12px;">Kilométrage illimité </span>-->
                                   
                                   <!-- suppliment a payer -->
                                      <!--<br>-->
-                                  <!--<span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ (6080 DA)</span></li>-->
+                                  <!--<span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:normal;font-size:12px;">  ↳ (6080 €)</span></li>-->
                               </ul>
-                                <p style="text-align:justify; margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  padding-top: 6px; color:#0066cc;border-top:1px solid #1fae8e;">Total suppléments  <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:bold;font-size:13px;"> =   {{ new_protection_price }} €  </span> </p>
+                                <p style="text-align:justify; margin:0 0 7px 0;   font-weight:bold; letter-spacing:1px;  padding-top: 6px; color:#0066cc;border-top:1px solid #1fae8e;">Total suppléments  <span style="padding: 1px 4px;border-radius: 3px; background-color: #1fae8e; color: #ffffff;font-weight:bold;font-size:13px;"> =   {{ total_supplements }} €  </span> </p>
                             </td>
                           </tr>
                         </table>
