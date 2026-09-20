@@ -2423,7 +2423,7 @@ def protection_put_view(request):
                     lv.total_reduit_euro += Decimal(protection.prix * reservation.nbr_jour_reservation) - Decimal(old_total)
 
     
-                sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
+                sujet = f"Confirmation de vos changements sur la  reservation N°= {reservation.name}"
                 expediteur = settings.DEFAULT_FROM_EMAIL
     
                 html_message = render_to_string('email/achat_protection_option_email.html', {
@@ -5057,7 +5057,7 @@ def stripe_webhook_reservation_(request):
                 lv.opt_protection_caution = reservation.opt_protection_caution
                 lv.save()
 
-            sujet = f"Modification confirmées pour la réservation N°= {reservation.name}"
+            sujet = f"Confirmation de vos changements sur la  reservation N°= {reservation.name}"
             expediteur = settings.DEFAULT_FROM_EMAIL
 
             html_message = render_to_string('email/achat_protection_option_email.html', {
@@ -5370,7 +5370,7 @@ def stripe_webhook_reservation_(request):
                 reservation.add_options = "no"
                 reservation.save()
 
-                sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+                sujet = f"Confirmation de vos changements sur la  reservation N°= {reservation.name}"
                 expediteur = settings.DEFAULT_FROM_EMAIL
 
                 html_message = render_to_string('email/achat_protection_option_email.html', {
@@ -6179,7 +6179,7 @@ def add_options_put_view(request):
              "| carburant=", reservation.opt_plein_carburant_name, "| sb_a=", reservation.opt_siege_a_name,
              "| sb_b=", reservation.opt_siege_b_name, "| sb_c=", reservation.opt_siege_c_name)
         if is_edit == "yes":
-            sujet = f"Confirmation de votre reservation N°= {reservation.name}"
+            sujet = f"Confirmation de vos changements sur la  reservation N°= {reservation.name}"
             expediteur = settings.DEFAULT_FROM_EMAIL
             # supplement reellement ajoute par cet appel
             supplement_options = reservation.total_reduit_euro - old_total
