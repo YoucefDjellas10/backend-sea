@@ -6246,6 +6246,11 @@ def add_options_put_view(request):
             _dbg("RETOUR:", 'return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=200)')
             return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=200)
 
+        # sortie quand il n'y a rien a payer (is_edit seul) : sans ce return
+        # la vue renvoie None -> "The view didn't return an HttpResponse object" -> 500
+        _dbg("RETOUR: fin sans paiement (is_edit seul)")
+        return JsonResponse({"modified": True, "message": "medification effectuer avec succee"}, status=200)
+
     except json.JSONDecodeError:
         _dbg("RETOUR:", 'return JsonResponse({"error": "Données JSON invalides."}, status=400)')
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
