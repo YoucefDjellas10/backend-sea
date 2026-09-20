@@ -2357,7 +2357,7 @@ def protection_put_view(request):
                 return JsonResponse({"refund_message": False, "message": "Modification effectuée avec succès.", "session_id": session_id, "payment_url": payment_url}, status=200)
 
             else:
-                old_total = reservation.opt_protection_total
+                old_total = reservation.total_reduit_euro
                 protection = Options.objects.get(id=protection_id)
                 actual_protection = reservation.opt_protection
                 caution_actual = reservation.opt_protection_caution
@@ -6184,6 +6184,44 @@ def add_options_put_view(request):
             # supplement reellement ajoute par cet appel
             supplement_options = reservation.total_reduit_euro - old_total
             _dbg("EMAIL: supplement_options =", supplement_options, "| destinataire =", reservation.email)
+            def _m(lbl, v):
+                _dbg("   %-24s = %-14r  (%s)" % (lbl, v, type(v).__name__))
+            
+            _dbg("--- MONTANTS ENVOYES A L'EMAIL ---")
+            _m("initial_amount", old_total)
+            _m("extra_fees", supplement_options)
+            _m("total_amount", reservation.total_reduit_euro)
+            _m("deposit_paid", reservation.montant_paye)
+            _m("remaining_balance", reservation.reste_payer)
+            _m("total_supplements", sum(v for v in [nd_driver_price, max_klm_price, carburant_price, sb_a_price, sb_b_price, sb_c_price] if v))
+            _dbg("--- CONTROLES DE COHERENCE ---")
+            try:
+                _somme = old_total + supplement_options
+                _dbg("   initial + frais      =", old_total, "+", supplement_options, "=", _somme,
+                     "| total_amount =", reservation.total_reduit_euro,
+                     "|", "OK" if _somme == reservation.total_reduit_euro else "!!! INCOHERENT")
+            except Exception as _e:
+                _dbg("   !!! addition impossible (types incompatibles):", type(old_total).__name__,
+                     "+", type(supplement_options).__name__, "->", _e)
+            try:
+                _ecart = float(reservation.total_reduit_euro) - float(reservation.montant_paye) - float(reservation.reste_payer)
+                _dbg("   total - acompte      =", float(reservation.total_reduit_euro) - float(reservation.montant_paye),
+                     "| remaining_balance =", reservation.reste_payer,
+                     "| ecart =", _ecart, "|", "OK" if abs(_ecart) < 0.01 else "!!! INCOHERENT")
+            except Exception as _e:
+                _dbg("   !!! controle solde impossible:", _e)
+            _dbg("--- PRIX PAR OPTION (None = non touchee par cette action) ---")
+            _m("nd_driver_price", nd_driver_price)
+            _m("max_klm_price", max_klm_price)
+            _m("carburant_price", carburant_price)
+            _m("sb_a_price", sb_a_price)
+            _m("sb_b_price", sb_b_price)
+            _m("sb_c_price", sb_c_price)
+            _dbg("--- CHAMPS opt_*_total en base (cumul historique) ---")
+            _dbg("   nd_driver=", reservation.opt_nd_driver_total, "| klm=", reservation.opt_klm_total,
+                 "| carburant=", reservation.opt_plein_carburant_total, "| sb_a=", reservation.opt_siege_a_total,
+                 "| sb_b=", reservation.opt_siege_b_total, "| sb_c=", reservation.opt_siege_c_total)
+            _dbg("   opt_protection_total=", reservation.opt_protection_total, "| protection=", protection_char)
 
             html_message = render_to_string('email/achat_protection_option_email.html', {
                 "id":reservation.id,
