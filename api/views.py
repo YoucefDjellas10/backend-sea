@@ -5815,6 +5815,11 @@ def new_modeles_view(request):
 @csrf_exempt
 @require_http_methods(["PUT"])
 def add_options_put_view(request):
+    def _dbg(*a):
+        print("[ADD_OPT]", *a, flush=True)
+
+    _dbg("=" * 70)
+    _dbg("ENTREE add_options_put_view")
     try:
         data = json.loads(request.body)
         ref = data.get("ref")
@@ -5829,6 +5834,11 @@ def add_options_put_view(request):
         birthday = data.get("birthday")
         permis_date = data.get("permis_date")
         country_code = request.META.get("HTTP_X_COUNTRY_CODE")
+        _dbg("payload:", data)
+        _dbg("ref=", ref, "| country_code=", country_code)
+        _dbg("klm=", klm, "nd_driver=", nd_driver, "carburant=", carburant,
+             "sb_a=", sb_a, "sb_b=", sb_b, "sb_c=", sb_c)
+        _dbg("2e conducteur -> nom=", nom, "prenom=", prenom, "birthday=", birthday, "permis=", permis_date)
 
         total_to_pay = 0
         is_edit = "no"
@@ -5843,11 +5853,41 @@ def add_options_put_view(request):
         description_finale = ""
 
         if not ref:
+            _dbg("RETOUR:", 'return JsonResponse({"error": "Le champ \'ref\' est requis."}, status=400)')
             return JsonResponse({"error": "Le champ 'ref' est requis."}, status=400)
 
 
         reservation = Reservation.objects.filter(name=ref).first()
+        _dbg("reservation trouvee:", bool(reservation), "|", getattr(reservation, "name", None))
+        if reservation is None:
+            _dbg("!!! AUCUNE reservation pour ref=", ref)
         lieu_depart_obj = reservation.lieu_depart
+
+        # valeurs AVANT ajout des options (pour l'email comparatif)
+        old_total = reservation.total_reduit_euro
+        caution_actual = reservation.opt_protection_caution
+        actual_protection = reservation.opt_protection
+        old_nd_driver = reservation.opt_nd_driver_name
+        old_max_klm = reservation.opt_klm_name
+        old_carburant = reservation.opt_plein_carburant_name
+        old_sb_a = reservation.opt_siege_a_name
+        old_sb_b = reservation.opt_siege_b_name
+        old_sb_c = reservation.opt_siege_c_name
+
+        if actual_protection and "MAX" in actual_protection.option_code:
+            protection_char = new_protection_char = "Maximale"
+        elif actual_protection and "STANDART" in actual_protection.option_code:
+            protection_char = new_protection_char = "Standart"
+        else:
+            protection_char = new_protection_char = "Basique"
+
+        _dbg("--- ETAT AVANT ---")
+        _dbg("protection=", protection_char, "| caution_actual=", caution_actual)
+        _dbg("old_total=", old_total, "| reste_payer=", reservation.reste_payer,
+             "| montant_paye=", reservation.montant_paye, "| nbr_jours=", reservation.nbr_jour_reservation)
+        _dbg("opt_payment_name=", repr(reservation.opt_payment_name))
+        _dbg("options avant -> nd_driver=", old_nd_driver, "| klm=", old_max_klm,
+             "| carburant=", old_carburant, "| sb_a=", old_sb_a, "| sb_b=", old_sb_b, "| sb_c=", old_sb_c)
 
         request_result = add_options_request(ref=ref,
                                                 klm=klm,
@@ -5857,20 +5897,30 @@ def add_options_put_view(request):
                                                 sb_b=sb_b,
                                                 sb_c=sb_c,
                                                 country_code=country_code )
+        _dbg("--- add_options_request ---")
+        _dbg("request_result:", request_result)
         
         nd_driver_put = request_result.get("nd_driver", None)
+        _dbg("--- option nd_driver --- put=", nd_driver_put)
         if nd_driver_put is not None :
             if not nom or not prenom or not birthday or not permis_date:
+                _dbg("RETOUR:", 'return JsonResponse({"modified":False ,"message": "les cordonnées du 2 eme condicteur sont requis"}, status=400)')
                 return JsonResponse({"modified":False ,"message": "les cordonnées du 2 eme condicteur sont requis"}, status=400)
             nd_driver_discount = nd_driver_put.get("nd_driver_last_price",None)
+            _dbg("   nd_driver: discount =", nd_driver_discount)
             nd_driver_name = nd_driver_put.get("nd_driver_name",None)
             nd_driver_option = Options.objects.filter(name=nd_driver_name, zone= lieu_depart_obj.zone).first()
+            _dbg("   nd_driver: option =", getattr(nd_driver_option, "name", None),
+                 "| prix =", getattr(nd_driver_option, "prix", None),
+                 "| id =", getattr(nd_driver_option, "id", None))
             if nd_driver_discount is None:
                 if not reservation.opt_payment_name:
                     description_nd_driver = f"{nd_driver_option.name} : {nd_driver_option.prix * reservation.nbr_jour_reservation} € |"
                     total_to_pay += nd_driver_option.prix * reservation.nbr_jour_reservation
+                    _dbg("   -> A PAYER VIA STRIPE | total_to_pay =", total_to_pay)
                 else:
                     is_edit = "yes"
+                    _dbg("   -> AJOUT IMMEDIAT (deja paye) | is_edit = yes")
                     reservation.nom_nd_condicteur = nom
                     reservation.prenom_nd_condicteur = prenom
                     reservation.date_nd_condicteur = birthday
@@ -5896,22 +5946,30 @@ def add_options_put_view(request):
                 reservation.save()
 
         klm_put = request_result.get("klm", None)
+        _dbg("--- option klm --- put=", klm_put)
         if klm_put is not None :
             
             klm_discount = klm_put.get("klM_last_price",None)
+            _dbg("   klm: discount =", klm_discount)
             category = reservation.categorie
             klm_name = klm_put.get("klM_name",None)
 
             klm_option = Options.objects.filter(name=klm_name,categorie=category, zone= lieu_depart_obj.zone).first()
+            _dbg("   klm: option =", getattr(klm_option, "name", None),
+                 "| prix =", getattr(klm_option, "prix", None),
+                 "| id =", getattr(klm_option, "id", None))
             if klm_option is None: 
+                _dbg("RETOUR:", 'return JsonResponse({"modified":False ,"message": "klm_option is none"}, status=400)')
                 return JsonResponse({"modified":False ,"message": "klm_option is none"}, status=400)
 
             if klm_discount is None:
                 if not reservation.opt_payment_name:
                     description_klm = f"{klm_option.name} : {klm_option.prix * reservation.nbr_jour_reservation} € |"
                     total_to_pay += klm_option.prix * reservation.nbr_jour_reservation
+                    _dbg("   -> A PAYER VIA STRIPE | total_to_pay =", total_to_pay)
                 else:
                     is_edit = "yes"
+                    _dbg("   -> AJOUT IMMEDIAT (deja paye) | is_edit = yes")
                     reservation.opt_klm = klm_option
                     reservation.opt_klm_name = klm_option.name
                     reservation.opt_klm_price = klm_option.prix
@@ -5929,16 +5987,23 @@ def add_options_put_view(request):
                 reservation.save()
 
         carburant_put = request_result.get("carburant", None)
+        _dbg("--- option carburant --- put=", carburant_put)
         if carburant_put is not None :
             carburant_discount = carburant_put.get("carburant_last_price",None)
+            _dbg("   carburant: discount =", carburant_discount)
             carburant_name = carburant_put.get("carburant_name",None)
             carburant_option = Options.objects.filter(name=carburant_name, zone= lieu_depart_obj.zone).first()
+            _dbg("   carburant: option =", getattr(carburant_option, "name", None),
+                 "| prix =", getattr(carburant_option, "prix", None),
+                 "| id =", getattr(carburant_option, "id", None))
             if carburant_discount is None:
                 if not reservation.opt_payment_name:
                     description_carburant = f"{carburant_option.name} : {carburant_option.prix} € |"
                     total_to_pay += carburant_option.prix
+                    _dbg("   -> A PAYER VIA STRIPE | total_to_pay =", total_to_pay)
                 else:
                     is_edit = "yes"
+                    _dbg("   -> AJOUT IMMEDIAT (deja paye) | is_edit = yes")
                     reservation.opt_plein_carburant = carburant_option
                     reservation.opt_plein_carburant_name = carburant_option.name
                     reservation.opt_plein_carburant_prix = carburant_option.prix
@@ -5956,16 +6021,23 @@ def add_options_put_view(request):
                 reservation.save()
         
         sb_a_put = request_result.get("sb_a", None)
+        _dbg("--- option sb_a --- put=", sb_a_put)
         if sb_a_put is not None :
             sb_a_discount = sb_a_put.get("sb_a_last_price",None)
+            _dbg("   sb_a: discount =", sb_a_discount)
             sb_a_name = sb_a_put.get("sb_a_name",None)
             sb_a_option = Options.objects.filter(name=sb_a_name, zone= lieu_depart_obj.zone).first()
+            _dbg("   sb_a: option =", getattr(sb_a_option, "name", None),
+                 "| prix =", getattr(sb_a_option, "prix", None),
+                 "| id =", getattr(sb_a_option, "id", None))
             if sb_a_discount is None:
                 if not reservation.opt_payment_name:
                     description_sb_a = f"{sb_a_option.name} : {sb_a_option.prix * reservation.nbr_jour_reservation} € |"
                     total_to_pay += sb_a_option.prix * reservation.nbr_jour_reservation
+                    _dbg("   -> A PAYER VIA STRIPE | total_to_pay =", total_to_pay)
                 else:
                     is_edit = "yes"
+                    _dbg("   -> AJOUT IMMEDIAT (deja paye) | is_edit = yes")
                     reservation.opt_siege_a = sb_a_option
                     reservation.opt_siege_a_name = sb_a_option.name
                     reservation.opt_siege_a_prix = sb_a_option.prix
@@ -5983,16 +6055,23 @@ def add_options_put_view(request):
                 reservation.save()
 
         sb_b_put = request_result.get("sb_b", None)
+        _dbg("--- option sb_b --- put=", sb_b_put)
         if sb_b_put is not None :
             sb_b_discount = sb_b_put.get("sb_b_last_price",None)
+            _dbg("   sb_b: discount =", sb_b_discount)
             sb_b_name = sb_b_put.get("sb_b_name",None)
             sb_b_option = Options.objects.filter(name=sb_b_name, zone= lieu_depart_obj.zone).first()
+            _dbg("   sb_b: option =", getattr(sb_b_option, "name", None),
+                 "| prix =", getattr(sb_b_option, "prix", None),
+                 "| id =", getattr(sb_b_option, "id", None))
             if sb_b_discount is None:
                 if not reservation.opt_payment_name:
                     description_sb_b = f"{sb_b_option.name} : {sb_b_option.prix * reservation.nbr_jour_reservation} € |"
                     total_to_pay += sb_b_option.prix * reservation.nbr_jour_reservation
+                    _dbg("   -> A PAYER VIA STRIPE | total_to_pay =", total_to_pay)
                 else:
                     is_edit = "yes"
+                    _dbg("   -> AJOUT IMMEDIAT (deja paye) | is_edit = yes")
                     reservation.opt_siege_b = sb_b_option
                     reservation.opt_siege_b_name = sb_b_option.name
                     reservation.opt_siege_b_prix = sb_b_option.prix
@@ -6010,16 +6089,23 @@ def add_options_put_view(request):
                 reservation.save()
 
         sb_c_put = request_result.get("sb_c", None)
+        _dbg("--- option sb_c --- put=", sb_c_put)
         if sb_c_put is not None :
             sb_c_discount = sb_c_put.get("sb_c_last_price",None)
+            _dbg("   sb_c: discount =", sb_c_discount)
             sb_c_name = sb_c_put.get("sb_c_name",None)
             sb_c_option = Options.objects.filter(name=sb_c_name, zone= lieu_depart_obj.zone).first()
+            _dbg("   sb_c: option =", getattr(sb_c_option, "name", None),
+                 "| prix =", getattr(sb_c_option, "prix", None),
+                 "| id =", getattr(sb_c_option, "id", None))
             if sb_c_discount is None:
                 if not reservation.opt_payment_name:
                     description_sb_c = f"{sb_c_option.name} : {sb_c_option.prix * reservation.nbr_jour_reservation} € |"
                     total_to_pay += sb_c_option.prix * reservation.nbr_jour_reservation
+                    _dbg("   -> A PAYER VIA STRIPE | total_to_pay =", total_to_pay)
                 else:
                     is_edit = "yes"
+                    _dbg("   -> AJOUT IMMEDIAT (deja paye) | is_edit = yes")
                     reservation.opt_siege_c = sb_c_option
                     reservation.opt_siege_c_name = sb_c_option.name
                     reservation.opt_siege_c_prix = sb_c_option.prix
@@ -6036,11 +6122,21 @@ def add_options_put_view(request):
                 reservation.opt_siege_c_date = date.today()
                 reservation.save()
         
+        _dbg("--- RECAP ---")
+        _dbg("is_edit=", is_edit, "| total_to_pay=", total_to_pay)
+        _dbg("total_reduit_euro=", reservation.total_reduit_euro, "(avant:", old_total, ")")
+        _dbg("reste_payer=", reservation.reste_payer, "| montant_paye=", reservation.montant_paye)
+        _dbg("options apres -> nd_driver=", reservation.opt_nd_driver_name, "| klm=", reservation.opt_klm_name,
+             "| carburant=", reservation.opt_plein_carburant_name, "| sb_a=", reservation.opt_siege_a_name,
+             "| sb_b=", reservation.opt_siege_b_name, "| sb_c=", reservation.opt_siege_c_name)
         if is_edit == "yes":
             sujet = f"Confirmation de votre reservation N°= {reservation.name}"
             expediteur = settings.DEFAULT_FROM_EMAIL
+            # supplement reellement ajoute par cet appel
+            supplement_options = reservation.total_reduit_euro - old_total
+            _dbg("EMAIL: supplement_options =", supplement_options, "| destinataire =", reservation.email)
 
-            html_message = render_to_string('email/confirmation_email.html', {
+            html_message = render_to_string('email/achat_protection_option_email.html', {
                 "id":reservation.id,
                 "referance":reservation.name,
                 "mobile_one":reservation.lieu_depart.mobile,
@@ -6065,7 +6161,31 @@ def add_options_put_view(request):
                 'lieu_depart_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
                 'lieu_retour':reservation.lieu_retour.name,
                 'lieu_retour_id':f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-                'base_url': settings.API_BASE_URL
+                'base_url': settings.API_BASE_URL,
+                "protection_char": protection_char,
+                "caution_actual": caution_actual,
+                "nd_driver": reservation.opt_nd_driver_name, 
+                "max_klm": reservation.opt_klm_name,
+                "carburant": reservation.opt_plein_carburant_name,
+                "sb_a": reservation.opt_siege_a_name,
+                "sb_b": reservation.opt_siege_b_name,
+                "sb_c": reservation.opt_siege_c_name,
+                "old_nd_driver": old_nd_driver,
+                "old_max_klm": old_max_klm,
+                "old_carburant": old_carburant,
+                "old_sb_a": old_sb_a,
+                "old_sb_b": old_sb_b,
+                "old_sb_c": old_sb_c,
+                "new_protection_char": new_protection_char,
+                "new_protection_price": supplement_options,
+                "new_protection_caution": reservation.opt_protection_caution,
+                "cation_diff": 0,
+                "initial_amount": old_total,
+                "extra_fees": supplement_options,
+                "total_amount": reservation.total_reduit_euro,
+                "deposit_paid": reservation.montant_paye,
+                "remaining_balance": reservation.reste_payer,
+                "caution_deposer": "non"
 
             })
 
@@ -6078,6 +6198,7 @@ def add_options_put_view(request):
                 fail_silently=False,
             )
 
+        _dbg("EMAIL envoye (ou non concerne). Passage au bloc paiement.")
         if total_to_pay > 0 :
             description_finale = f"{description_one} {description_nd_driver} {description_klm} {description_carburant} {description_sb_a} {description_sb_b} {description_sb_c} {description_two}"
             reservation.add_options = "yes"
@@ -6110,22 +6231,28 @@ def add_options_put_view(request):
                 content_type="application/json"
             )
             payment_session_response = create_payment_session_option(fake_request)
+            _dbg("stripe session status =", payment_session_response.status_code)
             if payment_session_response.status_code == 200:
                 payment_session_data = json.loads(payment_session_response.content)
                 session_id = payment_session_data.get("session_id", "")
                 payment_url = payment_session_data.get("url", "")
                 
+                _dbg("RETOUR:", 'return JsonResponse({"modified": True ,')
                 return JsonResponse({"modified": True ,
                                         "session_id": session_id,
                                         "payment_url": payment_url,
                                         "message": "medification effectuer avec succee"}, status=200)
 
+            _dbg("RETOUR:", 'return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=200)')
             return JsonResponse({"modified":True ,"message": "medification effectuer avec succee"}, status=200)
 
     except json.JSONDecodeError:
+        _dbg("RETOUR:", 'return JsonResponse({"error": "Données JSON invalides."}, status=400)')
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
-        print(f"Erreur: {e}")
+        print("[ADD_OPT] EXCEPTION:", e, flush=True)
+        traceback.print_exc()
+        _dbg("RETOUR:", 'return JsonResponse({"error": str(e)}, status=500)')
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
