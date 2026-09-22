@@ -1159,14 +1159,14 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
               </tr>
 
               <!-- BLOC RESTITUTION -->
-              {% if caution_deposer == "oui" %}
               <tr>
-                <td style="padding:22px 4px;"> 
+                <td style="padding:22px 4px;">
 
 
 <div style=" line-height:1.5;font-size:12px; color:#374151; padding:14px 16px; border:2px dashed #ffa7a7; border-radius:10px; background-color:#fdf1da;">
   <p style="margin:0 0 7px 0; font-weight:700; color:#0F1E34; ">Important :</p>
 
+  {% if caution_deposer == "oui" %}
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
     <tr>
       <td style="padding:0;">
@@ -1179,14 +1179,14 @@ Les éléments que vous avez achetés  ont bien été   intégrés à votre rés
       </td>
     </tr>
   </table>
+  {% endif %}
  <p style="margin:10px 0;  text-align: left;font-size: 12px;color: #0F1E34;background-color: #fff4e4; border-radius: 4px;padding: 8px;font-weight:600;">À noter : Les tarifs indiqués en euros sont fournis à titre indicatif. En Algérie, la monnaie officielle est le dinar algérien (DZD).
 
-</p>  
+</p>
 </div>
-            
+
                       </td>
                     </tr>
-              {% endif %}
                   </table>
   
   
