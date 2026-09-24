@@ -3608,8 +3608,10 @@ def country_code_to_emoji(country_code):
 @csrf_exempt
 @require_http_methods(["POST"])
 def add_reservation_post_view(request):
+    dbg = lambda *a: print("[RESA DEBUG]", *a, flush=True)  # DEBUG
     try:
-
+        dbg("===== DEBUT add_reservation_post_view =====")
+        dbg("body brut:", request.body)
         data = json.loads(request.body)
         lieu_depart = data.get("lieu_depart")
         lieu_retour = data.get("lieu_retour")
@@ -3635,6 +3637,8 @@ def add_reservation_post_view(request):
         pays_drapeau = country_code_to_emoji(ccountry_code)
 
         langue = request.headers.get("X-Language")
+        dbg("1. data:", data)
+        dbg("1. country_code:", ccountry_code, "drapeau:", pays_drapeau, "langue:", langue)
 
         prix_jour = 0
         total = 0
@@ -3655,6 +3659,7 @@ def add_reservation_post_view(request):
         
 
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
+        dbg("2. lieu_depart_obj:", lieu_depart_obj, "zone:", getattr(lieu_depart_obj, "zone", None))
 
         if not all([date_depart, heure_depart, date_retour, heure_retour]):
             return JsonResponse({"error": "les dates et les heures doivent être remplis."}, status=400)
@@ -3675,6 +3680,7 @@ def add_reservation_post_view(request):
             du_au_string = f"{date_heure_debut_formate} → {date_heure_fin_formate}"
         else :
             return JsonResponse({"error": "Les dates ou heures fournies sont invalides."}, status=400)
+        dbg("3. dates:", date_heure_debut, "->", date_heure_fin, "| total_days:", total_days)
 
         if client_id :
             client = ListeClient.objects.filter(id=client_id).first()
@@ -3685,11 +3691,13 @@ def add_reservation_post_view(request):
                 return JsonResponse({"error": "client non trouver."}, status=400)
         else:
             return JsonResponse({"error": "client non fournis."}, status=400)
-            
+        dbg("4. client:", client.id, client, "| categorie:", client.categorie_client, "| red%:", client_red_pr, "| solde:", client_solde)
+
         if lieu_depart and lieu_retour:
             depart = Lieux.objects.filter(id=lieu_depart).first()
             retour = Lieux.objects.filter(id=lieu_retour).first()
             depart_retour_string = f"{depart.name} → {retour.name}"
+        dbg("5. depart/retour:", locals().get("depart"), "->", locals().get("retour"))
 
         
         if vehicule_id :
@@ -3703,6 +3711,8 @@ def add_reservation_post_view(request):
                 status="confirmee" 
             )
 
+            dbg("6. vehicule:", vehicule, "| modele:", getattr(vehicule, "modele", None), "| categorie:", getattr(vehicule, "categorie", None))
+            dbg("6. reservations en conflit:", list(reservations_existantes.values_list("id", flat=True)))
             if reservations_existantes:
                 return JsonResponse({"error": "Le véhicule est déjà réservé ou loué pour cette période."}, status=400)
             promotions = Promotion.objects.filter(
@@ -3720,6 +3730,8 @@ def add_reservation_post_view(request):
                 for promo in promotions_records :
                     if promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
                         promotions = promo
+            dbg("7. promotion retenue:", promotions, "| reduction:", getattr(promotions, "reduction", None),
+                "| zones:", getattr(promotions, "zone_one", None), getattr(promotions, "zone_two", None), getattr(promotions, "zone_three", None))
 
             promo_value = 0
 
@@ -3858,7 +3870,8 @@ def add_reservation_post_view(request):
                         promo_value = 0
             else:
                 promo_value = 0
-                
+            dbg("8. promo_value:", promo_value)
+
             tarifs_periodiques = Tarifs.objects.filter(
                 Q(nbr_de__lte=total_days, nbr_au__gte=total_days),
                 modele=vehicule.modele,
@@ -3885,6 +3898,7 @@ def add_reservation_post_view(request):
                     fin = getattr(t, fin_field)
                     if debut and fin and debut <= date_retour_obj and fin >= date_depart_obj:
                         periodes_prix.append((debut, fin, t.prix))
+            dbg("9. tarifs trouves:", list(tarifs_periodiques.values_list("id", flat=True)), "| periodes_prix:", periodes_prix)
 
             if not periodes_prix:
                 return JsonResponse({"error": "tarifs invalides."}, status=400)
@@ -3908,8 +3922,9 @@ def add_reservation_post_view(request):
 
             prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
             total += cout_total_tarif
+            dbg("10. jours_couverts:", jours_couverts, "| cout_total_tarif:", cout_total_tarif, "| prix_jour:", prix_jour, "| total:", total)
 
-            
+
 
             if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
                 last_total = (100 - client_red_pr) * total / 100
@@ -3918,6 +3933,7 @@ def add_reservation_post_view(request):
 
             else:
                 last_total = total
+            dbg("11. apres reduction -> last_total:", last_total, "(red client:", client_red_pr, "promo:", promo_value, ")")
 
 
             if client_solde > 0:
@@ -3927,6 +3943,7 @@ def add_reservation_post_view(request):
                 else:
                     solde_consome = client_solde
                     last_total = total - client_solde
+            dbg("12. apres solde -> solde_consome:", solde_consome, "| last_total:", last_total)
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
         last_total = Decimal(last_total)
@@ -3934,6 +3951,9 @@ def add_reservation_post_view(request):
         if frais_dossier:
             total += Decimal(frais_dossier.prix) * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
             last_total += Decimal(frais_dossier.prix) * total_days if frais_dossier.type_option == "jour" else Decimal(frais_dossier.prix)
+        dbg("13. frais_dossier:", frais_dossier, "| prix:", getattr(frais_dossier, "prix", None),
+            "| type_option:", getattr(frais_dossier, "type_option", None), "| type_tarif:", getattr(frais_dossier, "type_tarif", None),
+            "| total:", total, "| last_total:", last_total)
         frais_liv = 0
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart, retour_id=lieu_retour)
         if frais_livraison :
@@ -3964,8 +3984,9 @@ def add_reservation_post_view(request):
            
             total += Decimal((meilleur_cout or 0)) 
             last_total += Decimal((meilleur_cout or 0)) 
-            frais_liv += Decimal((meilleur_cout or 0))  
-        
+            frais_liv += Decimal((meilleur_cout or 0))
+        dbg("14. frais_livraison:", frais_liv, "| total:", total, "| last_total:", last_total)
+
         supplements_one = Supplement.objects.filter(
             Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart) 
         ).first()
@@ -3981,8 +4002,9 @@ def add_reservation_post_view(request):
         total += Decimal(supplements_two.montant) if supplements_two else 0
         supp_total += Decimal(supplements_two.montant) if supplements_two else 0
         last_total += Decimal(supplements_two.montant) if supplements_two else 0
-        
-        ecart = Supplement.objects.filter(valeur__gt=0).first()
+        dbg("15. supplements:", supplements_one, supplements_two, "| supp_total:", supp_total, "| total:", total, "| last_total:", last_total)
+
+        ecart =Supplement.objects.filter(valeur__gt=0).first()
         start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
         end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
         duration = end_hour - start_hour
@@ -3998,7 +4020,10 @@ def add_reservation_post_view(request):
         total_afficher_red = last_total
         last_prix_unitaire = last_total / total_days
         free_options = free_options_f(client_id=client_id)
-       
+        dbg("16. ecart:", ecart, "| duration:", duration, "| ecart_montant:", ecart_montant)
+        dbg("16. prix_unitaire:", prix_unitaire, "| last_prix_unitaire:", last_prix_unitaire, "| total:", total, "| last_total:", last_total)
+        dbg("16. free_options:", free_options)
+
         if opt_paiement == "yes" :
             if free_options and free_options[0].get("option_six") == True:
                 paiement_anticipe = Options.objects.filter(option_code="P_ANTICIPE", zone= lieu_depart_obj.zone).first()
@@ -4024,7 +4049,8 @@ def add_reservation_post_view(request):
             opt_payment_name = None
             opt_payment_unit = 0
             opt_payment_total = 0
-        
+        dbg("17. paiement anticipe:", opt_paiement, "| option:", paiement_anticipe, "| total option:", opt_payment_total, "| to_pay:", to_pay)
+
 
         klm_illimite_b = None
         klm_a_illimite = None
@@ -4101,7 +4127,8 @@ def add_reservation_post_view(request):
             opt_klm_name = None
             opt_klm_unit = 0
             opt_klm_total = 0
-        
+        dbg("18. klm:", opt_klm, "| name:", opt_klm_name, "| unit:", opt_klm_unit, "| total:", opt_klm_total)
+
         if opt_protection == "BASE" :
             base_a = Options.objects.filter(option_code="BASE_P_1", zone= lieu_depart_obj.zone).first()
             base_a_name = base_a.name
@@ -4279,7 +4306,8 @@ def add_reservation_post_view(request):
             protection_unit = 0
             protection_total = 0
             protection_caution = 0
-        
+        dbg("19. protection:", opt_protection, "->", protection, "| unit:", protection_unit, "| total:", protection_total, "| caution:", protection_caution)
+
         if opt_carburant == "yes":
             if free_options and free_options[0].get("option_two") == True:
                 carburant = Options.objects.filter(option_code="P_CARBURANT", zone= lieu_depart_obj.zone).first()
@@ -4302,7 +4330,8 @@ def add_reservation_post_view(request):
             carburant_name = None
             carburant_unit = 0
             carburant_total = 0
-        
+        dbg("20. carburant:", carburant, "| total:", carburant_total)
+
         if opt_sb_a == "yes":
             if free_options and free_options[0].get("option_three") == True:
                 sb_a = Options.objects.filter(option_code="S_BEBE_5", zone= lieu_depart_obj.zone).first()
@@ -4372,7 +4401,8 @@ def add_reservation_post_view(request):
             sb_c_name = None
             sb_c_unit = 0
             sb_c_total = 0
-        
+        dbg("21. sieges bebe: a=", sb_a_total, "b=", sb_b_total, "c=", sb_c_total)
+
         if opt_nd_driver == "yes":
             if nd_driver_id :
                 
@@ -4420,9 +4450,12 @@ def add_reservation_post_view(request):
             nd_driver_opt_name = None
             nd_driver_opt_unit = 0
             nd_driver_opt_total = 0
+        dbg("22. 2nd conducteur:", nd_driver, "| option total:", nd_driver_opt_total)
+        dbg("22. total_option:", total_option, "| total:", total, "| last_total:", last_total)
 
         taux_change = TauxChange.objects.get(id=2)
         change = taux_change.montant
+        dbg("23. taux change:", change)
 
         if prime_code:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
@@ -4433,8 +4466,9 @@ def add_reservation_post_view(request):
                     parent_sold = SoldeParrainage.objects.filter(name="Solde Parrainage").first()
                     prime_red = float(parent_sold.parrain_solde) if parent_sold.parrain_solde is not None else 0
                     last_total = float(last_total) - float(prime_red) 
-                else : 
+                else :
                     prime_red = 0
+        dbg("24. prime_code:", prime_code, "| parrain:", parent_client, "| prime_red:", prime_red, "| last_total:", last_total)
 
         kilometrage_autorise = 0
 
@@ -4442,7 +4476,9 @@ def add_reservation_post_view(request):
             kilometrage_autorise = total_days * 275
         else:
             kilometrage_autorise = total_days * 250
-        
+        dbg("25. kilometrage_autorise:", kilometrage_autorise)
+        dbg("25. AVANT CREATE -> total:", total, "| total_afficher:", total_afficher, "| last_total:", last_total, "| total_afficher_red:", total_afficher_red)
+
         reservation = Reservation.objects.create(
             create_date=timezone.now(),
             status="en_attend",
@@ -4561,8 +4597,10 @@ def add_reservation_post_view(request):
         )  
 
         montant_a_paye = to_pay if to_pay>0 else last_total
+        dbg("26. reservation creee id:", reservation.id, "name:", reservation.name, "| montant_a_paye:", montant_a_paye)
 
         if ccountry_code == "DZ" :
+            dbg("27. pays DZ -> pas de paiement")
             return JsonResponse({"payment":False,"message": "Réservation créée avec succès.", "reservation_id": reservation.id}, status=201)
         
         else :
@@ -4586,6 +4624,7 @@ def add_reservation_post_view(request):
                 content_type="application/json"
             )
             payment_session_response = create_payment_session_reservation(fake_request)
+            dbg("27. reponse paiement:", payment_session_response.status_code, payment_session_response.content)
             if payment_session_response.status_code == 200:
                 payment_session_data = json.loads(payment_session_response.content)
                 session_id = payment_session_data.get("session_id", "")
@@ -4594,8 +4633,12 @@ def add_reservation_post_view(request):
             else:
                 return JsonResponse({"payment":False,"error": "Échec de la création de la session de paiement.", "response": payment_session_response.content.decode('utf-8')}, status=500)
     except json.JSONDecodeError:
+        dbg("ERREUR JSON invalide")
         return JsonResponse({"error": "Données JSON invalides."}, status=400)
     except Exception as e:
+        import traceback  # DEBUG
+        dbg("EXCEPTION:", repr(e))
+        traceback.print_exc()
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
