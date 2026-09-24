@@ -4293,7 +4293,10 @@ def add_reservation_post_view(request):
                 protection_total = 0
                 protection_caution = 0
 
-            if protection_total < 30 :
+            if "VIP" in client.categorie_client.name :
+                protection_unit = 0
+                protection_total = 0
+            elif protection_total < 30 :
                 protection_total = 30
                 
             total += protection_total
