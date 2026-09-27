@@ -1401,6 +1401,8 @@ def ma_reservation_detail(ref, email, country_code):
             "hors_zone": hors_zone
         })
 
+        free_options = free_options_f(ma_reservation.client.id if ma_reservation.client else None)
+
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
@@ -1486,7 +1488,8 @@ def ma_reservation_detail(ref, email, country_code):
                     "promotion_value": ma_reservation.reduction if ma_reservation.reduction and ma_reservation.reduction > 7 else 0,
                     "is_fidelite": "yes" if ma_reservation.reduction and ma_reservation.reduction > 0 and  ma_reservation.reduction < 8 else "no",
                     "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) * taux_change if ma_reservation.total_reduit and ma_reservation.total else 0,
-                    "parrainage_value": ma_reservation.feuil_red * taux_change if ma_reservation.feuil_red else 0.00, 
+                    "parrainage_value": ma_reservation.feuil_red * taux_change if ma_reservation.feuil_red else 0.00,
+                    "free_options": free_options,
                 })
         else :  
             if ma_reservation :
@@ -1572,6 +1575,7 @@ def ma_reservation_detail(ref, email, country_code):
                     "is_fidelite": "yes" if ma_reservation.reduction and ma_reservation.reduction > 0 and  ma_reservation.reduction < 8 else "no",
                     "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) if ma_reservation.total_reduit and ma_reservation.total else 0,
                     "parrainage_value": ma_reservation.feuil_red if ma_reservation.feuil_red else 0.00,
+                    "free_options": free_options,
 
                 })  
 
