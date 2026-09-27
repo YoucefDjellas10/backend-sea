@@ -6687,6 +6687,12 @@ def verify_and_calculate_view(request):
 
     if not date_retour or not date_depart:
         return JsonResponse({"error": "Les paramètres 'date_retour' et 'date_depart' sont requis."}, status=400)
+    if not lieu_depart:
+        return JsonResponse({"error": "Le paramètre 'lieu_depart' est requis."}, status=400, json_dumps_params={"ensure_ascii": False})
+    if not lieu_retour:
+        return JsonResponse({"error": "Le paramètre 'lieu_retour' est requis."}, status=400, json_dumps_params={"ensure_ascii": False})
+    if not heure_depart or not heure_retour:
+        return JsonResponse({"error": "Les paramètres 'heure_depart' et 'heure_retour' sont requis."}, status=400, json_dumps_params={"ensure_ascii": False})
 
     try:
         resultats = verify_and_calculate(
@@ -6699,10 +6705,12 @@ def verify_and_calculate_view(request):
             heure_retour = heure_retour,
             country_code = country_code
         )
+        if isinstance(resultats, dict) and "error" in resultats:
+            return JsonResponse({"error": resultats["error"]}, status=400, json_dumps_params={"ensure_ascii": False})
         return JsonResponse({"results": resultats}, status=200, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
-    
+
 def ma_reservation_view(request):
     ref = request.GET.get("ref")
     email = request.GET.get("email")

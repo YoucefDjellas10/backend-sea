@@ -763,6 +763,14 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 result.append({'is_available': "no", 'can_be_midified': "no"})
                 return result
 
+            if not record.vehicule:
+                print("### ERREUR: record.vehicule est null -> return 400")
+                return {"error": "Aucun véhicule n'est associé à cette réservation."}
+
+            if record.client and record.client.risque == "eleve":
+                print("### ERREUR: client a risque eleve -> return 400")
+                return {"error": "Modification impossible : le client présente un risque élevé."}
+
             get_vehicule_id = record.vehicule.numero
             print(f"*** get_vehicule_id = {get_vehicule_id}")
             vehicule = Vehicule.objects.filter(numero=get_vehicule_id, active_test=True).first()
@@ -1004,9 +1012,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                                 chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
 
                 print(f"*** meilleur_cout FINAL (chemin indirect) = {meilleur_cout}")
-                total_fixe += Decimal(meilleur_cout or 0)
-                prix_jour = Decimal(prix_jour)
-                print(f"*** prix_jour (apres ajout meilleur_cout) = {prix_jour}")
+                meilleur_cout = meilleur_cout or 0
+                total_fixe += Decimal(meilleur_cout)
+                print(f"*** total_fixe (apres frais_livraison indirect meilleur_cout={meilleur_cout}) = {total_fixe}")
 
             supplements_one = Supplement.objects.filter(
                 Q(heure_debut__lte=heure_depart, heure_fin__gte=heure_depart)
