@@ -1,7 +1,8 @@
 from .models import *
 from datetime import datetime
-from django.db.models import Q
+from django.db.models import Q, prefetch_related_objects
 from django.core.exceptions import ObjectDoesNotExist
+import heapq
 from django.utils.timezone import make_aware
 from datetime import datetime, time
 from django.db import transaction
@@ -1856,16 +1857,17 @@ def check_client(id):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id=None, lieu_retour_id=None):
+def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone, lieu_depart_id=None, lieu_retour_id=None, lieu_depart_obj=None, lieu_retour_obj=None):
     date_heure_debut = datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")
     date_heure_fin = datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")
 
-    buffer_retour_hours = 1  
+    buffer_retour_hours = 1
 
     if lieu_depart_id and lieu_retour_id:
         try:
-            ld = Lieux.objects.filter(id=lieu_depart_id).first()
-            lr = Lieux.objects.filter(id=lieu_retour_id).first()
+            # Les lieux déjà chargés par l'appelant évitent 4 requêtes (lieux + zones)
+            ld = lieu_depart_obj if lieu_depart_obj is not None else Lieux.objects.filter(id=lieu_depart_id).first()
+            lr = lieu_retour_obj if lieu_retour_obj is not None else Lieux.objects.filter(id=lieu_retour_id).first()
 
             if ld and lr:
                 zone_depart = ld.zone
@@ -1913,40 +1915,64 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
     )
 
     available_vehicles = []
+    candidates = list(candidates)
+
+    # Dernière réservation de chaque candidat : 1 seule requête (DISTINCT ON)
+    # au lieu d'une requête par véhicule.
+    dernieres_res = {}
+    if candidates:
+        dernieres_res = {
+            row['vehicule_id']: row
+            for row in Reservation.objects.filter(
+                vehicule_id__in=[v.id for v in candidates],
+                etat_reservation__in=["reserve", "loue"],
+                status="confirmee",
+                date_heure_fin__lt=date_heure_debut
+            ).order_by('vehicule_id', '-date_heure_fin').distinct('vehicule_id').values(
+                'vehicule_id', 'date_heure_fin', 'lieu_depart_id', 'lieu_retour_id'
+            )
+        }
+
+    # Zone de chaque lieu utilisé par ces réservations : 1 seule requête.
+    # Les lieux sans zone sont exclus : ces cas levaient une exception dans
+    # l'ancien code (buffer de 5h), on les traite pareil.
+    lieux_ids = {r['lieu_depart_id'] for r in dernieres_res.values()} | {r['lieu_retour_id'] for r in dernieres_res.values()}
+    lieux_ids.discard(None)
+    zone_par_lieu = dict(
+        Lieux.objects.filter(id__in=lieux_ids, zone__isnull=False).values_list('id', 'zone_id')
+    ) if lieux_ids else {}
 
     for vehicle in candidates:
-        derniere_res = Reservation.objects.filter(
-            vehicule=vehicle,
-            etat_reservation__in=["reserve", "loue"],
-            status="confirmee",
-            date_heure_fin__lt=date_heure_debut
-        ).order_by('-date_heure_fin').first()
+        derniere_res = dernieres_res.get(vehicle.id)
 
         if not derniere_res:
             available_vehicles.append(vehicle)
             continue
 
         try:
-            ld_res = derniere_res.lieu_depart
-            lr_res = derniere_res.lieu_retour
+            ld_res_id = derniere_res['lieu_depart_id']
+            lr_res_id = derniere_res['lieu_retour_id']
 
-            zone_depart_res = ld_res.zone if ld_res else None
-            zone_retour_res = lr_res.zone if lr_res else None
+            # Lieu absent, ou lieu sans zone : l'ancien code levait une exception
+            if ld_res_id not in zone_par_lieu or lr_res_id not in zone_par_lieu:
+                raise LookupError
+
+            zone_depart_res_id = zone_par_lieu[ld_res_id]
+            zone_retour_res_id = zone_par_lieu[lr_res_id]
 
             # La voiture est-elle rendue au MÊME lieu que le nouveau départ ?
             meme_lieu = (
-                lr_res is not None
-                and lieu_depart_id is not None
-                and lr_res.id == int(lieu_depart_id)
+                lieu_depart_id is not None
+                and lr_res_id == int(lieu_depart_id)
             )
 
-            if zone_depart_res and zone_retour_res and zone_depart_res.id != zone_retour_res.id:
+            if zone_depart_res_id != zone_retour_res_id:
                 buffer_depart_hours = 24
 
-            elif zone_depart_res and zone_depart_res.id in [1, 2, 16]:
+            elif zone_depart_res_id in [1, 2, 16]:
                 buffer_depart_hours = 1
 
-            elif (ld_res and ld_res.id == 4) or (lr_res and lr_res.id == 4):
+            elif ld_res_id == 4 or lr_res_id == 4:
                 if int(zone) == 3 and not meme_lieu:
                     buffer_depart_hours = 5
                 else:
@@ -1960,14 +1986,103 @@ def get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour,
 
         buffer_depart = timedelta(hours=buffer_depart_hours)
 
-        if derniere_res.date_heure_fin + buffer_depart <= date_heure_debut:
+        if derniere_res['date_heure_fin'] + buffer_depart <= date_heure_debut:
             available_vehicles.append(vehicle)
 
     return available_vehicles
 
+OPTION_CODES_RECHERCHE = [
+    "FRAIS_DOSSIER", "P_ANTICIPE", "KLM_ILLIMITED", "KLM_ILLIMITED_B", "KLM_ILLIMITED_C",
+    "ND_DRIVER", "P_CARBURANT", "S_BEBE_5", "S_BEBE_13", "S_BEBE_18",
+    "BASE_P_1", "BASE_P_2", "BASE_P_3", "STANDART_P_1", "STANDART_P_2", "STANDART_P_3",
+    "MAX_P_1", "MAX_P_2", "MAX_P_3",
+]
+
+def cout_trajet_indirect(trajets, lieu_depart_id, lieu_retour_id):
+    """Coût minimal d'un trajet via escales (None si aucun chemin).
+    Dijkstra : même résultat que l'exploration de tous les chemins tant que
+    les montants sont >= 0. Sinon on garde l'ancienne exploration exhaustive."""
+    if any((t['montant'] or 0) < 0 for t in trajets):
+        return _cout_trajet_indirect_exhaustif(trajets, lieu_depart_id, lieu_retour_id)
+    if lieu_depart_id == lieu_retour_id:
+        # L'ancien algorithme ne revient jamais sur le lieu de départ
+        return None
+
+    sorties = {}
+    for t in trajets:
+        sorties.setdefault(t['depart_id'], []).append((t['retour_id'], t['montant'] or 0))
+
+    meilleur = {lieu_depart_id: 0}
+    ordre = 0  # départage les égalités sans comparer les ids de lieux
+    file = [(0, ordre, lieu_depart_id)]
+    while file:
+        cout, _, pos = heapq.heappop(file)
+        if pos == lieu_retour_id:
+            return cout
+        if cout > meilleur[pos]:
+            continue
+        for suivant, montant in sorties.get(pos, []):
+            nouveau_cout = cout + montant
+            if suivant not in meilleur or nouveau_cout < meilleur[suivant]:
+                meilleur[suivant] = nouveau_cout
+                ordre += 1
+                heapq.heappush(file, (nouveau_cout, ordre, suivant))
+    return None
+
+def _cout_trajet_indirect_exhaustif(trajets, lieu_depart_id, lieu_retour_id):
+    chemins_possibles = [(lieu_depart_id, 0, set())]  # (position, total, lieux_visités)
+
+    meilleur_cout = None
+
+    while chemins_possibles:
+        pos, cout, visites = chemins_possibles.pop()
+        visites = visites | {pos}
+
+        for t in trajets:
+            if t['depart_id'] == pos and t['retour_id'] not in visites:
+                nouveau_cout = cout + (t['montant'] or 0)
+                if t['retour_id'] == lieu_retour_id:
+                    if meilleur_cout is None or nouveau_cout < meilleur_cout:
+                        meilleur_cout = nouveau_cout
+                else:
+                    chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+    return meilleur_cout
+
+def charger_tarifs_par_modele(vehicules, total_days, lieu_depart, date_depart, date_retour):
+    """Tarifs de tous les modèles en 1 requête, regroupés par id de modèle."""
+    modele_ids = {v.modele.id for v in vehicules}
+    tarifs_par_modele = {}
+    if not modele_ids:
+        return tarifs_par_modele
+    tarifs = Tarifs.objects.filter(
+        modele_id__in=modele_ids,
+        nbr_de__lte=total_days,
+        nbr_au__gte=total_days,
+        zone=lieu_depart.zone
+    ).filter(
+        Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) |
+        Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) |
+        Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) |
+        Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart)
+    )
+    for t in tarifs:
+        tarifs_par_modele.setdefault(t.modele_id, []).append(t)
+    return tarifs_par_modele
+
+def load_options_zone(codes, lieu_depart):
+    """Charge en 1 requête les options d'une zone, indexées par code.
+    Garde la première par id, comme le .first() de search_option."""
+    options = {}
+    for option in Options.objects.filter(option_code__in=codes, zone=lieu_depart.zone).select_related('categorie').order_by('pk'):
+        options.setdefault(option.option_code, option)
+    return options
+
 def search_option(code, total_days, lieu_depart):
+    option = Options.objects.filter(option_code=code,zone=lieu_depart.zone).first()
+    return format_option(option, total_days)
+
+def format_option(option, total_days):
     try:
-        option = Options.objects.filter(option_code=code,zone=lieu_depart.zone).first()
         return {
             'name': option.name,
             'name_en': option.name_en,
@@ -1985,10 +2100,12 @@ def search_option(code, total_days, lieu_depart):
         return {'name': None,'name_en':None,'name_ar':None,'type_tarif': None, 'min_prix' :0, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
  
 def search_option_DA(code, total_days, lieu_depart):
+    option = Options.objects.filter(option_code=code,zone=lieu_depart.zone).first()
+    taux = TauxChange.objects.filter(id=2).first()
+    return format_option_DA(option, total_days, taux)
+
+def format_option_DA(option, total_days, taux):
     try:
-        option = Options.objects.filter(option_code=code,zone=lieu_depart.zone).first()
-        taux = TauxChange.objects.filter(id=2).first()
-        
         if not option or not taux:
             return {'name': None, 'prix': 0, 'total': 0, 'limit': 0, 'penalite': 0, 'caution': 0, 'categorie': 0}
         
@@ -2136,20 +2253,23 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         date_fin__gte=date_depart,    
         active_passive=True
     ).first()
-    if promotions and promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+    # Comparaisons par id (zone_one_id...) : même résultat, sans charger chaque zone
+    lieu_depart_zone_id = lieu_depart.zone.id
+    if promotions and promotions.zone_one_id != lieu_depart_zone_id and promotions.zone_three_id != lieu_depart_zone_id and promotions.zone_two_id != lieu_depart_zone_id:
         promotions_records = Promotion.objects.filter(
                 debut_visibilite__lte=today,
                 fin_visibilite__gte=today,
-                date_debut__lte=date_retour, 
-                date_fin__gte=date_depart,    
+                date_debut__lte=date_retour,
+                date_fin__gte=date_depart,
                 active_passive=True
             )
         for promo in promotions_records :
-            if promotions.zone_one != lieu_depart.zone and promotions.zone_three != lieu_depart.zone and promotions.zone_two != lieu_depart.zone:
+            if promotions.zone_one_id != lieu_depart_zone_id and promotions.zone_three_id != lieu_depart_zone_id and promotions.zone_two_id != lieu_depart_zone_id:
                 promotions = promo
 
     promotion_name = promotions.name if promotions is not None else None
     promotion_value = 0
+    # Ids des modèles en promo (au lieu des objets Modele : seul .id était utilisé)
     model_one = None
     model_two = None
     model_three = None
@@ -2174,97 +2294,97 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
             promotion_value = promotion_proportionnelle
         elif promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-            if lieu_depart.zone == promotions.zone_one or lieu_depart.zone == promotions.zone_two or lieu_depart.zone == promotions.zone_three :
+            if lieu_depart_zone_id == promotions.zone_one_id or lieu_depart_zone_id == promotions.zone_two_id or lieu_depart_zone_id == promotions.zone_three_id :
                 promotion_value = promotion_proportionnelle
             else :
                 promotion_value = 0
         elif (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "oui":
             promotion_value = promotion_proportionnelle
-            if promotions.model_one :
-                model_one = promotions.model_one
+            if promotions.model_one_id :
+                model_one = promotions.model_one_id
             else :
                 model_one = None
-            if promotions.model_two :
-                model_two = promotions.model_two
+            if promotions.model_two_id :
+                model_two = promotions.model_two_id
             else :
                 model_two = None
-            if promotions.model_three :
-                model_three = promotions.model_three
+            if promotions.model_three_id :
+                model_three = promotions.model_three_id
             else :
                 model_three = None
-            if promotions.model_four :
-                model_four = promotions.model_four
+            if promotions.model_four_id :
+                model_four = promotions.model_four_id
             else :
                 model_four = None
-            if promotions.model_five :
-                model_five = promotions.model_five
+            if promotions.model_five_id :
+                model_five = promotions.model_five_id
             else :
                 model_five = None
         elif (promotions.tout_modele == "non" or promotions.tout_modele == "aleatoire") and promotions.tout_zone == "non":
-            if lieu_depart.zone == promotions.zone_one :
+            if lieu_depart_zone_id == promotions.zone_one_id :
                 promotion_value = promotion_proportionnelle
-                if promotions.model_one :
-                    model_one = promotions.model_one
+                if promotions.model_one_id :
+                    model_one = promotions.model_one_id
                 else :
                     model_one = None
-                if promotions.model_two :
-                    model_two = promotions.model_two
+                if promotions.model_two_id :
+                    model_two = promotions.model_two_id
                 else :
                     model_two = None
-                if promotions.model_three :
-                    model_three = promotions.model_three
+                if promotions.model_three_id :
+                    model_three = promotions.model_three_id
                 else :
                     model_three = None
-                if promotions.model_four :
-                    model_four = promotions.model_four
+                if promotions.model_four_id :
+                    model_four = promotions.model_four_id
                 else :
                     model_four = None
-                if promotions.model_five :
-                    model_five = promotions.model_five
+                if promotions.model_five_id :
+                    model_five = promotions.model_five_id
                 else :
                     model_five = None
-            elif lieu_depart.zone == promotions.zone_two :
+            elif lieu_depart_zone_id == promotions.zone_two_id :
                 promotion_value = promotion_proportionnelle
-                if promotions.model_one :
-                    model_one = promotions.model_one
+                if promotions.model_one_id :
+                    model_one = promotions.model_one_id
                 else :
                     model_one = None
-                if promotions.model_two :
-                    model_two = promotions.model_two
+                if promotions.model_two_id :
+                    model_two = promotions.model_two_id
                 else :
                     model_two = None
-                if promotions.model_three :
-                    model_three = promotions.model_three
+                if promotions.model_three_id :
+                    model_three = promotions.model_three_id
                 else :
                     model_three = None
-                if promotions.model_four :
-                    model_four = promotions.model_four
+                if promotions.model_four_id :
+                    model_four = promotions.model_four_id
                 else :
                     model_four = None
-                if promotions.model_five :
-                    model_five = promotions.model_five
+                if promotions.model_five_id :
+                    model_five = promotions.model_five_id
                 else :
                     model_five = None
-            elif lieu_depart.zone == promotions.zone_three :
+            elif lieu_depart_zone_id == promotions.zone_three_id :
                 promotion_value = promotion_proportionnelle
-                if promotions.model_one :
-                    model_one = promotions.model_one
+                if promotions.model_one_id :
+                    model_one = promotions.model_one_id
                 else :
                     model_one = None
-                if promotions.model_two :
-                    model_two = promotions.model_two
+                if promotions.model_two_id :
+                    model_two = promotions.model_two_id
                 else :
                     model_two = None
-                if promotions.model_three :
-                    model_three = promotions.model_three
+                if promotions.model_three_id :
+                    model_three = promotions.model_three_id
                 else :
                     model_three = None
-                if promotions.model_four :
-                    model_four = promotions.model_four
+                if promotions.model_four_id :
+                    model_four = promotions.model_four_id
                 else :
                     model_four = None
-                if promotions.model_five :
-                    model_five = promotions.model_five
+                if promotions.model_five_id :
+                    model_five = promotions.model_five_id
                 else :
                     model_five = None
             else :
@@ -2274,7 +2394,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     annulation = ConditionAnnulation.objects.filter(id=1).first()
     if annulation:
         periode = Periode.objects.filter(
-            saison=annulation.haute_saison, 
+            saison_id=annulation.haute_saison_id, 
             date_debut__lt=date_depart, 
             date_fin__gt=date_retour  
         ).first() 
@@ -2289,7 +2409,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             date_annulation = None
         if not periode:
             periode = Periode.objects.filter(
-                saison=annulation.basse_saison, 
+                saison_id=annulation.basse_saison_id, 
                 date_debut__lt=date_depart, 
                 date_fin__gt=date_retour  
             ).first()  
@@ -2311,19 +2431,16 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
     if country_code == "DZ":
         if client_id :
-            client_status = check_client(client_id)  
-            client = ListeClient.objects.filter(id=client_id).first()          
+            # 1 seule lecture (avant : check_client + relecture du client)
+            client = ListeClient.objects.select_related('categorie_client').filter(id=client_id).first()
             if not client:
                 return {"message": "Client introuvable"}
-            
-            if client_status.get("message") == "negatif":
+
+            if client.risque == "eleve":
                 return {"message": "Client has a high risk, cannot proceed"}
-            elif client_status.get("message") == "positif":
+            else:
                 client_pr = client.reduction if client.reduction is not None else 0
                 client_sold = float(client.solde) * taux_change if client.solde is not None else 0
-
-            else:
-                return client_status 
         prime_red = 0
         if prime_code and not client_id:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
@@ -2335,8 +2452,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 else : 
                     prime_red = 0
 
-        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id, lieu_depart_id, lieu_retour_id)
-        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
+        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id, lieu_depart_id, lieu_retour_id,
+                                                    lieu_depart_obj=lieu_depart, lieu_retour_obj=return_place)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id) 
         if frais_livraison :
@@ -2345,22 +2462,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         else :
              # cas indirect : on cherche un chemin via escales
             trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-            chemins_possibles = [(lieu_depart_id, 0, set())]  # (position, total, lieux_visités)
-
-            meilleur_cout = None
-
-            while chemins_possibles:
-                pos, cout, visites = chemins_possibles.pop()
-                visites = visites | {pos}
-
-                for t in trajets:
-                    if t['depart_id'] == pos and t['retour_id'] not in visites:
-                        nouveau_cout = cout + (t['montant'] or 0)
-                        if t['retour_id'] == lieu_retour_id:
-                            if meilleur_cout is None or nouveau_cout < meilleur_cout:
-                                meilleur_cout = nouveau_cout
-                        else:
-                            chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+            meilleur_cout = cout_trajet_indirect(trajets, lieu_depart_id, lieu_retour_id)
 
             total += (meilleur_cout or 0) * taux_change
 
@@ -2375,10 +2477,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         ).first()
         total += float(supplements_two.montant) * taux_change if supplements_two else 0
 
-        frais_dossier = search_option_DA("FRAIS_DOSSIER", total_days, lieu_depart)
+        options_zone = load_options_zone(OPTION_CODES_RECHERCHE, lieu_depart)
+
+        frais_dossier = format_option_DA(options_zone.get("FRAIS_DOSSIER"), total_days, taux)
         total += frais_dossier["total"] 
 
-        paiement_anticipe = search_option_DA("P_ANTICIPE", total_days, lieu_depart)
+        paiement_anticipe = format_option_DA(options_zone.get("P_ANTICIPE"), total_days, taux)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_name_en = paiement_anticipe["name_en"]
         opt_payment_name_ar = paiement_anticipe["name_ar"]
@@ -2386,10 +2490,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
-        vip_limit = search_option_DA("KLM_ILLIMITED", total_days, lieu_depart)
+        vip_limit = format_option_DA(options_zone.get("KLM_ILLIMITED"), total_days, taux)
         vip_limit_value = vip_limit["limit"]
 
-        klm_illimite = search_option_DA("KLM_ILLIMITED", total_days, lieu_depart)
+        klm_illimite = format_option_DA(options_zone.get("KLM_ILLIMITED"), total_days, taux)
         opt_klm_name = klm_illimite["name"]
         opt_klm_name_en = klm_illimite["name_en"]
         opt_klm_name_ar = klm_illimite["name_ar"]
@@ -2399,7 +2503,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_klm_limit = vip_limit_value if client is not None and client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
         
-        klm_illimite_b = search_option_DA("KLM_ILLIMITED_B", total_days, lieu_depart)
+        klm_illimite_b = format_option_DA(options_zone.get("KLM_ILLIMITED_B"), total_days, taux)
         opt_klm_b_name = klm_illimite_b["name"]
         opt_klm_b_name_en = klm_illimite_b["name_en"]
         opt_klm_b_name_ar = klm_illimite_b["name_ar"]
@@ -2409,7 +2513,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_klm_b_limit = vip_limit_value if client is not None and client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
-        klm_illimite_c = search_option_DA("KLM_ILLIMITED_C", total_days, lieu_depart)
+        klm_illimite_c = format_option_DA(options_zone.get("KLM_ILLIMITED_C"), total_days, taux)
         opt_klm_c_name = klm_illimite_c["name"]
         opt_klm_c_name_en = klm_illimite_c["name_en"]
         opt_klm_c_name_ar = klm_illimite_c["name_ar"]
@@ -2419,7 +2523,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_klm_c_limit =  vip_limit_value if client is not None and client.categorie_client.name == "VIP" and client.categorie_client is not None else klm_illimite_c["limit"] 
         opt_klm_c_penalite = klm_illimite_c["penalite"]
 
-        nd_driver = search_option_DA("ND_DRIVER", total_days, lieu_depart)
+        nd_driver = format_option_DA(options_zone.get("ND_DRIVER"), total_days, taux)
         opt_nd_driver_name = nd_driver["name"]
         opt_nd_driver_name_en = nd_driver["name_en"]
         opt_nd_driver_name_ar = nd_driver["name_ar"]
@@ -2427,7 +2531,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
-        plein_carburant = search_option_DA("P_CARBURANT", total_days, lieu_depart)
+        plein_carburant = format_option_DA(options_zone.get("P_CARBURANT"), total_days, taux)
         opt_carburant_name = plein_carburant["name"]
         opt_carburant_name_en = plein_carburant["name_en"]
         opt_carburant_name_ar = plein_carburant["name_ar"]
@@ -2435,7 +2539,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
-        siege_a = search_option_DA("S_BEBE_5", total_days, lieu_depart)
+        siege_a = format_option_DA(options_zone.get("S_BEBE_5"), total_days, taux)
         opt_siege_a_name = siege_a["name"]
         opt_siege_a_name_en = siege_a["name_en"]
         opt_siege_a_name_ar = siege_a["name_ar"]
@@ -2443,7 +2547,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
-        siege_b = search_option_DA("S_BEBE_13", total_days, lieu_depart)
+        siege_b = format_option_DA(options_zone.get("S_BEBE_13"), total_days, taux)
         opt_siege_b_name = siege_b["name"]
         opt_siege_b_name_en = siege_b["name_en"]
         opt_siege_b_name_ar = siege_b["name_ar"]
@@ -2451,7 +2555,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
-        siege_c = search_option_DA("S_BEBE_18", total_days, lieu_depart)
+        siege_c = format_option_DA(options_zone.get("S_BEBE_18"), total_days, taux)
         opt_siege_c_name = siege_c["name"]
         opt_siege_c_name_en = siege_c["name_en"]
         opt_siege_c_name_ar = siege_c["name_ar"]
@@ -2459,7 +2563,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
     
-        base_a = search_option_DA("BASE_P_1", total_days, lieu_depart)
+        base_a = format_option_DA(options_zone.get("BASE_P_1"), total_days, taux)
         base_a_name = base_a["name"]
         base_a_name_en = base_a["name_en"]
         base_a_name_ar = base_a["name_ar"]
@@ -2469,7 +2573,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         base_a_category = base_a["categorie"]
         base_a_caution = base_a["caution"]
 
-        base_b = search_option_DA("BASE_P_2", total_days, lieu_depart)
+        base_b = format_option_DA(options_zone.get("BASE_P_2"), total_days, taux)
         base_b_name = base_b["name"]
         base_b_name_en = base_b["name_en"]
         base_b_name_ar = base_b["name_ar"]
@@ -2479,7 +2583,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         base_b_category = base_b["categorie"]
         base_b_caution = base_b["caution"]
 
-        base_c = search_option_DA("BASE_P_3", total_days, lieu_depart)
+        base_c = format_option_DA(options_zone.get("BASE_P_3"), total_days, taux)
         base_c_name = base_c["name"]
         base_c_name_en = base_c["name_en"]
         base_c_name_ar = base_c["name_ar"]
@@ -2489,7 +2593,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         base_c_category = base_c["categorie"]
         base_c_caution = base_c["caution"]
 
-        standart_a = search_option_DA("STANDART_P_1", total_days, lieu_depart)
+        standart_a = format_option_DA(options_zone.get("STANDART_P_1"), total_days, taux)
         standart_a_name = standart_a["name"]
         standart_a_name_en = standart_a["name_en"]
         standart_a_name_ar = standart_a["name_ar"]
@@ -2498,7 +2602,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
-        standart_b = search_option_DA("STANDART_P_2", total_days, lieu_depart)
+        standart_b = format_option_DA(options_zone.get("STANDART_P_2"), total_days, taux)
         standart_b_name = standart_b["name"]
         standart_b_name_en = standart_b["name_en"]
         standart_b_name_ar = standart_b["name_ar"]
@@ -2507,7 +2611,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
 
-        standart_c = search_option_DA("STANDART_P_3", total_days, lieu_depart)
+        standart_c = format_option_DA(options_zone.get("STANDART_P_3"), total_days, taux)
         standart_c_name = standart_c["name"]
         standart_c_name_en = standart_c["name_en"]
         standart_c_name_ar = standart_c["name_ar"]
@@ -2516,7 +2620,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
-        max_a = search_option_DA("MAX_P_1", total_days, lieu_depart)
+        max_a = format_option_DA(options_zone.get("MAX_P_1"), total_days, taux)
         max_a_name = max_a["name"]
         max_a_name_en = max_a["name_en"]
         max_a_name_ar = max_a["name_ar"]
@@ -2525,7 +2629,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         max_a_total = max_a["total"] if max_a["total"] > max_a["min_prix"] else max_a["min_prix"]
         max_a_caution = max_a["caution"] 
 
-        max_b = search_option_DA("MAX_P_2", total_days, lieu_depart)
+        max_b = format_option_DA(options_zone.get("MAX_P_2"), total_days, taux)
         max_b_name = max_b["name"]
         max_b_name_en = max_b["name_en"]
         max_b_name_ar = max_b["name_ar"]
@@ -2534,7 +2638,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         max_b_total = max_b["total"] if max_b["total"] > max_b["min_prix"] else max_b["min_prix"]
         max_b_caution = max_b["caution"]
 
-        max_c = search_option_DA("MAX_P_3", total_days, lieu_depart)
+        max_c = format_option_DA(options_zone.get("MAX_P_3"), total_days, taux)
         max_c_name = max_c["name"]
         max_c_name_en = max_c["name_en"]
         max_c_name_ar = max_c["name_ar"]
@@ -2546,22 +2650,18 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         modeles_ajoutes = set()
         total_brut = 0
 
+        # Chargement groupé : modèles et catégories (2 requêtes), tarifs (1), suppléments (1)
+        prefetch_related_objects(available_vehicles, 'modele', 'categorie')
+        tarifs_par_modele = charger_tarifs_par_modele(available_vehicles, total_days, lieu_depart, date_depart, date_retour)
+        supplements_valeur = list(Supplement.objects.filter(valeur__gt=0))
+        model_ids_promo = [m for m in (model_one, model_two, model_three, model_four, model_five) if m is not None]
+
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
                 continue
 
             
-            tarifs_periodiques = Tarifs.objects.filter(
-                modele=vehicle.modele,
-                nbr_de__lte=total_days,
-                nbr_au__gte=total_days,
-                zone=lieu_depart.zone
-            ).filter(
-                Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) |
-                Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) |
-                Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) |
-                Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart)
-            )
+            tarifs_periodiques = tarifs_par_modele.get(vehicle.modele.id, [])
 
             # Construire une liste de (date_debut_periode, date_fin_periode, prix) depuis tous les tarifs trouvés
             periodes_prix = []
@@ -2595,8 +2695,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
                 total_primary = total
                 
-                supplements_valeur = Supplement.objects.filter(valeur__gt=0)
-                
+
                 for supplement in supplements_valeur:
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -2607,7 +2706,6 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 total_brut = total_primary + cout_total_tarif 
                 prix_unitaire = total_brut / total_days
                 # La promo s'applique-t-elle à CE véhicule ? (tous modèles ou modèle 1..5)
-                model_ids_promo = [m.id for m in (model_one, model_two, model_three, model_four, model_five) if m is not None]
                 promo_applicable = bool(promotions) and promotion_value > 0 and (
                     promotions.tout_modele == "oui" or vehicle.modele.id in model_ids_promo
                 )
@@ -2978,22 +3076,19 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                     })
     else :
-        lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
         if client_id:
-            client_status = check_client(client_id)  
+            # 1 seule lecture (avant : check_client + relecture du client)
             client = ListeClient.objects.filter(id=client_id).first()
-            
+
             if not client:
                 return {"message": "Client introuvable"}
-            
-            if client_status.get("message") == "negatif":
+
+            if client.risque == "eleve":
                 return {"message": "Client has a high risk, cannot proceed"}
-            elif client_status.get("message") == "positif":
+            else:
                 client_pr = client.reduction if client.reduction is not None else 0
                 client_sold = client.solde if client.solde is not None else 0
-            else:
-                return client_status 
-            
+
         prime_red = 0
         if prime_code and not client_id:
             parent_client = ListeClient.objects.filter(code_prime=prime_code).first() 
@@ -3005,7 +3100,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 else : 
                     prime_red = 0
 
-        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id,  lieu_depart_id, lieu_retour_id)
+        available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id,  lieu_depart_id, lieu_retour_id,
+                                                    lieu_depart_obj=lieu_depart, lieu_retour_obj=return_place)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         if frais_livraison :
@@ -3013,22 +3109,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 total += float(frais.montant) if frais else 0.00
         else :
             trajets = list(FraisLivraison.objects.all().values('depart_id', 'retour_id', 'montant'))
-            chemins_possibles = [(lieu_depart_id, 0, set())]  # (position, total, lieux_visités)
-
-            meilleur_cout = None
-
-            while chemins_possibles:
-                pos, cout, visites = chemins_possibles.pop()
-                visites = visites | {pos}
-
-                for t in trajets:
-                    if t['depart_id'] == pos and t['retour_id'] not in visites:
-                        nouveau_cout = cout + (t['montant'] or 0)
-                        if t['retour_id'] == lieu_retour_id:
-                            if meilleur_cout is None or nouveau_cout < meilleur_cout:
-                                meilleur_cout = nouveau_cout
-                        else:
-                            chemins_possibles.append((t['retour_id'], nouveau_cout, visites))
+            meilleur_cout = cout_trajet_indirect(trajets, lieu_depart_id, lieu_retour_id)
 
             total += float(meilleur_cout or 0)     
         supplements_one = Supplement.objects.filter(
@@ -3044,10 +3125,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
             
 
-        frais_dossier = search_option("FRAIS_DOSSIER", total_days, lieu_depart)
+        options_zone = load_options_zone(OPTION_CODES_RECHERCHE, lieu_depart)
+
+        frais_dossier = format_option(options_zone.get("FRAIS_DOSSIER"), total_days)
         total += float(frais_dossier["total"])
         
-        paiement_anticipe = search_option("P_ANTICIPE", total_days, lieu_depart)
+        paiement_anticipe = format_option(options_zone.get("P_ANTICIPE"), total_days)
         opt_payment_name = paiement_anticipe["name"]
         opt_payment_name_en = paiement_anticipe["name_en"]
         opt_payment_name_ar = paiement_anticipe["name_ar"]
@@ -3055,7 +3138,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
-        klm_illimite = search_option("KLM_ILLIMITED", total_days, lieu_depart)
+        klm_illimite = format_option(options_zone.get("KLM_ILLIMITED"), total_days)
         opt_klm_name = klm_illimite["name"]
         opt_klm_name_en = klm_illimite["name_en"]
         opt_klm_name_ar = klm_illimite["name_ar"]
@@ -3065,7 +3148,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_klm_limit = klm_illimite["limit"]
         opt_klm_penalite = klm_illimite["penalite"]
 
-        klm_illimite_b = search_option("KLM_ILLIMITED_B", total_days, lieu_depart)
+        klm_illimite_b = format_option(options_zone.get("KLM_ILLIMITED_B"), total_days)
         opt_klm_b_name = klm_illimite_b["name"]
         opt_klm_b_name_en = klm_illimite_b["name_en"]
         opt_klm_b_name_ar = klm_illimite_b["name_ar"]
@@ -3075,7 +3158,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_klm_b_limit = klm_illimite_b["limit"]
         opt_klm_b_penalite = klm_illimite_b["penalite"]
 
-        klm_illimite_c = search_option("KLM_ILLIMITED_C", total_days, lieu_depart)
+        klm_illimite_c = format_option(options_zone.get("KLM_ILLIMITED_C"), total_days)
         opt_klm_c_name = klm_illimite_c["name"]
         opt_klm_c_name_en = klm_illimite_c["name_en"]
         opt_klm_c_name_ar = klm_illimite_c["name_ar"]
@@ -3085,7 +3168,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_klm_c_limit = klm_illimite_c["limit"]
         opt_klm_c_penalite = klm_illimite_c["penalite"]
 
-        nd_driver = search_option("ND_DRIVER", total_days, lieu_depart)
+        nd_driver = format_option(options_zone.get("ND_DRIVER"), total_days)
         opt_nd_driver_name = nd_driver["name"]
         opt_nd_driver_name_en = nd_driver["name_en"]
         opt_nd_driver_name_ar = nd_driver["name_ar"]
@@ -3093,7 +3176,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_nd_driver_unit = nd_driver["prix"]
         opt_nd_driver_total = nd_driver["total"]
 
-        plein_carburant = search_option("P_CARBURANT", total_days, lieu_depart)
+        plein_carburant = format_option(options_zone.get("P_CARBURANT"), total_days)
         opt_carburant_name = plein_carburant["name"]
         opt_carburant_name_en = plein_carburant["name_en"]
         opt_carburant_name_ar = plein_carburant["name_ar"]
@@ -3101,7 +3184,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_carburant_unit = plein_carburant["prix"]
         opt_carburant_total = plein_carburant["total"]
 
-        siege_a = search_option("S_BEBE_5", total_days, lieu_depart)
+        siege_a = format_option(options_zone.get("S_BEBE_5"), total_days)
         opt_siege_a_name = siege_a["name"]
         opt_siege_a_name_en = siege_a["name_en"]
         opt_siege_a_name_ar = siege_a["name_ar"]
@@ -3109,7 +3192,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_a_unit = siege_a["prix"]
         opt_siege_a_total = siege_a["total"]
 
-        siege_b = search_option("S_BEBE_13", total_days, lieu_depart)
+        siege_b = format_option(options_zone.get("S_BEBE_13"), total_days)
         opt_siege_b_name = siege_b["name"]
         opt_siege_b_name_en = siege_b["name_en"]
         opt_siege_b_name_ar = siege_b["name_ar"]
@@ -3117,7 +3200,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_b_unit = siege_b["prix"]
         opt_siege_b_total = siege_b["total"]
 
-        siege_c = search_option("S_BEBE_18", total_days, lieu_depart)
+        siege_c = format_option(options_zone.get("S_BEBE_18"), total_days)
         opt_siege_c_name = siege_c["name"]
         opt_siege_c_name_en = siege_c["name_en"]
         opt_siege_c_name_ar = siege_c["name_ar"]
@@ -3125,7 +3208,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
 
-        base_a = search_option("BASE_P_1", total_days, lieu_depart)
+        base_a = format_option(options_zone.get("BASE_P_1"), total_days)
         base_a_name = base_a["name"]
         base_a_name_en = base_a["name_en"]
         base_a_name_ar = base_a["name_ar"]
@@ -3135,7 +3218,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         base_a_category = base_a["categorie"]
         base_a_caution = base_a["caution"]
 
-        base_b = search_option("BASE_P_2", total_days, lieu_depart)
+        base_b = format_option(options_zone.get("BASE_P_2"), total_days)
         base_b_name = base_b["name"]
         base_b_name_en = base_b["name_en"]
         base_b_name_ar = base_b["name_ar"]
@@ -3145,7 +3228,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         base_b_category = base_b["categorie"]
         base_b_caution = base_b["caution"]
 
-        base_c = search_option("BASE_P_3", total_days, lieu_depart)
+        base_c = format_option(options_zone.get("BASE_P_3"), total_days)
         base_c_name = base_c["name"]
         base_c_name_en = base_c["name_en"]
         base_c_name_ar = base_c["name_ar"]
@@ -3155,7 +3238,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         base_c_category = base_c["categorie"]
         base_c_caution = base_c["caution"]
 
-        standart_a = search_option("STANDART_P_1", total_days, lieu_depart)
+        standart_a = format_option(options_zone.get("STANDART_P_1"), total_days)
         standart_a_name = standart_a["name"]
         standart_a_name_en = standart_a["name_en"]
         standart_a_name_ar = standart_a["name_ar"]
@@ -3164,7 +3247,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         standart_a_total = standart_a["total"]
         standart_a_caution = standart_a["caution"]
 
-        standart_b = search_option("STANDART_P_2", total_days, lieu_depart)
+        standart_b = format_option(options_zone.get("STANDART_P_2"), total_days)
         standart_b_name = standart_b["name"]
         standart_b_name_en = standart_b["name_en"]
         standart_b_name_ar = standart_b["name_ar"]
@@ -3173,7 +3256,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         standart_b_total = standart_b["total"]
         standart_b_caution = standart_b["caution"]
 
-        standart_c = search_option("STANDART_P_3", total_days, lieu_depart)
+        standart_c = format_option(options_zone.get("STANDART_P_3"), total_days)
         standart_c_name = standart_c["name"]
         standart_c_name_en = standart_c["name_en"]
         standart_c_name_ar = standart_c["name_ar"]
@@ -3182,7 +3265,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         standart_c_total = standart_c["total"]
         standart_c_caution = standart_c["caution"]
 
-        max_a = search_option("MAX_P_1", total_days, lieu_depart)
+        max_a = format_option(options_zone.get("MAX_P_1"), total_days)
         max_a_name = max_a["name"]
         max_a_name_en = max_a["name_en"]
         max_a_name_ar = max_a["name_ar"]
@@ -3191,7 +3274,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         max_a_total = max_a["total"] if max_a["total"] > max_a["min_prix"] else max_a["min_prix"]
         max_a_caution = max_a["caution"] 
 
-        max_b = search_option("MAX_P_2", total_days, lieu_depart)
+        max_b = format_option(options_zone.get("MAX_P_2"), total_days)
         max_b_name = max_b["name"]
         max_b_name_en = max_b["name_en"]
         max_b_name_ar = max_b["name_ar"]
@@ -3200,7 +3283,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         max_b_total = max_b["total"] if max_b["total"] > max_b["min_prix"] else max_b["min_prix"]
         max_b_caution = max_b["caution"]
 
-        max_c = search_option("MAX_P_3", total_days, lieu_depart)
+        max_c = format_option(options_zone.get("MAX_P_3"), total_days)
         max_c_name = max_c["name"]
         max_c_name_en = max_c["name_en"]
         max_c_name_ar = max_c["name_ar"]
@@ -3212,21 +3295,17 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         modeles_ajoutes = set()
         total_brut = 0
 
+        # Chargement groupé : modèles et catégories (2 requêtes), tarifs (1), suppléments (1)
+        prefetch_related_objects(available_vehicles, 'modele', 'categorie')
+        tarifs_par_modele = charger_tarifs_par_modele(available_vehicles, total_days, lieu_depart, date_depart, date_retour)
+        supplements_valeur = list(Supplement.objects.filter(valeur__gt=0))
+        model_ids_promo = [m for m in (model_one, model_two, model_three, model_four, model_five) if m is not None]
+
         for vehicle in available_vehicles:
             if vehicle.modele.id in modeles_ajoutes:
                 continue
 
-            tarifs_periodiques = Tarifs.objects.filter(
-                modele=vehicle.modele,
-                nbr_de__lte=total_days,
-                nbr_au__gte=total_days,
-                zone=lieu_depart.zone
-            ).filter(
-                Q(date_depart_one__lte=date_retour, date_fin_one__gte=date_depart) |
-                Q(date_depart_two__lte=date_retour, date_fin_two__gte=date_depart) |
-                Q(date_depart_three__lte=date_retour, date_fin_three__gte=date_depart) |
-                Q(date_depart_four__lte=date_retour, date_fin_four__gte=date_depart)
-            )
+            tarifs_periodiques = tarifs_par_modele.get(vehicle.modele.id, [])
 
             # Construire une liste de (date_debut_periode, date_fin_periode, prix) depuis tous les tarifs trouvés
             periodes_prix = []
@@ -3260,7 +3339,6 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 prix_jour = cout_total_tarif / jours_couverts  # prix moyen pondéré
                 total_primary = total
 
-                supplements_valeur = Supplement.objects.filter(valeur__gt=0)
                 for supplement in supplements_valeur:
                     start_hour = float(heure_depart[:2]) + float(heure_depart[3:])/60
                     end_hour = float(heure_retour[:2]) + float(heure_retour[3:])/60
@@ -3272,7 +3350,6 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 prix_unitaire = total_brut / total_days
 
                 # La promo s'applique-t-elle à CE véhicule ? (tous modèles ou modèle 1..5)
-                model_ids_promo = [m.id for m in (model_one, model_two, model_three, model_four, model_five) if m is not None]
                 promo_applicable = bool(promotions) and promotion_value > 0 and (
                     promotions.tout_modele == "oui" or vehicle.modele.id in model_ids_promo
                 )

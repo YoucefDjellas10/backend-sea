@@ -630,6 +630,21 @@ class Tarifs(models.Model):
         db_table = 'tarifs'
         managed = False
 
+class TarifsDynamique(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Nom", null=True, blank=True)
+    pourcentage = models.IntegerField(verbose_name="Pourcentage", null=True, blank=True)
+    borne_inf = models.IntegerField(verbose_name="Borne inférieure", null=True, blank=True)
+    borne_sup = models.IntegerField(verbose_name="Borne supérieure", null=True, blank=True)
+    limit_pourcentage = models.IntegerField(verbose_name="Limite pourcentage", null=True, blank=True)
+    active = models.BooleanField(verbose_name="Actif", default=True)
+
+    class Meta:
+        db_table = 'tarifs_dynamique'
+        managed = False
+
+    def __str__(self):
+        return self.name or ''
+
 class TypeOptions(models.Model):
     name = models.CharField(
         max_length=255,
@@ -988,6 +1003,12 @@ class Reservation(models.Model):
         ('non', 'non')
     ]
 
+    TYPE_REDUCTION_CHOICES = [
+        ('promotion', 'Promotion'),
+        ('prime_reduction', 'Prime reduction'),
+        ('promotion_dynamique', 'Promotion dynamique')
+    ]
+
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=10, unique=True, editable=False, default='')
     country_code = models.CharField(max_length=10, unique=True, editable=False, default='')
@@ -1012,6 +1033,8 @@ class Reservation(models.Model):
                                 db_column='parrain', 
                                 related_name='parrain_reservations',
                                 null=True, blank=True)
+    type_reduction = models.CharField(max_length=30, choices=TYPE_REDUCTION_CHOICES, null=True, blank=True)
+    valeur_reduction = models.IntegerField(default=0, null=True, blank=True)
 
     kilometrage_autorise = models.IntegerField()
     lieu_depart = models.ForeignKey('Lieux', on_delete=models.CASCADE,db_column='lieu_depart', related_name='lieu_depart_reservations')
