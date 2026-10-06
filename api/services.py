@@ -3,7 +3,7 @@ from datetime import datetime
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import make_aware
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from django.db import transaction
 from django.core.mail import send_mail
 from django.conf import settings
@@ -2069,6 +2069,15 @@ def free_options_f(client_id):
     return free_options
 
 
+def periode_entierement_couverte(periodes_prix, date_depart, date_retour):
+    # Chaque jour de location [date_depart, date_retour[ doit être couvert par au moins une période tarifaire
+    jour = date_depart
+    while jour < date_retour:
+        if not any(debut <= jour <= fin for debut, fin, _ in periodes_prix):
+            return False
+        jour += timedelta(days=1)
+    return True
+
 def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
     try:
         date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
@@ -2576,6 +2585,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     fin = getattr(t, fin_field)
                     if debut and fin and debut <= date_retour and fin >= date_depart:
                         periodes_prix.append((debut, fin, t.prix))
+
+            # Pas de tarif pour au moins un jour de la location -> modèle non disponible
+            if not periode_entierement_couverte(periodes_prix, date_depart, date_retour):
+                continue
 
             # Calculer le coût total en fonction du chevauchement de chaque période
             cout_total_tarif = 0
@@ -3242,6 +3255,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     if debut and fin and debut <= date_retour and fin >= date_depart:
                         periodes_prix.append((debut, fin, t.prix))
 
+            # Pas de tarif pour au moins un jour de la location -> modèle non disponible
+            if not periode_entierement_couverte(periodes_prix, date_depart, date_retour):
+                continue
+
             # Calculer le coût total en fonction du chevauchement de chaque période
             cout_total_tarif = 0
             jours_couverts = 0
@@ -3635,8 +3652,11 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                     })
 
+    if not result:
+        return {"message": "Aucun véhicule disponible pour cette période"}
+
     result.sort(key=lambda x: x["last_total"])
-    return result 
+    return result
 
             
 
