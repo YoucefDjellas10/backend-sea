@@ -7914,8 +7914,6 @@ def create_complement_payment_reservation(request):
                 "number_retour": reservation.lieu_retour.mobile,
                 "address_retour": reservation.lieu_retour.address,
                 "lieu_retour_id": f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
-
-
             })
 
             send_mail(
