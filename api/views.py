@@ -7886,7 +7886,55 @@ def create_complement_payment_reservation(request):
             }
         )
 
-        return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
+        # Envoi du lien de paiement par mail (template email/complement_payment.html)
+        mail_envoye = False
+        try:
+            sujet = f"Safar El Amir – Réservation n° {reservation.name} – Complément de paiement"
+            expediteur = settings.DEFAULT_FROM_EMAIL
+
+            html_message = render_to_string('email/complement_payment.html', {
+                "reference": reservation.name,
+                "client_name": reservation.client.name,
+                "payment_method": "En ligne",
+                "payment_amount": round(float(reservation.reste_payer), 2),
+                "reste_amouont": 0,
+                "url": checkout_session.url,
+                "model_name": reservation.model_name,
+                "total_days": reservation.nbr_jour_reservation,
+                "caution": reservation.opt_protection_caution,
+                "date_depart": reservation.date_depart_char,
+                "heure_depart": reservation.heure_depart_char,
+                "lieu_depart": reservation.lieu_depart.name,
+                "number_depart": reservation.lieu_depart.mobile,
+                "address_depart": reservation.lieu_depart.address,
+                "lieu_depart_id": f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
+                "date_retour": reservation.date_retour_char,
+                "heure_retour": reservation.heure_retour_char,
+                "lieu_retour": reservation.lieu_retour.name,
+                "number_retour": reservation.lieu_retour.mobile,
+                "address_retour": reservation.lieu_retour.address,
+                "lieu_retour_id": f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+
+
+            })
+
+            send_mail(
+                sujet,
+                strip_tags(html_message),
+                expediteur,
+                [customer_email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            mail_envoye = True
+        except Exception as e:
+            logger.error("Envoi mail complément de paiement impossible (réservation %s) : %s", reservation_id, e)
+
+        return JsonResponse({
+            "session_id": checkout_session.id,
+            "url": checkout_session.url,
+            "mail_envoye": mail_envoye,
+        }, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
