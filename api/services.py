@@ -2591,8 +2591,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_solde = True
                     solde_anterieur = client_sold
-                    montant_promotion = solde_anterieur
-                    percentage = round(float(client_sold) * 100 / float(total_brut),2)
+                    # Cumul avec une promo / réduction client : on garde son pourcentage et son montant exacts
+                    if not percentage or percentage <= 0:
+                        montant_promotion = solde_anterieur
+                        percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     # Solde soustrait en plus de la promo / réduction client (minimum 5 € converti en DA)
                     total_red = max(float(total_red) - float(client_sold), 5 * taux_change)
                     prix_unitaire_red = float(total_red) / float(total_days)
@@ -3260,8 +3262,10 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_solde = True
                     solde_anterieur = client_sold
-                    montant_promotion = solde_anterieur
-                    percentage = round(float(client_sold) * 100 / float(total_brut),2)
+                    # Cumul avec une promo / réduction client : on garde son pourcentage et son montant exacts
+                    if not percentage or percentage <= 0:
+                        montant_promotion = solde_anterieur
+                        percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     # Solde soustrait en plus de la promo / réduction client (minimum 5 €)
                     total_red = max(float(total_red) - float(client_sold), 5)
                     prix_unitaire_red = float(total_red) / float(total_days)
