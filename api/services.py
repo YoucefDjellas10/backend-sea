@@ -779,21 +779,96 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 print("### ERREUR: pas de vehicule actif -> return")
                 return {"message": "pas de vehicule"}
 
-            vehicle_reservations = Reservation.objects.filter(vehicule=vehicule)
-            print(f"*** vehicle_reservations count = {vehicle_reservations.count()}")
             client_id = record.client.id
             print(f"*** client_id = {client_id}")
+            lieu_retour_obj = Lieux.objects.get(id=int(lieu_retour))
+
+            # Dates saisies = heure locale (Africa/Algiers) ; la base stocke en UTC sans fuseau
+            def as_utc(dt):
+                return timezone.make_aware(dt, dt_timezone.utc) if timezone.is_naive(dt) else dt.astimezone(dt_timezone.utc)
+
+            nouveau_debut_utc = timezone.make_aware(
+                datetime.strptime(f"{date_depart} {heure_depart}", '%Y-%m-%d %H:%M')).astimezone(dt_timezone.utc)
+            nouvelle_fin_utc = timezone.make_aware(
+                datetime.strptime(f"{date_retour} {heure_retour}", '%Y-%m-%d %H:%M')).astimezone(dt_timezone.utc)
+            location_commencee = as_utc(record.date_heure_debut) <= timezone.now()
+            print(f"*** nouveau_debut_utc = {nouveau_debut_utc} | nouvelle_fin_utc = {nouvelle_fin_utc} | location_commencee = {location_commencee}")
+
+            # ── Disponibilité : réservations + buffers + BlockCar ─────────────
+            # Buffer après le retour (même règle que la recherche de véhicules)
+            zone_depart = lieu_depart_obj.zone
+            zone_retour = lieu_retour_obj.zone
+            if zone_depart and zone_retour and zone_depart.id != zone_retour.id:
+                buffer_retour_hours = 24
+            elif zone_depart and zone_depart.id in [1, 2, 16]:
+                buffer_retour_hours = 1
+            elif lieu_depart_obj.id == 4 and lieu_retour_obj.id == 4:
+                buffer_retour_hours = 1
+            else:
+                buffer_retour_hours = 5
+
+            # Si la location a commencé, le départ ne change pas : pas de buffer avant le départ
+            buffer_depart_defaut = timedelta(hours=0) if location_commencee else timedelta(hours=1)
+            debut_avec_buffer = nouveau_debut_utc - buffer_depart_defaut
+            fin_avec_buffer = nouvelle_fin_utc + timedelta(hours=buffer_retour_hours)
+            print(f"*** buffer_retour_hours = {buffer_retour_hours} | debut_avec_buffer = {debut_avec_buffer} | fin_avec_buffer = {fin_avec_buffer}")
+
             is_available = True
 
-            for reservation in vehicle_reservations:
-                if (date_depart_heure < reservation.date_heure_fin and
-                    date_retour_heure > reservation.date_heure_debut and
-                    ref != reservation.name and
-                    reservation.status == "confirmee"):
-                    print(f"### CONFLIT detecte avec reservation {reservation.name} "
-                          f"(debut={reservation.date_heure_debut} fin={reservation.date_heure_fin})")
+            conflits = Reservation.objects.filter(
+                vehicule=vehicule,
+                status="confirmee",
+                date_heure_debut__lt=fin_avec_buffer,
+                date_heure_fin__gt=debut_avec_buffer,
+            ).exclude(name=ref)
+            if conflits.exists():
+                print(f"### CONFLIT detecte avec reservation(s) {list(conflits.values_list('name', flat=True))}")
+                is_available = False
+
+            # Buffer après la réservation précédente du véhicule (seulement si le départ peut changer)
+            if is_available and not location_commencee:
+                derniere_res = Reservation.objects.filter(
+                    vehicule=vehicule,
+                    status="confirmee",
+                    date_heure_fin__lt=nouveau_debut_utc,
+                ).exclude(name=ref).order_by('-date_heure_fin').first()
+
+                if derniere_res:
+                    try:
+                        ld_res = derniere_res.lieu_depart
+                        lr_res = derniere_res.lieu_retour
+                        zone_depart_res = ld_res.zone if ld_res else None
+                        zone_retour_res = lr_res.zone if lr_res else None
+                        meme_lieu = lr_res is not None and lr_res.id == lieu_depart_obj.id
+
+                        if zone_depart_res and zone_retour_res and zone_depart_res.id != zone_retour_res.id:
+                            buffer_depart_hours = 24
+                        elif zone_depart_res and zone_depart_res.id in [1, 2, 16]:
+                            buffer_depart_hours = 1
+                        elif (ld_res and ld_res.id == 4) or (lr_res and lr_res.id == 4):
+                            if zone_depart and zone_depart.id == 3 and not meme_lieu:
+                                buffer_depart_hours = 5
+                            else:
+                                buffer_depart_hours = 1
+                        else:
+                            buffer_depart_hours = 5
+                    except Exception:
+                        buffer_depart_hours = 5
+
+                    if as_utc(derniere_res.date_heure_fin) + timedelta(hours=buffer_depart_hours) > nouveau_debut_utc:
+                        print(f"### BUFFER non respecte apres reservation {derniere_res.name} "
+                              f"(fin={derniere_res.date_heure_fin} buffer={buffer_depart_hours}h)")
+                        is_available = False
+
+            if is_available:
+                blockage = BlockCar.objects.filter(
+                    vehicule=vehicule,
+                    date_from__lte=datetime.strptime(date_retour, "%Y-%m-%d").date(),
+                    date_to__gte=datetime.strptime(date_depart, "%Y-%m-%d").date(),
+                )
+                if blockage.exists():
+                    print("### VEHICULE BLOQUE (BlockCar) sur les nouvelles dates")
                     is_available = False
-                    break
 
             print(f"*** is_available (apres check conflits) = {is_available}")
             if not is_available:
@@ -813,175 +888,24 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             date_depart_obj = datetime.strptime(date_depart, "%Y-%m-%d").date()
             date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d").date()
             total_days = (date_retour_obj - date_depart_obj).days
-            today = datetime.today().date()
             print(f"*** date_depart_obj={date_depart_obj} date_retour_obj={date_retour_obj}")
-            print(f"*** total_days = {total_days} | today = {today}")
+            print(f"*** total_days = {total_days}")
 
-            # ── Promotions (même logique que search_result_vehicule) ──────────
-            promotions = Promotion.objects.filter(
-                debut_visibilite__lte=today,
-                fin_visibilite__gte=today,
-                date_debut__lte=date_retour_obj,
-                date_fin__gte=date_depart_obj,
-                active_passive=True
-            ).first()
-            if promotions and promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
-                promotions_records = Promotion.objects.filter(
-                        date_debut__lte=date_retour, 
-                        date_fin__gte=date_depart,    
-                        active_passive=True
-                    )
-                for promo in promotions_records :
-                    if promotions.zone_one != lieu_depart_obj.zone and promotions.zone_three != lieu_depart_obj.zone and promotions.zone_two != lieu_depart_obj.zone:
-                        promotions = promo
-            print(f"*** promotions trouvee = {promotions}")
-
-            promotion_value = 0
-            model_one = model_two = model_three = model_four = model_five = None
-
-            if promotions:
-                debut_chevauchement = max(promotions.date_debut, date_depart_obj)
-                fin_chevauchement = min(promotions.date_fin, date_retour_obj)
-                jours_promo = (fin_chevauchement - debut_chevauchement).days
-                promotion_base = promotions.reduction
-                print(f"*** jours_promo = {jours_promo} | promotion_base = {promotion_base}")
-
-                if jours_promo >= total_days:
-                    promotion_proportionnelle = promotion_base
-                elif total_days > 0:
-                    promotion_proportionnelle = (promotion_base * jours_promo) / total_days
-                else:
-                    promotion_proportionnelle = 0
-                print(f"*** promotion_proportionnelle = {promotion_proportionnelle}")
-
-                if promotions.tout_modele == "oui" and promotions.tout_zone == "oui":
-                    promotion_value = promotion_proportionnelle
-                    print(f"*** [promo] tout_modele=oui tout_zone=oui -> promotion_value={promotion_value}")
-
-                elif promotions.tout_modele == "oui" and promotions.tout_zone == "non":
-                    if lieu_depart_obj.zone in [promotions.zone_one, promotions.zone_two, promotions.zone_three]:
-                        promotion_value = promotion_proportionnelle
-                        print(f"*** [promo] tout_modele=oui tout_zone=non (zone OK) -> promotion_value={promotion_value}")
-
-                elif (promotions.tout_modele in ["non", "aleatoire"]) and promotions.tout_zone == "oui":
-                    promotion_value = promotion_proportionnelle
-                    model_one = promotions.model_one
-                    model_two = promotions.model_two
-                    model_three = promotions.model_three
-                    model_four = promotions.model_four
-                    model_five = promotions.model_five
-                    print(f"*** [promo] tout_modele=non/aleatoire tout_zone=oui -> promotion_value={promotion_value}")
-
-                elif (promotions.tout_modele in ["non", "aleatoire"]) and promotions.tout_zone == "non":
-                    if lieu_depart_obj.zone in [promotions.zone_one, promotions.zone_two, promotions.zone_three]:
-                        promotion_value = promotion_proportionnelle
-                        model_one = promotions.model_one
-                        model_two = promotions.model_two
-                        model_three = promotions.model_three
-                        model_four = promotions.model_four
-                        model_five = promotions.model_five
-                        print(f"*** [promo] tout_modele=non/aleatoire tout_zone=non (zone OK) -> promotion_value={promotion_value}")
-
-            # ── Reduction client ──────────────────────────────────────────────
-            client_pr = 0
-            if record.client and record.client.reduction is not None and record.client.reduction > 0:
-                client_pr = record.client.reduction
-            print(f"*** client_pr = {client_pr}")
-
-            # Promotion finale = max(client, promo globale)
-            # (la promo par modèle sera vérifiée après)
-            effective_promotion = client_pr if client_pr > promotion_value else promotion_value
-            print(f"*** effective_promotion (initial) = {effective_promotion}")
-
-            # ── Tarifs périodiques avec chevauchement ────────────────────────
-            tarifs_periodiques = Tarifs.objects.filter(
-                modele=record.modele,
-                zone=lieu_depart_obj.zone,
-                nbr_de__lte=total_days,
-                nbr_au__gte=total_days,
-            ).filter(
-                Q(date_depart_one__lte=date_retour_obj, date_fin_one__gte=date_depart_obj) |
-                Q(date_depart_two__lte=date_retour_obj, date_fin_two__gte=date_depart_obj) |
-                Q(date_depart_three__lte=date_retour_obj, date_fin_three__gte=date_depart_obj) |
-                Q(date_depart_four__lte=date_retour_obj, date_fin_four__gte=date_depart_obj)
-            )
-            print(f"*** tarifs_periodiques count = {tarifs_periodiques.count()}")
-
-            periodes_prix = []
-            for t in tarifs_periodiques:
-                for debut_field, fin_field in [
-                    ('date_depart_one', 'date_fin_one'),
-                    ('date_depart_two', 'date_fin_two'),
-                    ('date_depart_three', 'date_fin_three'),
-                    ('date_depart_four', 'date_fin_four'),
-                ]:
-                    debut = getattr(t, debut_field)
-                    fin = getattr(t, fin_field)
-                    if debut and fin and debut <= date_retour_obj and fin >= date_depart_obj:
-                        periodes_prix.append((debut, fin, t.prix))
-                        print(f"*** periode ajoutee: debut={debut} fin={fin} prix={t.prix}")
-
-            print(f"*** periodes_prix total = {periodes_prix}")
-            if not periodes_prix:
-                print("### ERREUR: aucune periode de prix trouvee -> return")
-                result.append({'is_available': "no", 'can_be_midified': "no"})
-                return result
-
-            cout_total_tarif = 0
-            jours_couverts = 0
-
-            for debut, fin, prix in periodes_prix:
-                chevauchement_debut = max(debut, date_depart_obj)
-                chevauchement_fin = min(fin, date_retour_obj)
-                jours = (chevauchement_fin - chevauchement_debut).days
-                if jours > 0:
-                    jours_couverts += jours
-                    cout_total_tarif += jours * float(prix)
-                    print(f"*** chevauchement: jours={jours} prix={prix} -> cumul cout_total_tarif={cout_total_tarif}")
-
-            print(f"*** jours_couverts total = {jours_couverts} | cout_total_tarif total = {cout_total_tarif}")
-            if jours_couverts == 0:
-                print("### ERREUR: jours_couverts == 0 -> return")
-                result.append({'is_available': "no", 'can_be_midified': "no"})
-                return result
-
-            prix_jour = cout_total_tarif / jours_couverts
-            print(f"*** prix_jour = {prix_jour}")
-
-            # ── Appliquer promotion par modèle si nécessaire ─────────────────
-            modele_id = record.modele.id if record.modele else None
-            modeles_promo = [m.id for m in [model_one, model_two, model_three, model_four, model_five] if m is not None]
-            print(f"*** modele_id = {modele_id} | modeles_promo = {modeles_promo}")
-
-            if promotions and promotions.tout_modele in ["non", "aleatoire"] and modele_id in modeles_promo:
-                effective_promotion = promotion_value
-                print(f"*** effective_promotion mis a jour (modele dans promo) = {effective_promotion}")
-            elif promotions and promotions.tout_modele == "oui":
-                effective_promotion = promotion_value
-                print(f"*** effective_promotion mis a jour (tout_modele=oui) = {effective_promotion}")
-            else:
-                effective_promotion = 0
-
-            if client_pr > effective_promotion:
-                effective_promotion = client_pr
-                print(f"*** effective_promotion mis a jour (client_pr > promotion_value) = {effective_promotion}")
-                
-            print(f"*** effective_promotion FINAL = {effective_promotion}")
+            # ── Tarif de la réservation initiale (pas de recalcul des tarifs/promotions) ──
+            prix_jour = float(record.prix_jour or 0)
+            valeur_reduction = record.valeur_reduction or 0
+            feuil_red = float(record.feuil_red or 0)
+            print(f"*** prix_jour (reservation) = {prix_jour} | valeur_reduction = {valeur_reduction} | feuil_red = {feuil_red}")
 
             # ── Frais fixes ──────────────────────────────────────────────────
-            total_fixe = Decimal(0)
-
-            frais_dossier = Options.objects.filter(option_code="FRAIS_DOSSIER", zone=lieu_depart_obj.zone).first()
-            print(f"*** frais_dossier = {frais_dossier}")
-            if frais_dossier:
-                total_fixe += Decimal(frais_dossier.prix)
-                print(f"*** total_fixe (apres frais_dossier) = {total_fixe}")
+            # Frais de dossier : repris de la réservation
+            total_fixe = Decimal(record.frais_de_dossier or 0)
+            print(f"*** total_fixe (frais_de_dossier reservation) = {total_fixe}")
 
             lieu_depart_int = int(lieu_depart)
             lieu_retour_int = int(lieu_retour)
             print(f"*** lieu_depart_int={lieu_depart_int} lieu_retour_int={lieu_retour_int}")
 
-            lieu_retour_obj = Lieux.objects.get(id=lieu_retour_int)
             frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_obj, retour_id=lieu_retour_obj)
             print(f"*** frais_livraison list = {frais_livraison}")
             print(f"*** frais_livraison direct count = {frais_livraison.count() if frais_livraison else 0}")
@@ -1031,6 +955,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             total_fixe += Decimal(supplements_two.montant) if supplements_two else 0
             print(f"*** total_fixe (apres supplements_two) = {total_fixe}")
 
+            # Retour tardif : prix_jour de la réservation × valeur %
             supplements_valeur = Supplement.objects.filter(valeur__gt=0)
             print(f"*** supplements_valeur count = {supplements_valeur.count()}")
             total_primary = float(total_fixe)
@@ -1044,7 +969,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     total_primary += (prix_jour * supplement.valeur) / 100
                     print(f"*** total_primary mis a jour (duration > reatrd) = {total_primary}")
 
-            # ── Options de la réservation ─────────────────────────────────────
+            # ── Options de la réservation (recalculées, gratuites = 0) ─────────
             free_options = free_options_f(client_id)
             if free_options:
                 free_options = free_options[0]
@@ -1052,64 +977,74 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 free_options = {}
             print(f"*** free_options = {free_options}")
 
+            def prix_option(option):
+                prix = float(option.prix or 0)
+                return prix * total_days if option.type_tarif == "jour" else prix
+
             options_total = 0
-            protection_price = 0
-            if record.opt_payment_name:
-                options_total += float(record.opt_payment_total) if record.opt_payment_total else 0
+
+            # Paiement anticipé : montant fixe
+            if record.opt_payment_id:
+                if not free_options.get("option_six"):
+                    options_total += float(record.opt_payment.prix or 0)
                 print(f"*** options_total (apres opt_payment) = {options_total}")
+
             if record.opt_klm:
                 if not (free_options.get("option_seven") and "KLM" in record.opt_klm.option_code):
-                    options_total += float(record.opt_klm.prix) * total_days if record.opt_klm.type_tarif == "jour" else float(record.opt_klm.prix)
-                    print(f"*** options_total (apres opt_klm) = {options_total}")
+                    options_total += prix_option(record.opt_klm)
+                print(f"*** options_total (apres opt_klm) = {options_total}")
 
+            # Protection : même règle que la création
             if record.opt_protection:
-                if not (free_options.get("option_eight") and "MAX" in record.opt_protection.option_code):
-                    protection_price = float(record.opt_protection.prix) * total_days if record.opt_protection.type_tarif == "jour" else float(record.opt_protection.prix)
-                    protection_price = protection_price if protection_price is not None else 0
-                    min_price_prot = record.opt_protection.min_prix if record.opt_protection.min_prix and record.opt_protection.min_prix is not None else 0
-                    options_total += protection_price if protection_price and min_price_prot and protection_price >= min_price_prot else min_price_prot
-                    print(f"*** options_total (apres opt_protection) = {options_total}")
+                code_protection = record.opt_protection.option_code or ""
+                if "MAX" in code_protection:
+                    est_vip = bool(record.client.categorie_client and "VIP" in (record.client.categorie_client.name or ""))
+                    if free_options.get("option_eight") or est_vip:
+                        protection_price = 0
+                    else:
+                        protection = record.opt_protection
+                        protection_price = prix_option(protection)
+                        if code_protection == "MAX_P_1" and protection.min_prix is not None and protection.min_prix >= float(protection.prix or 0) * total_days:
+                            protection_price = float(protection.min_prix)
+                        if protection_price < 30:
+                            protection_price = 30
+                else:
+                    protection_price = prix_option(record.opt_protection)
+                options_total += protection_price
+                print(f"*** options_total (apres opt_protection {code_protection}={protection_price}) = {options_total}")
 
             if record.opt_nd_driver:
                 if not (free_options.get("option_one") and "DRIVER" in record.opt_nd_driver.option_code):
-                    options_total += float(record.opt_nd_driver.prix) * total_days if record.opt_nd_driver.type_tarif == "jour" else float(record.opt_nd_driver.prix)
-                    print(f"*** options_total (apres opt_nd_driver) = {options_total}")
+                    options_total += prix_option(record.opt_nd_driver)
+                print(f"*** options_total (apres opt_nd_driver) = {options_total}")
             if record.opt_plein_carburant:
                 if not (free_options.get("option_two") and "CARBURANT" in record.opt_plein_carburant.option_code):
-                    options_total += float(record.opt_plein_carburant.prix) * total_days if record.opt_plein_carburant.type_tarif == "jour" else float(record.opt_plein_carburant.prix)
-                    print(f"*** options_total (apres opt_plein_carburant) = {options_total}")
+                    options_total += prix_option(record.opt_plein_carburant)
+                print(f"*** options_total (apres opt_plein_carburant) = {options_total}")
             if record.opt_siege_a:
                 if not (free_options.get("option_three") and "S_BEBE_5" in record.opt_siege_a.option_code):
-                    options_total += float(record.opt_siege_a.prix) * total_days if record.opt_siege_a.type_tarif == "jour" else float(record.opt_siege_a.prix)
-                    print(f"*** options_total (apres opt_siege_a) = {options_total}")
+                    options_total += prix_option(record.opt_siege_a)
+                print(f"*** options_total (apres opt_siege_a) = {options_total}")
             if record.opt_siege_b:
                 if not (free_options.get("option_four") and "S_BEBE_13" in record.opt_siege_b.option_code):
-                    options_total += float(record.opt_siege_b.prix) * total_days if record.opt_siege_b.type_tarif == "jour" else float(record.opt_siege_b.prix)
-                    print(f"*** options_total (apres opt_siege_b) = {options_total}")
+                    options_total += prix_option(record.opt_siege_b)
+                print(f"*** options_total (apres opt_siege_b) = {options_total}")
             if record.opt_siege_c:
-                if not (free_options.get("option_huite") and "S_BEBE_18" in record.opt_siege_c.option_code):
-                    options_total += float(record.opt_siege_c.prix) * total_days if record.opt_siege_c.type_tarif == "jour" else float(record.opt_siege_c.prix)
-                    print(f"*** options_total (apres opt_siege_c) = {options_total}")
+                if not (free_options.get("option_five") and "S_BEBE_18" in record.opt_siege_c.option_code):
+                    options_total += prix_option(record.opt_siege_c)
+                print(f"*** options_total (apres opt_siege_c) = {options_total}")
 
             print(f"*** options_total FINAL = {options_total}")
 
-            # ── Total brut et réduit ──────────────────────────────────────────
-            total_brut = 0 
-            print(f"######## total_primary = {total_primary}")
-            print(f"######## cout_total_tarif = {cout_total_tarif}")
-            print(f"######## options_total = {options_total}")
-            print(f"######## total_brut = {total_brut}")
-            total_brut = total_primary + cout_total_tarif + options_total
-            print(f"*** total_brut = {total_brut}")
+            # ── Location : prix_jour × nouveaux jours − réduction % + parrainage ──
+            cout_location = prix_jour * total_days
+            if valeur_reduction > 0:
+                cout_location = cout_location * (100 - valeur_reduction) / 100
+            cout_location += feuil_red  # feuil_red est stocké en négatif
+            print(f"*** cout_location = {cout_location}")
 
-            print(f"######## effective_promotion = {effective_promotion}")
-            if effective_promotion > 0:
-                tarif_reduit = ((100 - effective_promotion) * prix_jour / 100) * total_days
-                total_new = float(total_primary) + float(tarif_reduit) + float(options_total)
-                print(f"*** [promo appliquee] tarif_reduit = {tarif_reduit} | total_new = {total_new}")
-            else:
-                total_new = total_brut
-                print(f"*** [pas de promo] total_new = total_brut = {total_new}")
+            total_new = float(total_primary) + float(cout_location) + float(options_total)
+            print(f"*** total_new = {total_new}")
 
             # ── Taux de change ────────────────────────────────────────────────
             taux = TauxChange.objects.filter(id=2).first()
