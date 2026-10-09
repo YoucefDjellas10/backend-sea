@@ -1041,7 +1041,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             if valeur_reduction > 0:
                 cout_location = cout_location * (100 - valeur_reduction) / 100
             cout_location += feuil_red  # feuil_red est stocké en négatif
-            print(f"*** cout_location = {cout_location}")
+            solde_utilise = float(record.solde_utilise or 0)
+            if solde_utilise > 0:
+                cout_location -= solde_utilise
+            print(f"*** solde_utilise = {solde_utilise} | cout_location = {cout_location}")
 
             total_new = float(total_primary) + float(cout_location) + float(options_total)
             print(f"*** total_new = {total_new}")
