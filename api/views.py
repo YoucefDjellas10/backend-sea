@@ -5535,6 +5535,55 @@ def stripe_webhook_reservation_(request):
                 for lv in livraison:
                     lv.total_reduit_euro -= Decimal(montant)
                     lv.save()
+
+                if reservation.status == "en_attend":
+                    fake_request = RequestFactory().get(
+                        "/confirme-reservation/",
+                        {"reservation_id": reservation.id},
+                    )
+                    confirm_response = confirme_reservation_view(fake_request)
+                    if confirm_response.status_code != 200:
+                        logger.error(
+                            "Confirmation automatique impossible après complément (réservation %s) : %s",
+                            reservation.id, confirm_response.content.decode("utf-8", errors="ignore"),
+                        )
+
+                        # Alerte à l'équipe : le client a payé mais le véhicule n'est plus disponible
+                        try:
+                            raison = json.loads(confirm_response.content).get("operation", "")
+                        except ValueError:
+                            raison = ""
+
+                        try:
+                            sujet_alerte = f"⚠️ Réservation {reservation.name} – Véhicule plus disponible après paiement du complément"
+                            html_alerte = f"""
+                                <p>Bonjour,</p>
+                                <p>Le client <strong>{reservation.client.name or ''}</strong> ({reservation.email or ''} – {reservation.mobile or ''})
+                                a réglé le complément de paiement de la réservation <strong>{reservation.name}</strong>,
+                                mais il a pris du temps pour régler son compte et le véhicule n'est plus disponible.
+                                La réservation n'a donc pas pu être confirmée automatiquement.</p>
+                                <ul>
+                                    <li>Modèle : {reservation.model_name}</li>
+                                    <li>Véhicule : {reservation.vehicule}</li>
+                                    <li>Départ : {reservation.date_depart_char} à {reservation.heure_depart_char} – {reservation.lieu_depart.name}</li>
+                                    <li>Retour : {reservation.date_retour_char} à {reservation.heure_retour_char} – {reservation.lieu_retour.name}</li>
+                                    <li>Montant payé (complément) : {round(montant, 2)} €</li>
+                                    <li>Total payé : {reservation.montant_paye} €</li>
+                                    <li>Raison : {raison or 'Le véhicule n est pas disponible.'}</li>
+                                </ul>
+                                <p><strong>Action requise :</strong> changer le véhicule de la réservation,
+                                ou rembourser le montant au client et annuler la réservation.</p>
+                            """
+                            send_mail(
+                                sujet_alerte,
+                                strip_tags(html_alerte),
+                                settings.DEFAULT_FROM_EMAIL,
+                                ["contact@safarelamir.com"],
+                                html_message=html_alerte,
+                                fail_silently=False,
+                            )
+                        except Exception as e:
+                            logger.error("Envoi alerte véhicule indisponible impossible (réservation %s) : %s", reservation.id, e)
         else:
             print(f"Paiement réussi mais modification non reussi !!!!!!!!")
 
