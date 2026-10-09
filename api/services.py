@@ -1091,7 +1091,8 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 credit_amount = (float(get_total) - float(total_new)) / 2.0
                 print(f"*** [credit] credit=yes credit_amount={credit_amount}")
 
-            if remaining_date > 0 or (float(new_total) - float(record.montant_paye)) < 1:
+            montant_paye = float(record.montant_paye or 0)
+            if remaining_date > 0 or (float(new_total) - montant_paye) < 1:
                 payment_required = "no"
                 
             else:
@@ -1100,10 +1101,10 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
 
             if new_total < old_total:
                 print(f"*** new_total ({new_total}) < old_total ({old_total})")
-                if not record.opt_payment_name and new_total < float(record.montant_paye) and remaining_date > 14 and record.nbr_jour_reservation > 3:
+                if not record.opt_payment_name and new_total < montant_paye and remaining_date > 14 and record.nbr_jour_reservation > 3:
                     
-                    refund_amount = (float(record.montant_paye) - float(new_total))
-                    therty_percent = float(record.montant_paye) * 0.3
+                    refund_amount = (montant_paye - float(new_total))
+                    therty_percent = montant_paye * 0.3
                     refund_amount = therty_percent if refund_amount > therty_percent else refund_amount
                     new_total = old_total - refund_amount
                     refund = "yes"
@@ -1124,7 +1125,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                   f"refund_amount={refund_amount}, old_total={old_total}, new_total={new_total}, "
                   f"frais={frais}, credit={credit}, credit_amount={credit_amount}")
 
-            remaining_to_pay = round(new_total - float(record.montant_paye), 2) if country_code != "DZ" else round(Decimal(new_total) - (Decimal(record.montant_paye) * Decimal(taux_change)), 2)
+            remaining_to_pay = round(new_total - montant_paye, 2) if country_code != "DZ" else round(Decimal(new_total) - (Decimal(montant_paye) * Decimal(taux_change)), 2)
 
             result.append({
                 'is_available': "yes",
@@ -1140,7 +1141,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 'old_total': old_total,
                 'new_total': new_total,
                 'frais': frais,
-                'amount_paid': round(record.montant_paye, 2) if country_code != "DZ" else Decimal(round(record.montant_paye, 2)) * Decimal(taux_change),
+                'amount_paid': round(montant_paye, 2) if country_code != "DZ" else Decimal(round(montant_paye, 2)) * Decimal(taux_change),
                 'remaining_to_pay': remaining_to_pay,
                 "credit": credit,
                 "credit_amount": credit_amount
