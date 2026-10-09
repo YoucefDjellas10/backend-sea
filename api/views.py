@@ -5694,6 +5694,7 @@ def refund_caution(request):
             }, status=400)
 
         montant_centimes = int(montant_remboursement * 100)
+        refund = None
 
         if montant_centimes > 0:
 
@@ -5715,7 +5716,8 @@ def refund_caution(request):
         taux = TauxChange.objects.get(id=2)
         taux_change = taux.montant
 
-        gestion_caution.stripe_refund_id = refund.id
+        if refund:
+            gestion_caution.stripe_refund_id = refund.id
         gestion_caution.montant_rembourse = total_rembourse
         gestion_caution.date_remboursement = timezone.now()
         if changement != "yes":
@@ -5805,7 +5807,7 @@ def refund_caution(request):
 
         return JsonResponse({
             "success": True,
-            "refund_id": refund.id,
+            "refund_id": refund.id if refund else None,
             "montant_rembourse": montant_remboursement,
             "total_rembourse": total_rembourse,
             "solde_restant": float(gestion_caution.caution) - total_rembourse,
@@ -7881,7 +7883,6 @@ def cancel_receipt_download(request):
     response['Content-Disposition'] = f'attachment; filename="reçu_{reservation.name}.pdf"'
 
     return response
-
 
 @csrf_exempt
 def create_complement_payment_reservation(request):
