@@ -2591,13 +2591,19 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_solde = True
                     solde_anterieur = client_sold
-                    # Cumul avec une promo / réduction client : on garde son pourcentage et son montant exacts
-                    if not percentage or percentage <= 0:
+                    cumul = bool(percentage and percentage > 0)
+                    if not cumul:
                         montant_promotion = solde_anterieur
                         percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     # Solde soustrait en plus de la promo / réduction client (minimum 5 € converti en DA)
-                    total_red = max(float(total_red) - float(client_sold), 5 * taux_change)
+                    total_avant_solde = float(total_red)
+                    total_red = max(total_avant_solde - float(client_sold), 5 * taux_change)
                     prix_unitaire_red = float(total_red) / float(total_days)
+                    # Cumul : pourcentage total = (montant promo + solde consommé) / prix de la location
+                    base_location = float(prix_jour) * float(total_days)
+                    if cumul and base_location > 0:
+                        solde_consomme = total_avant_solde - float(total_red)
+                        percentage = round((float(montant_promotion) + solde_consomme) * 100 / base_location, 2)
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
@@ -3262,13 +3268,19 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     promotion = "yes"
                     is_solde = True
                     solde_anterieur = client_sold
-                    # Cumul avec une promo / réduction client : on garde son pourcentage et son montant exacts
-                    if not percentage or percentage <= 0:
+                    cumul = bool(percentage and percentage > 0)
+                    if not cumul:
                         montant_promotion = solde_anterieur
                         percentage = round(float(client_sold) * 100 / float(total_brut),2)
                     # Solde soustrait en plus de la promo / réduction client (minimum 5 €)
-                    total_red = max(float(total_red) - float(client_sold), 5)
+                    total_avant_solde = float(total_red)
+                    total_red = max(total_avant_solde - float(client_sold), 5)
                     prix_unitaire_red = float(total_red) / float(total_days)
+                    # Cumul : pourcentage total = (montant promo + solde consommé) / prix de la location
+                    base_location = float(prix_jour) * float(total_days)
+                    if cumul and base_location > 0:
+                        solde_consomme = total_avant_solde - float(total_red)
+                        percentage = round((float(montant_promotion) + solde_consomme) * 100 / base_location, 2)
                 
                 if int(prime_red) > 0 :
                     promotion = "yes"
