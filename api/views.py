@@ -3926,10 +3926,16 @@ def add_reservation_post_view(request):
 
 
 
-            if client_red_pr and client_red_pr > 0 and client_red_pr > promo_value:
+            type_reduction = None
+            valeur_reduction = 0
+            if client_red_pr and client_red_pr > 0 and client_red_pr >= promo_value:
                 last_total = (100 - client_red_pr) * total / 100
+                type_reduction = "prime_reduction"
+                valeur_reduction = int(round(client_red_pr))
             elif promo_value > client_red_pr:
                 last_total = (Decimal(100) - Decimal(str(promo_value))) * total / Decimal(100)
+                type_reduction = "promotion"
+                valeur_reduction = int(round(promo_value))
 
             else:
                 last_total = total
@@ -4581,6 +4587,8 @@ def add_reservation_post_view(request):
             options_total = Decimal(total_option),
             total = Decimal(total) ,
             reduction = client_red_pr if  client_red_pr > promo_value else promo_value,
+            type_reduction = type_reduction,
+            valeur_reduction = valeur_reduction,
             total_afficher_reduit = Decimal(total_afficher_red),
             prix_jour_afficher_reduit = float(last_prix_unitaire),
             total_reduit = Decimal(last_total),
