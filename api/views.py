@@ -3942,13 +3942,14 @@ def add_reservation_post_view(request):
             dbg("11. apres reduction -> last_total:", last_total, "(red client:", client_red_pr, "promo:", promo_value, ")")
 
 
+            # Solde soustrait en plus de la promo / réduction client (minimum 5 €)
             if client_solde > 0:
-                if client_solde > (total - 5):
-                    solde_consome = total - 5
+                if client_solde > (last_total - 5):
+                    solde_consome = last_total - 5
                     last_total = 5
                 else:
                     solde_consome = client_solde
-                    last_total = total - client_solde
+                    last_total = last_total - client_solde
             dbg("12. apres solde -> solde_consome:", solde_consome, "| last_total:", last_total)
         else:
             return JsonResponse({"error": "vehucule invalides."}, status=400)
