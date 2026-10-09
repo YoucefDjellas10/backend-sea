@@ -33,6 +33,7 @@
             margin: 0;
             line-height: 1;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .poncarte h2 {
@@ -48,8 +49,9 @@
     <div class="poncarte">
         <br/>
         <br/>
-        <h1>{{ Nom }}</h1>
-        <h1>{{ Prenom }}</h1>
+        {# Jusqu'à 7 caractères : 140pt ; au-delà la taille baisse proportionnellement (140 × 7 / longueur) #}
+        <h1{% if Nom|length > 7 %} style="font-size: {% widthratio 980 Nom|length 1 %}pt;"{% endif %}>{{ Nom }}</h1>
+        <h1{% if Prenom|length > 7 %} style="font-size: {% widthratio 980 Prenom|length 1 %}pt;"{% endif %}>{{ Prenom }}</h1>
     </div>
 </body>
 </html>
