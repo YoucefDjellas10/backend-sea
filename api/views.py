@@ -3447,6 +3447,11 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                     reservation_obj.lieu_depart = lieu_depart_obj
                     reservation_obj.lieu_retour = lieu_retour_obj
                     reservation_obj.save()
+                    livraison = Livraison.objects.filter(reservation=reservation_obj)
+                    for lv in livraison:
+                        lv.lieu_depart = lieu_depart_obj
+                        lv.lieu_retour = lieu_retour_obj
+                        lv.save()
                 reservation_obj.save()
                 
                 return {"success": "yes" , 
