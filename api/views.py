@@ -2298,6 +2298,122 @@ def vip_reduction_view(request):
     except Exception as e:
         return JsonResponse({"message": f"Erreur inattendue : {str(e)}"}, status=500)
 
+def _protection_char(option_code):
+    if option_code and "MAX" in option_code:
+        return "Maximale"
+    if option_code and "STANDART" in option_code:
+        return "Standart"
+    return "Basique"
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def livraison_options_email_view(request):
+    """Appelé par Odoo (action_set_livre) après la vente d'options / protection à la livraison.
+    Envoie un seul mail récapitulatif (même template que add_options_put_view / protection_put_view)."""
+    try:
+        data = json.loads(request.body)
+        livraison = Livraison.objects.filter(id=data.get("livraison_id")).first()
+        if not livraison or not livraison.reservation:
+            return JsonResponse({"error": "Livraison ou réservation introuvable."}, status=404)
+        reservation = livraison.reservation
+        if not reservation.email:
+            return JsonResponse({"error": "Email client manquant."}, status=400)
+
+        def _prix(cle):
+            valeur = float(data.get(cle) or 0)
+            return round(valeur, 2) if valeur > 0 else None
+
+        nd_driver_price = _prix("nd_driver_price")
+        max_klm_price = _prix("klm_price")
+        carburant_price = _prix("carburant_price")
+        sb_a_price = _prix("sb_a_price")
+        protection_price = _prix("protection_price")
+
+        mode = "protection" if protection_price else "options"
+        old_total = float(data.get("old_total") or 0)
+        caution_actual = float(data.get("old_caution") or 0)
+        new_caution = float(reservation.opt_protection_caution or 0)
+        cation_diff = int(caution_actual - new_caution)
+        total_supplements = sum(v for v in [nd_driver_price, max_klm_price, carburant_price, sb_a_price, protection_price] if v)
+
+        html_message = render_to_string('email/achat_protection_option_email.html', {
+            "id": reservation.id,
+            "referance": reservation.name,
+            "mobile_one": reservation.lieu_depart.mobile,
+            "adresse_one": reservation.lieu_depart.address,
+            "mobile_two": reservation.lieu_retour.mobile,
+            "adresse_two": reservation.lieu_retour.address,
+            'client': reservation.client.nom,
+            'client_prenom': reservation.client.prenom,
+            'durrée': reservation.duree_dereservation,
+            'model_name': reservation.model_name,
+            'reste_paye': reservation.reste_payer,
+            'caution': reservation.opt_protection_caution,
+            "date_depart_char": reservation.date_depart_char,
+            "date_retour_char": reservation.date_retour_char,
+            "heure_depart_char": reservation.heure_depart_char,
+            "heure_retour_char": reservation.heure_retour_char,
+            'date_depart': reservation.date_depart_char,
+            'heure_depart': reservation.heure_depart_char,
+            'date_retoure': reservation.date_retour_char,
+            'haure_retour': reservation.heure_retour_char,
+            'lieu_depart': reservation.lieu_depart.name,
+            'lieu_depart_id': f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_depart.id}",
+            'lieu_retour': reservation.lieu_retour.name,
+            'lieu_retour_id': f"{settings.API_BASE_URL}/location-description/?lieu_id={reservation.lieu_retour.id}",
+            'base_url': settings.API_BASE_URL,
+            # Avant (état envoyé par Odoo avant les modifications)
+            "protection_char": _protection_char(data.get("old_protection_code")),
+            "caution_actual": int(caution_actual),
+            "old_nd_driver": data.get("old_nd_driver") or None,
+            "old_max_klm": data.get("old_klm") or None,
+            "old_carburant": data.get("old_carburant") or None,
+            "old_sb_a": data.get("old_sb_a") or None,
+            "old_sb_b": data.get("old_sb_b") or None,
+            "old_sb_c": data.get("old_sb_c") or None,
+            # Maintenant (état de la réservation après les modifications)
+            "nd_driver": reservation.opt_nd_driver_name,
+            "max_klm": reservation.opt_klm_name,
+            "carburant": reservation.opt_plein_carburant_name,
+            "sb_a": reservation.opt_siege_a_name,
+            "sb_b": reservation.opt_siege_b_name,
+            "sb_c": reservation.opt_siege_c_name,
+            "new_protection_char": _protection_char(reservation.opt_protection.option_code if reservation.opt_protection else None),
+            "new_protection_price": protection_price,
+            "new_protection_caution": int(new_caution),
+            "cation_diff": cation_diff,
+            "initial_amount": round(old_total, 2),
+            "extra_fees": round(float(reservation.total_reduit_euro or 0) - old_total, 2),
+            "total_amount": reservation.total_reduit_euro,
+            "deposit_paid": reservation.montant_paye,
+            "remaining_balance": reservation.reste_payer,
+            "caution_deposer": "oui" if mode == "protection" and livraison.type_caution == "depose" and cation_diff > 0 else "non",
+            "mode": mode,
+            # badges uniquement sur ce qui a été ajouté à la livraison
+            "nd_driver_price": nd_driver_price,
+            "max_klm_price": max_klm_price,
+            "carburant_price": carburant_price,
+            "sb_a_price": sb_a_price,
+            "sb_b_price": None,
+            "sb_c_price": None,
+            "total_supplements": round(total_supplements, 2),
+        })
+
+        send_mail(
+            f"Confirmation de vos changements sur la  reservation N°= {reservation.name}",
+            strip_tags(html_message),
+            settings.DEFAULT_FROM_EMAIL,
+            [reservation.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return JsonResponse({"sent": True}, status=200)
+    except Exception as e:
+        logger.exception("livraison_options_email_view")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 @csrf_exempt
 @require_http_methods(["PUT"])
 def protection_put_view(request):

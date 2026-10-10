@@ -96,6 +96,7 @@ urlpatterns += [
     path("cancel-receipt-download/", cancel_receipt_download, name="cancel_receipt_download"),
     path("email-parrainage/", parrainage_email, name="parrainage_email"),
     path("email-refund/", refund_mail_view, name="refund_mail_view"),
+    path("livraison-options-email/", livraison_options_email_view, name="livraison_options_email"),
     path("account/otp-send/", account_otp_send_view, name="account_otp_send"),
     path("account/otp-verify/", account_otp_verify_view, name="account_otp_verify"),
     path("account/", account_detail_view, name="account_detail"),
