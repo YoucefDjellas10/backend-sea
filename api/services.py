@@ -2017,6 +2017,42 @@ def periode_entierement_couverte(periodes_prix, date_depart, date_retour):
         jour += timedelta(days=1)
     return True
 
+def _as_utc(dt):
+    # Les datetimes lues en base (Odoo) sont en UTC sans fuseau
+    return timezone.make_aware(dt, dt_timezone.utc) if timezone.is_naive(dt) else dt.astimezone(dt_timezone.utc)
+
+
+def promo_dynamique_pourcentage(tarif_dyn, vehicle, debut_utc, fin_utc):
+    """Promotion dynamique (remplissage du planning) : la location doit commencer au plus
+    borne_sup heures après la fin de la réservation confirmée précédente du véhicule ET finir
+    au plus borne_inf heures avant le début de la suivante. Retourne le pourcentage à ajouter (0 sinon)."""
+    if not tarif_dyn or not tarif_dyn.active or not tarif_dyn.pourcentage:
+        return 0
+    precedente = Reservation.objects.filter(
+        vehicule=vehicle, status="confirmee", date_heure_fin__lte=debut_utc
+    ).order_by('-date_heure_fin').first()
+    if not precedente:
+        return 0
+    suivante = Reservation.objects.filter(
+        vehicule=vehicle, status="confirmee", date_heure_debut__gte=fin_utc
+    ).order_by('date_heure_debut').first()
+    if not suivante:
+        return 0
+    ecart_avant = (debut_utc - _as_utc(precedente.date_heure_fin)).total_seconds() / 3600
+    ecart_apres = (_as_utc(suivante.date_heure_debut) - fin_utc).total_seconds() / 3600
+    if ecart_avant <= (tarif_dyn.borne_sup or 0) and ecart_apres <= (tarif_dyn.borne_inf or 0):
+        return float(tarif_dyn.pourcentage)
+    return 0
+
+
+def appliquer_promo_dynamique(pourcentage_actuel, pourcentage_dyn, limite):
+    """Ajoute la promo dynamique sans dépasser la limite ; ne baisse jamais une réduction existante."""
+    pourcentage_actuel = float(pourcentage_actuel or 0)
+    if pourcentage_dyn <= 0 or limite is None or pourcentage_actuel >= limite:
+        return pourcentage_actuel
+    return min(pourcentage_actuel + pourcentage_dyn, float(limite))
+
+
 def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
     try:
         date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
@@ -2097,6 +2133,13 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 promotions = promo
 
     promotion_name = promotions.name if promotions is not None else None
+
+    # Promotion dynamique : paramètres + dates de recherche (heure locale -> UTC)
+    tarif_dyn = TarifsDynamique.objects.filter(active=True).order_by('id').first()
+    recherche_debut_utc = timezone.make_aware(
+        datetime.strptime(f"{date_depart} {heure_depart}", "%Y-%m-%d %H:%M")).astimezone(dt_timezone.utc)
+    recherche_fin_utc = timezone.make_aware(
+        datetime.strptime(f"{date_retour} {heure_retour}", "%Y-%m-%d %H:%M")).astimezone(dt_timezone.utc)
     promotion_value = 0
     model_one = None
     model_two = None
@@ -2590,6 +2633,23 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
 
+                # ── Promotion dynamique (remplissage du planning) ──
+                is_promo_dynamique = False
+                promo_name_vehicule = promotion_name
+                pourcentage_dyn = promo_dynamique_pourcentage(tarif_dyn, vehicle, recherche_debut_utc, recherche_fin_utc)
+                nouveau_pourcentage = appliquer_promo_dynamique(percentage, pourcentage_dyn, tarif_dyn.limit_pourcentage if tarif_dyn else None)
+                if nouveau_pourcentage > float(percentage or 0):
+                    is_promo_dynamique = True
+                    if not percentage:
+                        promo_name_vehicule = tarif_dyn.name
+                    promotion = "yes"
+                    percentage = nouveau_pourcentage
+                    montant_promotion = prix_jour * percentage / 100 * total_days
+                    if is_prime:
+                        montant_code_prime = montant_promotion
+                    total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
+                    prix_unitaire_red = total_red / total_days
+
                 solde_anterieur = 0
                 if int(client_sold) > 0 : 
                     promotion = "yes"
@@ -2625,11 +2685,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
-                        "promotion_name":promotion_name,
+                        "promotion_name":promo_name_vehicule,
                         "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
                         "is_prime": is_prime,
                         "is_parrainage": is_parrainage,
                         "is_sold":is_solde,
+                        "is_promo_dynamique":is_promo_dynamique,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -2731,11 +2792,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
-                        "promotion_name":promotion_name,
+                        "promotion_name":promo_name_vehicule,
                         "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
                         "is_prime": is_prime,
                         "is_parrainage": is_parrainage,
                         "is_sold":is_solde,
+                        "is_promo_dynamique":is_promo_dynamique,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -2837,11 +2899,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
-                        "promotion_name":promotion_name,
+                        "promotion_name":promo_name_vehicule,
                         "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
                         "is_prime": is_prime,
                         "is_parrainage": is_parrainage,
                         "is_sold":is_solde,
+                        "is_promo_dynamique":is_promo_dynamique,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -3267,6 +3330,26 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     montant_code_prime = 0
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
+                # ── Promotion dynamique (remplissage du planning) ──
+                is_promo_dynamique = False
+                promo_name_vehicule = promotion_name
+                pourcentage_dyn = promo_dynamique_pourcentage(tarif_dyn, vehicle, recherche_debut_utc, recherche_fin_utc)
+                nouveau_pourcentage = appliquer_promo_dynamique(percentage, pourcentage_dyn, tarif_dyn.limit_pourcentage if tarif_dyn else None)
+                if nouveau_pourcentage > float(percentage or 0):
+                    is_promo_dynamique = True
+                    if not percentage:
+                        promo_name_vehicule = tarif_dyn.name
+                    promotion = "yes"
+                    percentage = nouveau_pourcentage
+                    montant_promotion = prix_jour * percentage / 100 * total_days
+                    if is_prime:
+                        montant_code_prime = montant_promotion
+                    if is_prime:
+                        total_red = (100 - percentage) * total_brut / 100
+                    else:
+                        total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
+                    prix_unitaire_red = total_red / total_days
+
                 solde_anterieur = 0
                 if int(client_sold) > 0 : 
                     promotion = "yes"
@@ -3302,11 +3385,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
-                        "promotion_name":promotion_name,
+                        "promotion_name":promo_name_vehicule,
                         "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
                         "is_prime": is_prime,
                         "is_parrainage": is_parrainage,
                         "is_sold":is_solde,
+                        "is_promo_dynamique":is_promo_dynamique,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -3409,11 +3493,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
-                        "promotion_name":promotion_name,
+                        "promotion_name":promo_name_vehicule,
                         "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
                         "is_prime": is_prime,
                         "is_parrainage": is_parrainage,
                         "is_sold":is_solde,
+                        "is_promo_dynamique":is_promo_dynamique,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,
@@ -3515,11 +3600,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     result.append({
                         "promotion": promotion,
                         "percentage": round(percentage, 2),
-                        "promotion_name":promotion_name,
+                        "promotion_name":promo_name_vehicule,
                         "is_promo":True if not is_parrainage and not is_prime and percentage and percentage > 0 else False,
                         "is_prime": is_prime,
                         "is_parrainage": is_parrainage,
                         "is_sold":is_solde,
+                        "is_promo_dynamique":is_promo_dynamique,
                         "montant_promotion":montant_promotion,
                         "montant_code_prime":montant_code_prime,
                         "solde_anterieur":solde_anterieur,

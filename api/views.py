@@ -23,6 +23,7 @@ endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 from django.utils import timezone
 import time
 import time as time_module
+from datetime import timezone as dt_timezone
 import locale
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -4191,6 +4192,22 @@ def add_reservation_post_view(request):
 
             else:
                 last_total = total
+
+            # ── Promotion dynamique (remplissage du planning), même règle que search_result_vehicule ──
+            pourcentage_base = client_red_pr if type_reduction == "prime_reduction" else (promo_value if type_reduction == "promotion" else 0)
+            tarif_dyn = TarifsDynamique.objects.filter(active=True).order_by('id').first()
+            pourcentage_dyn = promo_dynamique_pourcentage(
+                tarif_dyn,
+                vehicule,
+                timezone.make_aware(date_heure_debut_av).astimezone(dt_timezone.utc),
+                timezone.make_aware(date_heure_fin_av).astimezone(dt_timezone.utc),
+            )
+            nouveau_pourcentage = appliquer_promo_dynamique(pourcentage_base, pourcentage_dyn, tarif_dyn.limit_pourcentage if tarif_dyn else None)
+            if nouveau_pourcentage > float(pourcentage_base or 0):
+                last_total = (Decimal(100) - Decimal(str(nouveau_pourcentage))) * total / Decimal(100)
+                type_reduction = "promotion_dynamique"
+                valeur_reduction = int(round(nouveau_pourcentage))
+            dbg("11. promo dynamique -> ajout:", pourcentage_dyn, "| base:", pourcentage_base, "| total %:", nouveau_pourcentage, "| type:", type_reduction)
             dbg("11. apres reduction -> last_total:", last_total, "(red client:", client_red_pr, "promo:", promo_value, ")")
 
 
