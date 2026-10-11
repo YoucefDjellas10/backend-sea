@@ -36,6 +36,7 @@ urlpatterns += [
     path('search-ma-reservation/', ma_reservation_view, name='ma_reservation'),
     path('verify-calculate-ma-reservation/', verify_and_calculate_view, name='ma_reservation'),
     path('verify-edit-ma-reservation/', verify_and_do_view, name='ma_reservation'),
+    path('payment-request-ma-reservation/', payment_request_ma_reservation_view, name='payment_request_ma_reservation'),
     path('create-payment-link/', create_payment_link, name='create_payment_link'),
     path("create-payment-session/", create_payment_session, name="create_payment_session"),
     path("create-payment-session-protection/", create_payment_session_protection, name="create_payment_session_protection"),

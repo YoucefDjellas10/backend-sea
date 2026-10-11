@@ -22,6 +22,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 from django.utils import timezone
 import time
+import time as time_module
 import locale
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -3540,6 +3541,26 @@ def create_payment_session_verify_calculate(request):
         unit_amount = int(unit_amount)
         quantity = int(quantity)
 
+        metadata = {
+            "reservation_id": str(reservation_id),
+            "montant_paye": str(data.get("montant_paye", 0)),
+            "ref": ref,
+            "lieu_depart_id":lieu_depart,
+            "lieu_retour_id":lieu_retour,
+            "date_depart":date_depart,
+            "heure_depart":heure_depart,
+            "date_retour":date_retour,
+            "heure_retour":heure_retour,
+            "montant_paye":unit_amount,
+            "type":"verify_calculate"
+        }
+        # Optionnels (demande de paiement envoyée depuis le backoffice)
+        if data.get("did_by"):
+            metadata["did_by"] = str(data.get("did_by"))
+        extra_params = {}
+        if data.get("expires_in_minutes"):
+            extra_params["expires_at"] = int(time_module.time()) + int(data.get("expires_in_minutes")) * 60
+
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[
@@ -3560,19 +3581,8 @@ def create_payment_session_verify_calculate(request):
             success_url=f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
             cancel_url=f"{settings.SITE_BASE_URL}/manage?email={customer_email}&reference={ref}",
             customer_email=customer_email,
-            metadata={
-                "reservation_id": str(reservation_id),
-                "montant_paye": str(data.get("montant_paye", 0)),
-                "ref": ref,
-                "lieu_depart_id":lieu_depart,
-                "lieu_retour_id":lieu_retour,
-                "date_depart":date_depart,
-                "heure_depart":heure_depart,
-                "date_retour":date_retour,
-                "heure_retour":heure_retour,
-                "montant_paye":unit_amount,
-                "type":"verify_calculate"
-            }
+            metadata=metadata,
+            **extra_params
         )
 
         return JsonResponse({"session_id": checkout_session.id, "url": checkout_session.url}, status=200)
@@ -3666,6 +3676,127 @@ def verify_and_do_view(request):
         else :
             return JsonResponse({"results": resultats}, status=400, json_dumps_params={"ensure_ascii": False})
     except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
+
+
+@csrf_exempt
+def payment_request_ma_reservation_view(request):
+    """Backoffice (Odoo edit.reservation) : même chose que verify_and_do avec payment = yes,
+    mais le lien de paiement est envoyé au client par mail (complement_payment.html, valable 1 h).
+    La modification est appliquée par le webhook Stripe (type verify_calculate) quand le client paie."""
+    ref = request.GET.get("ref")
+    lieu_depart = request.GET.get("lieu_depart")
+    lieu_retour = request.GET.get("lieu_retour")
+    date_depart = request.GET.get("date_depart")
+    heure_depart = request.GET.get("heure_depart")
+    date_retour = request.GET.get("date_retour")
+    heure_retour = request.GET.get("heure_retour")
+    did_by = request.GET.get("did_by") or 52
+
+    if not all([ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour]):
+        return JsonResponse({"error": "Tous les paramètres sont requis."}, status=400, json_dumps_params={"ensure_ascii": False})
+
+    try:
+        reservation_obj = Reservation.objects.filter(name=ref).first()
+        if not reservation_obj:
+            return JsonResponse({"error": "Réservation introuvable."}, status=404, json_dumps_params={"ensure_ascii": False})
+        if not reservation_obj.email:
+            return JsonResponse({"error": "Email client manquant."}, status=400, json_dumps_params={"ensure_ascii": False})
+
+        verify_value = verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depart,
+                                            date_retour, heure_retour, None)
+        if not isinstance(verify_value, list) or not verify_value or verify_value[0].get('is_available') != "yes":
+            message = "Le véhicule n'est pas disponible."
+            if isinstance(verify_value, dict):
+                message = verify_value.get("message") or verify_value.get("error") or message
+            return JsonResponse({"error": message}, status=400, json_dumps_params={"ensure_ascii": False})
+
+        new_total = float(verify_value[0].get('new_total') or 0)
+        remaining_to_pay = float(verify_value[0].get('remaining_to_pay') or 0)
+        new_total_days = verify_value[0].get('new_total_days')
+        if remaining_to_pay <= 0:
+            return JsonResponse({"error": "Aucun paiement nécessaire pour cette modification."}, status=400, json_dumps_params={"ensure_ascii": False})
+
+        lieu_depart_obj = Lieux.objects.get(id=lieu_depart)
+        lieu_retour_obj = Lieux.objects.get(id=lieu_retour)
+        date_depart_fr = datetime.strptime(date_depart, "%Y-%m-%d").strftime("%d/%m/%Y")
+        date_retour_fr = datetime.strptime(date_retour, "%Y-%m-%d").strftime("%d/%m/%Y")
+
+        # Même session Stripe que verify_and_do (payment = yes), avec expiration 1 h et l'agent qui a fait la demande
+        fake_request = RequestFactory().post(
+            path="/create-payment-session-verify-calculate/",
+            data=json.dumps({
+                "product_name": f"Prolongation N° : {reservation_obj.name}",
+                "description": f"Réservation du {reservation_obj.model_name} du : ( {date_depart} à {heure_depart} lieu de prise : {lieu_depart_obj.name})→({date_retour} à {heure_retour} lieu de retour : {lieu_retour_obj.name})",
+                "images": [reservation_obj.vehicule.modele.photo_link_pay] if reservation_obj.vehicule and reservation_obj.vehicule.modele.photo_link_pay else [],
+                "unit_amount": int(remaining_to_pay * 100),
+                "quantity": 1,
+                "currency": "eur",
+                "reservation_id": reservation_obj.id,
+                "montant_total": new_total,
+                "montant_paye": remaining_to_pay,
+                "email": reservation_obj.email,
+                "ref": ref,
+                "lieu_depart": lieu_depart,
+                "lieu_retour": lieu_retour,
+                "date_depart": date_depart,
+                "heure_depart": heure_depart,
+                "date_retour": date_retour,
+                "heure_retour": heure_retour,
+                "did_by": did_by,
+                "expires_in_minutes": 60,
+            }),
+            content_type="application/json"
+        )
+        payment_session_response = create_payment_session_verify_calculate(fake_request)
+        payment_session_data = json.loads(payment_session_response.content)
+        if payment_session_response.status_code != 200:
+            return JsonResponse({"error": payment_session_data.get("error", "Erreur création session de paiement.")}, status=500, json_dumps_params={"ensure_ascii": False})
+        payment_url = payment_session_data.get("url", "")
+
+        reservation_obj.changes = "yes"
+        reservation_obj.save()
+
+        html_message = render_to_string('email/complement_payment.html', {
+            "reference": reservation_obj.name,
+            "client_name": reservation_obj.client.name,
+            "payment_method": "En ligne",
+            "payment_amount": round(remaining_to_pay, 2),
+            "url": payment_url,
+            "model_name": reservation_obj.model_name,
+            "total_days": new_total_days,
+            "caution": reservation_obj.opt_protection_caution,
+            # nouvelles dates / lieux demandés
+            "date_depart": date_depart_fr,
+            "heure_depart": heure_depart,
+            "lieu_depart": lieu_depart_obj.name,
+            "number_depart": lieu_depart_obj.mobile,
+            "address_depart": lieu_depart_obj.address,
+            "lieu_depart_id": f"{settings.API_BASE_URL}/location-description/?lieu_id={lieu_depart_obj.id}",
+            "date_retour": date_retour_fr,
+            "heure_retour": heure_retour,
+            "lieu_retour": lieu_retour_obj.name,
+            "number_retour": lieu_retour_obj.mobile,
+            "address_retour": lieu_retour_obj.address,
+            "lieu_retour_id": f"{settings.API_BASE_URL}/location-description/?lieu_id={lieu_retour_obj.id}",
+        })
+        send_mail(
+            f"Safar El Amir – Réservation n° {reservation_obj.name} – Paiement de la modification de votre réservation",
+            strip_tags(html_message),
+            settings.DEFAULT_FROM_EMAIL,
+            [reservation_obj.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+        return JsonResponse({
+            "success": "yes",
+            "montant": round(remaining_to_pay, 2),
+            "email": reservation_obj.email,
+            "session_id": payment_session_data.get("session_id", ""),
+        }, status=200, json_dumps_params={"ensure_ascii": False})
+    except Exception as e:
+        logger.exception("payment_request_ma_reservation_view")
         return JsonResponse({"error": str(e)}, status=500, json_dumps_params={"ensure_ascii": False})
 
 
@@ -5077,9 +5208,10 @@ def stripe_webhook_reservation_(request):
             date_retour = session.get("metadata", {}).get("date_retour")
             heure_retour = session.get("metadata", {}).get("heure_retour")
             montant_paye = session.get("metadata", {}).get("montant_paye")
+            did_by = session.get("metadata", {}).get("did_by") or 52
 
             reservation = Reservation.objects.get(id=reservation_id)
-            
+
             if reservation.changes == "yes":
 
                 taux = TauxChange.objects.filter(id=2).first()
@@ -5115,7 +5247,7 @@ def stripe_webhook_reservation_(request):
                     date_retour = date_retour,
                     heure_retour = heure_retour,
                     backoffice = "yes",
-                    did_by = 52 ,
+                    did_by = did_by ,
                     payment = None,
                     amount__paid = Decimal(str(montant))
                 )
