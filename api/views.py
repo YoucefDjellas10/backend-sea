@@ -2489,6 +2489,12 @@ def protection_put_view(request):
                 reservation.total_reduit_euro += Decimal(new_prot_total) - Decimal(old_total)
                 reservation.reste_payer += Decimal(new_prot_total) - Decimal(old_total)
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_protection_caution = reservation.opt_protection_caution
+                    lv.opt_protection = reservation.opt_protection
+                    lv.save()
+
                 protection_char = None
                 new_protection_char = None
 
@@ -5308,6 +5314,12 @@ def stripe_webhook_reservation_(request):
 
             reservation.save()
 
+            livraison = Livraison.objects.filter(reservation=reservation)
+            for lv in livraison:
+                lv.opt_protection_caution = reservation.opt_protection_caution
+                lv.opt_protection = reservation.opt_protection
+                lv.save()
+
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
 
@@ -5592,7 +5604,12 @@ def stripe_webhook_reservation_(request):
                     reservation.reste_payer += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.total_reduit_euro += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_nd_driver_date = date.today()
-                    reservation.save()               
+                    reservation.save()  
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_nd_driver = reservation.opt_nd_driver
+                        lv.opt_nd_driver_check = True
+                        lv.save()             
 
                 klm_put = request_result.get("klm", None)
                 if klm_put is not None :
@@ -5609,6 +5626,11 @@ def stripe_webhook_reservation_(request):
                     reservation.total_reduit_euro += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_klm_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_klm = reservation.opt_klm
+                        lv.opt_klm_check = True
+                        lv.save()
 
                 carburant_put = request_result.get("carburant", None)
                 if carburant_put is not None :
@@ -5624,6 +5646,11 @@ def stripe_webhook_reservation_(request):
                     reservation.total_reduit_euro += carburant_option.prix
                     reservation.opt_plein_carburant_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_carburant = reservation.opt_plein_carburant
+                        lv.opt_carburant_check = True
+                        lv.save()
 
                 sb_a_put = request_result.get("sb_a", None)
                 if sb_a_put is not None :
@@ -5639,6 +5666,11 @@ def stripe_webhook_reservation_(request):
                     reservation.total_reduit_euro += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_a_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_sb_a = reservation.opt_siege_a
+                        lv.opt_sb_a_check = True
+                        lv.save()
 
                 sb_b_put = request_result.get("sb_b", None)
                 if sb_b_put is not None :
@@ -5654,6 +5686,11 @@ def stripe_webhook_reservation_(request):
                     reservation.total_reduit_euro += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_b_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_sb_b = reservation.opt_siege_b
+                        lv.opt_sb_b_check = True
+                        lv.save()
 
                 sb_c_put = request_result.get("sb_c", None)
                 if sb_c_put is not None :
@@ -5668,6 +5705,11 @@ def stripe_webhook_reservation_(request):
                     reservation.total_reduit_euro += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_c_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_sb_c = reservation.opt_siege_c
+                        lv.opt_sb_c_check = True
+                        lv.save()
                 
                 taux = TauxChange.objects.filter(id=2).first()
                 taux_change = taux.montant
@@ -6348,6 +6390,11 @@ def add_options_put_view(request):
                     reservation.total_reduit_euro += nd_driver_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_nd_driver_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_nd_driver = reservation.opt_nd_driver
+                        lv.opt_nd_driver_check = True
+                        lv.save()
             else:
                 reservation.nom_nd_condicteur = nom
                 reservation.prenom_nd_condicteur = prenom
@@ -6360,6 +6407,11 @@ def add_options_put_view(request):
                 nd_driver_price = 0
                 reservation.opt_nd_driver_date = date.today()
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_nd_driver = reservation.opt_nd_driver
+                    lv.opt_nd_driver_check = True
+                    lv.save()
 
         klm_put = request_result.get("klm", None)
         _dbg("--- option klm --- put=", klm_put)
@@ -6395,6 +6447,11 @@ def add_options_put_view(request):
                     reservation.total_reduit_euro += klm_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_klm_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_klm = reservation.opt_klm
+                        lv.opt_klm_check = True
+                        lv.save()
             else:
                 reservation.opt_klm = klm_option
                 reservation.opt_klm_name = klm_option.name
@@ -6403,6 +6460,11 @@ def add_options_put_view(request):
                 max_klm_price = 0
                 reservation.opt_klm_date = date.today()
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_klm = reservation.opt_klm
+                    lv.opt_klm_check = True
+                    lv.save()
 
         carburant_put = request_result.get("carburant", None)
         _dbg("--- option carburant --- put=", carburant_put)
@@ -6431,6 +6493,11 @@ def add_options_put_view(request):
                     reservation.total_reduit_euro += carburant_option.prix
                     reservation.opt_plein_carburant_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_carburant = reservation.opt_plein_carburant
+                        lv.opt_carburant_check = True
+                        lv.save()
             else:
                 reservation.opt_plein_carburant = carburant_option
                 reservation.opt_plein_carburant_name = carburant_option.name
@@ -6439,6 +6506,11 @@ def add_options_put_view(request):
                 carburant_price = 0
                 reservation.opt_plein_carburant_date = date.today()
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_carburant = reservation.opt_plein_carburant
+                    lv.opt_carburant_check = True
+                    lv.save()
         
         sb_a_put = request_result.get("sb_a", None)
         _dbg("--- option sb_a --- put=", sb_a_put)
@@ -6467,6 +6539,11 @@ def add_options_put_view(request):
                     reservation.total_reduit_euro += sb_a_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_a_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_sb_a = reservation.opt_siege_a
+                        lv.opt_sb_a_check = True
+                        lv.save()
             else:
                 reservation.opt_siege_a = sb_a_option
                 reservation.opt_siege_a_name = sb_a_option.name
@@ -6475,6 +6552,11 @@ def add_options_put_view(request):
                 sb_a_price = 0
                 reservation.opt_siege_a_date = date.today()
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_sb_a = reservation.opt_siege_a
+                    lv.opt_sb_a_check = True
+                    lv.save()
 
         sb_b_put = request_result.get("sb_b", None)
         _dbg("--- option sb_b --- put=", sb_b_put)
@@ -6503,6 +6585,11 @@ def add_options_put_view(request):
                     reservation.total_reduit_euro += sb_b_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_b_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_sb_b = reservation.opt_siege_b
+                        lv.opt_sb_b_check = True
+                        lv.save()
             else:
                 reservation.opt_siege_b = sb_b_option
                 reservation.opt_siege_b_name = sb_b_option.name
@@ -6511,6 +6598,11 @@ def add_options_put_view(request):
                 sb_b_price = 0
                 reservation.opt_siege_b_date = date.today()
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_sb_b = reservation.opt_siege_b
+                    lv.opt_sb_b_check = True
+                    lv.save()
 
         sb_c_put = request_result.get("sb_c", None)
         _dbg("--- option sb_c --- put=", sb_c_put)
@@ -6539,6 +6631,11 @@ def add_options_put_view(request):
                     reservation.total_reduit_euro += sb_c_option.prix * reservation.nbr_jour_reservation
                     reservation.opt_siege_c_date = date.today()
                     reservation.save()
+                    livraison = Livraison.objects.filter(reservation=reservation)
+                    for lv in livraison:
+                        lv.opt_sb_c = reservation.opt_siege_c
+                        lv.opt_sb_c_check = True
+                        lv.save()
             else:
                 reservation.opt_siege_c = sb_c_option
                 reservation.opt_siege_c_name = sb_c_option.name
@@ -6547,6 +6644,11 @@ def add_options_put_view(request):
                 sb_c_price = 0
                 reservation.opt_siege_c_date = date.today()
                 reservation.save()
+                livraison = Livraison.objects.filter(reservation=reservation)
+                for lv in livraison:
+                    lv.opt_sb_c = reservation.opt_siege_c
+                    lv.opt_sb_c_check = True
+                    lv.save()
         
         _dbg("--- RECAP ---")
         _dbg("is_edit=", is_edit, "| total_to_pay=", total_to_pay)
