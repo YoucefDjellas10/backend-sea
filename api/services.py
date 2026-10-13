@@ -2045,6 +2045,28 @@ def promo_dynamique_pourcentage(tarif_dyn, vehicle, debut_utc, fin_utc):
     return 0
 
 
+def vehicules_promo_dynamique(tarif_dyn, vehicules, debut_utc, fin_utc):
+    """Ids des véhicules qui remplissent un trou du planning (même règle que promo_dynamique_pourcentage) :
+    une réservation confirmée finit au plus borne_sup heures avant le début ET une autre commence
+    au plus borne_inf heures après la fin. 2 requêtes pour tous les véhicules."""
+    if not tarif_dyn or not tarif_dyn.active or not tarif_dyn.pourcentage or not vehicules:
+        return set()
+    ids = [v.id for v in vehicules]
+    avant = set(Reservation.objects.filter(
+        vehicule_id__in=ids, status="confirmee",
+        date_heure_fin__lte=debut_utc,
+        date_heure_fin__gte=debut_utc - timedelta(hours=tarif_dyn.borne_sup or 0),
+    ).values_list("vehicule_id", flat=True))
+    if not avant:
+        return set()
+    apres = set(Reservation.objects.filter(
+        vehicule_id__in=list(avant), status="confirmee",
+        date_heure_debut__gte=fin_utc,
+        date_heure_debut__lte=fin_utc + timedelta(hours=tarif_dyn.borne_inf or 0),
+    ).values_list("vehicule_id", flat=True))
+    return avant & apres
+
+
 def appliquer_promo_dynamique(pourcentage_actuel, pourcentage_dyn, limite):
     """Ajoute la promo dynamique sans dépasser la limite ; ne baisse jamais une réduction existante."""
     pourcentage_actuel = float(pourcentage_actuel or 0)
@@ -2327,6 +2349,9 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     prime_red = 0
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id, lieu_depart_id, lieu_retour_id)
+        # Promotion dynamique : pour chaque modèle, proposer en priorité un véhicule qui remplit un trou du planning
+        vehicules_trou = vehicules_promo_dynamique(tarif_dyn, available_vehicles, recherche_debut_utc, recherche_fin_utc)
+        available_vehicles = sorted(available_vehicles, key=lambda v: v.id not in vehicules_trou)
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id) 
@@ -3030,6 +3055,9 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     prime_red = 0
 
         available_vehicles = get_available_vehicles(date_depart, heure_depart, date_retour, heure_retour, zone_id,  lieu_depart_id, lieu_retour_id)
+        # Promotion dynamique : pour chaque modèle, proposer en priorité un véhicule qui remplit un trou du planning
+        vehicules_trou = vehicules_promo_dynamique(tarif_dyn, available_vehicles, recherche_debut_utc, recherche_fin_utc)
+        available_vehicles = sorted(available_vehicles, key=lambda v: v.id not in vehicules_trou)
 
         frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_id, retour_id=lieu_retour_id)
         if frais_livraison :
