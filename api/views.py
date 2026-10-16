@@ -3769,6 +3769,7 @@ def payment_request_ma_reservation_view(request):
             "client_name": reservation_obj.client.name,
             "payment_method": "En ligne",
             "payment_amount": round(remaining_to_pay, 2),
+            "reste": round( float(reservation_obj.total_reduit_euro) - float(reservation_obj.montant_paye)  - float(remaining_to_pay), 2),
             "url": payment_url,
             "model_name": reservation_obj.model_name,
             "total_days": new_total_days,
@@ -8320,7 +8321,6 @@ def create_complement_payment_reservation(request):
             }
         )
 
-        # Envoi du lien de paiement par mail (template email/complement_payment.html)
         mail_envoye = False
         try:
             sujet = f"Safar El Amir – Réservation n° {reservation.name} – Complément de paiement"
@@ -8331,6 +8331,7 @@ def create_complement_payment_reservation(request):
                 "client_name": reservation.client.name,
                 "payment_method": "En ligne",
                 "payment_amount": round(float(reservation.reste_payer), 2),
+                "reste": round(float(reservation.total_reduit_euro) - float(reservation.reste_payer), 2),
                 "reste_amouont": 0,
                 "url": checkout_session.url,
                 "model_name": reservation.model_name,
