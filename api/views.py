@@ -3135,7 +3135,19 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
         date_retour_obj = datetime.strptime(date_retour, "%Y-%m-%d" if '-' in date_retour else "%d/%m/%Y").date()
         heure_retour_obj = datetime.strptime(heure_retour, "%H:%M").time()
 
-        
+        manager_email = None 
+
+        if reservation_obj.zone.id == 1:
+            manager_email = "mohamed.bakhai@safarelamir.com"    
+        elif reservation_obj.zone.id == 2:
+            manager_email = "farid.kara@safarelamir.com"
+        elif reservation_obj.zone.id == 3:
+            manager_email = "karim.h@safarelamir.com"    
+        elif reservation_obj.zone.id == 16:
+            manager_email = "sidahmed.derkaoui@safarelamir.com"  
+        else:
+            manager_email = ""
+
 
         date_retour_befor = reservation_obj.date_retour_char
         heure_retour_befor = reservation_obj.heure_retour_char
@@ -3229,7 +3241,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 sujet_prologation_after,
                                 strip_tags(html_message_prologation_after),  
                                 expediteur_prologation_after,
-                                [reservation_obj.email],
+                                [e for e in [reservation_obj.email, "reservation@safarelamir.com", manager_email] if e],
                                 html_message=html_message_prologation_after,
                                 fail_silently=False,
                             )
@@ -3273,7 +3285,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 sujet_update,
                                 strip_tags(html_message_update),  
                                 expediteur_update,
-                                [reservation_obj.email],
+                                [e for e in [reservation_obj.email, "reservation@safarelamir.com", manager_email] if e],
                                 html_message=html_message_update,
                                 fail_silently=False,
                             )
@@ -3325,7 +3337,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 sujet_prologation_after,
                                 strip_tags(html_message_prologation_after),  
                                 expediteur_prologation_after,
-                                [reservation_obj.email],
+                                [e for e in [reservation_obj.email, "reservation@safarelamir.com", manager_email] if e],
                                 html_message=html_message_prologation_after,
                                 fail_silently=False,
                             )
@@ -3369,7 +3381,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 sujet_credit,
                                 strip_tags(html_message_credit),  
                                 expediteur_credit,
-                                [reservation_obj.email],
+                                [e for e in [reservation_obj.email, "reservation@safarelamir.com", manager_email] if e],
                                 html_message=html_message_credit,
                                 fail_silently=False,
                             )
@@ -3413,7 +3425,7 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                                 sujet_update,
                                 strip_tags(html_message_update),  
                                 expediteur_update,
-                                [reservation_obj.email],
+                                [e for e in [reservation_obj.email, "reservation@safarelamir.com", manager_email] if e],
                                 html_message=html_message_update,
                                 fail_silently=False,
                             )
