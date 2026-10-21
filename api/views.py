@@ -3688,9 +3688,6 @@ def verify_and_do_view(request):
 
 @csrf_exempt
 def payment_request_ma_reservation_view(request):
-    """Backoffice (Odoo edit.reservation) : même chose que verify_and_do avec payment = yes,
-    mais le lien de paiement est envoyé au client par mail (complement_payment.html, valable 1 h).
-    La modification est appliquée par le webhook Stripe (type verify_calculate) quand le client paie."""
     ref = request.GET.get("ref")
     lieu_depart = request.GET.get("lieu_depart")
     lieu_retour = request.GET.get("lieu_retour")
@@ -8331,7 +8328,7 @@ def create_complement_payment_reservation(request):
                 "client_name": reservation.client.name,
                 "payment_method": "En ligne",
                 "payment_amount": round(float(reservation.reste_payer), 2),
-                "reste": round(float(reservation.total_reduit_euro) - float(reservation.reste_payer), 2),
+                "reste": round(float(reservation.total_reduit_euro) - float(reservation.montant_paye) - float(reservation.reste_payer), 2),
                 "reste_amouont": 0,
                 "url": checkout_session.url,
                 "model_name": reservation.model_name,
