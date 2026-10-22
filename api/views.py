@@ -1310,7 +1310,7 @@ def confirmation_download(request):
     nd_client_name = " "
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else None
-    permis_nd = nd_clinet.date_de_permis if nd_clinet else None
+    permis_nd = reservation.date_de_permis if nd_clinet else None
     permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else None
     if nd_client_name_ :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
