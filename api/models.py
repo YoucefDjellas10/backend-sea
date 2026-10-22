@@ -1297,6 +1297,7 @@ class Livraison(models.Model):
     prenom = models.CharField(max_length=255, verbose_name='Prénom Client', null=True, blank=True)
     email = models.EmailField(verbose_name='Email', null=True, blank=True)
     mobile = models.CharField(max_length=20, verbose_name='Mobile', null=True, blank=True)
+    categorie_client = models.ForeignKey('CategorieClient', on_delete=models.SET_NULL,db_column='categorie_client', null=True, blank=True, editable=False)
 
     kilomtrage = models.IntegerField(verbose_name='Kilométrage', null=True, blank=True)
     siege_bebe = models.BooleanField(default=False, verbose_name='Siège Bébé')

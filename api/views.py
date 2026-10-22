@@ -981,6 +981,7 @@ def confirme_reservation_view(request):
             heure_depart_char_lv = reservation.heure_depart_char if reservation.heure_depart_char else None,
             heure_retour_char_lv = reservation.heure_retour_char if reservation.heure_retour_char else None,
             num_vol = reservation.num_vol if reservation.num_vol else None,
+            categorie_client=reservation.categorie_client,
         ) 
         livraison.save()
 
@@ -1030,6 +1031,7 @@ def confirme_reservation_view(request):
             heure_depart_char_lv = reservation.heure_depart_char if reservation.heure_depart_char else None,
             heure_retour_char_lv = reservation.heure_retour_char if reservation.heure_retour_char else None,
             num_vol = reservation.num_vol if reservation.num_vol else None,
+            categorie_client=reservation.categorie_client,
         ) 
         restitution.save()
         sujet = f"Confirmation de votre reservation N°= {reservation.name}"
@@ -5178,6 +5180,7 @@ def stripe_webhook_reservation_(request):
                         heure_retour_char_lv=reservation.heure_retour_char or None,
                         num_vol=reservation.num_vol or None,
                         payer_type='espece', type_caution='en_ligne',
+                        categorie_client=reservation.categorie_client,
                     )
                     print(f"[DEBUG] ✅ Livraison créée id={livraison.id}")
 
@@ -5218,6 +5221,7 @@ def stripe_webhook_reservation_(request):
                         heure_retour_char_lv=reservation.heure_retour_char or None,
                         num_vol=reservation.num_vol or None,
                         payer_type='espece', type_caution='en_ligne',
+                        categorie_client=reservation.categorie_client,
                     )
                     print(f"[DEBUG] ✅ Restitution créée id={restitution.id}")
                     print(f"[DEBUG] 🎉 Traitement COMPLET pour reservation ID: {reservation_id}")
