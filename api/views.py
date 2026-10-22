@@ -1334,7 +1334,7 @@ def confirmation_download(request):
         "NOM_2EME_CONDUCTEUR":reservation.nom_nd_condicteur if reservation.nom_nd_condicteur else "",
         "Prenom_2EME_CONDUCTEUR":reservation.prenom_nd_condicteur if reservation.prenom_nd_condicteur else "",
         "BIRTHDAY_2EME_CONDUCTEUR":reservation.date_nd_condicteur if reservation.date_nd_condicteur else "",
-        "DATE_PERMIS_2EME":permi_desc,
+        "DATE_PERMIS_2EME":permit_date_nd,
         "DATE_DEPART": livraison.date_depart_char,
         "HEURE_DEPART": livraison.heure_depart_char,
         "DATE_RETOUR": livraison.date_retour_char,
