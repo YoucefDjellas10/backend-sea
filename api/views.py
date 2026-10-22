@@ -1312,7 +1312,7 @@ def confirmation_download(request):
     nd_client_name_ = nd_clinet.name if nd_clinet else None
     permis_nd = nd_clinet.date_de_permis if nd_clinet else None
     permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else None
-    if nd_clinet :
+    if livraison.reservation.opt_nd_driver_name :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{livraison.reservation.date_de_permis}"
     else : 
@@ -1331,9 +1331,9 @@ def confirmation_download(request):
         "PRÉNOM": livraison.prenom,
         "DATE_DE_NAISSANCE": birthday,
         "DATE_PERMIS":permit_date,
-        "NOM_2EME_CONDUCTEUR":reservation.nom_nd_condicteur if reservation.nom_nd_condicteur else None,
-        "Prenom_2EME_CONDUCTEUR":reservation.prenom_nd_condicteur if reservation.prenom_nd_condicteur else None,
-        "BIRTHDAY_2EME_CONDUCTEUR":reservation.date_nd_condicteur if reservation.date_nd_condicteur else None,
+        "NOM_2EME_CONDUCTEUR":reservation.nom_nd_condicteur if reservation.nom_nd_condicteur else "",
+        "Prenom_2EME_CONDUCTEUR":reservation.prenom_nd_condicteur if reservation.prenom_nd_condicteur else "",
+        "BIRTHDAY_2EME_CONDUCTEUR":reservation.date_nd_condicteur if reservation.date_nd_condicteur else "",
         "DATE_PERMIS_2EME":permi_desc,
         "DATE_DEPART": livraison.date_depart_char,
         "HEURE_DEPART": livraison.heure_depart_char,
