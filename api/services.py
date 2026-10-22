@@ -276,6 +276,18 @@ def modify_protection_request(ref, protection,country_code):
 
 def verify_client(email, nom, prenom, birthday, permis, phone):
     try:
+        def to_date(value):
+            if not value:
+                return None
+            if hasattr(value, "year"):
+                return value
+            try:
+                return datetime.strptime(value, "%Y-%m-%d" if '-' in value else "%d/%m/%Y").date()
+            except ValueError:
+                return None
+
+        birthday_date = to_date(birthday)
+        permis_date = to_date(permis)
         nom = re.sub(r'\s+', ' ', nom.strip()).upper()
         prenom = re.sub(r'\s+', ' ', prenom.strip()).upper()
         client_id=ListeClient.objects.filter(nom=nom, prenom=prenom).first()
@@ -288,6 +300,12 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
                     client_id.save()
                 if email and client_id.email != email:
                     client_id.email = email
+                    client_id.save()
+                if birthday_date and client_id.date_de_naissance != birthday_date:
+                    client_id.date_de_naissance = birthday_date
+                    client_id.save()
+                if permis_date and client_id.date_de_permis != permis_date:
+                    client_id.date_de_permis = permis_date
                     client_id.save()
                 
                 return {"message":"positif", "client_id": client_id.id}
@@ -303,6 +321,12 @@ def verify_client(email, nom, prenom, birthday, permis, phone):
                         client_verify.save()
                     if email and client_verify and client_verify.email != email:
                         client_verify.email = email
+                        client_verify.save()
+                    if birthday_date and client_verify.date_de_naissance != birthday_date:
+                        client_verify.date_de_naissance = birthday_date
+                        client_verify.save()
+                    if permis_date and client_verify.date_de_permis != permis_date:
+                        client_verify.date_de_permis = permis_date
                         client_verify.save()
                     return {"message":"positif", "client_id": client_verify.id}
             else: 
