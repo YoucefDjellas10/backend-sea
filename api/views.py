@@ -1129,8 +1129,8 @@ def combined_document_download(request):
     nd_client_name = " "
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else " "
-    permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
-    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet and permis_nd else None
+    permis_nd = reservation.date_de_permis if reservation.date_de_permis else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if permis_nd else None
     
     if nd_clinet :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
@@ -1148,9 +1148,10 @@ def combined_document_download(request):
         "PRÉNOM": reservation.prenom,
         "DATE_DE_NAISSANCE": birthday,
         "DATE_PERMIS": permit_date,
-        "NOM_2EME_CONDUCTEUR": reservation.nom_nd_condicteur if reservation.nom_nd_condicteur else None,
-        "Prenom_2EME_CONDUCTEUR":reservation.prenom_nd_condicteur if reservation.prenom_nd_condicteur else None,
-        "DATE_PERMIS_2EME": permi_desc,
+        "NOM_2EME_CONDUCTEUR": reservation.nom_nd_condicteur if reservation.nom_nd_condicteur else "",
+        "Prenom_2EME_CONDUCTEUR":reservation.prenom_nd_condicteur if reservation.prenom_nd_condicteur else "",
+        "BIRTHDAY_2EME_CONDUCTEUR": reservation.date_nd_condicteur if reservation.date_nd_condicteur else "",
+        "DATE_PERMIS_2EME": permit_date_nd,
         "DATE_DEPART": reservation.date_depart_char,
         "HEURE_DEPART": reservation.heure_depart_char,
         "DATE_RETOUR": reservation.date_retour_char,
@@ -1176,7 +1177,7 @@ def combined_document_download(request):
     birthday_contract = None
     permis_contract = None
 
-    birthday_date_contract = livraison.client.date_de_naissance if livraison.client else None
+    birthday_date_contract = livraison.client.date_de_naissance if livraison.client.date_de_naissance else None
     birthday_contract = birthday_date_contract.strftime("%d %B %Y") if birthday_contract else None 
     permis_contract = livraison.client.date_de_permis
     permit_date_contract = permis_contract.strftime("%B/%Y") if permis_contract else None 
@@ -1192,7 +1193,7 @@ def combined_document_download(request):
         "DATE_PERMIS": permit_date_contract,
         "NOM_2EME_CONDUCTEUR": reservation.nom_nd_condicteur if reservation.nom_nd_condicteur else None,
         "Prenom_2EME_CONDUCTEUR":reservation.prenom_nd_condicteur if reservation.prenom_nd_condicteur else None,
-        "DATE_PERMIS_2EME": f" - Permis de conduire délivré le : {permi_desc}",
+        "DATE_PERMIS_2EME": f" - Permis de conduire délivré le : {permit_date_nd}",
         "DATE_DEPART": reservation.date_depart_char,
         "HEURE_DEPART": reservation.heure_depart_char,
         "DATE_RETOUR": reservation.date_retour_char,
@@ -1787,7 +1788,7 @@ def contract_download_(request):
         "DATE_PERMIS":permit_date,
         "NOM_2EME_CONDUCTEUR":livraison.reservation.nom_nd_condicteur if livraison.reservation.nom_nd_condicteur else None,
         "Prenom_2EME_CONDUCTEUR":livraison.reservation.prenom_nd_condicteur if livraison.reservation.prenom_nd_condicteur else None,
-        "DATE_PERMIS_2EME":f" - Permis de conduire délivré le : {permi_desc}",
+        "DATE_PERMIS_2EME":f" - Permis de conduire délivré le : {permit_date_nd}",
         "DATE_DEPART": date_debut,
         "HEURE_DEPART": livraison.reservation.heure_depart_char,
         "DATE_RETOUR": date_fin,
