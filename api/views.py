@@ -1129,7 +1129,7 @@ def combined_document_download(request):
     nd_client_name = " "
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else " "
-    permis_nd = reservation.date_de_permis if reservation.date_de_permis else " "
+    permis_nd = reservation.date_de_permis if reservation.date_de_permis else None
     permit_date_nd = permis_nd.strftime("%B/%Y") if permis_nd else None
     
     if nd_clinet :
