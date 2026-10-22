@@ -1766,14 +1766,14 @@ def contract_download_(request):
     nd_client_name = " "
     permi_desc = " "
     nd_client_name_ = nd_clinet.name if nd_clinet else " "
-    permis_nd = nd_clinet.date_de_permis if nd_clinet else " "
-    permit_date_nd = permis_nd.strftime("%B/%Y") if nd_clinet else None
-    if nd_clinet :
+    permis_nd = reservation.date_de_permis if reservation.date_de_permis else " "
+    permit_date_nd = permis_nd.strftime("%B/%Y") if permis_nd else None
+    if permit_date_nd :
         nd_client_name = f"✔ 2ème conducteur : {nd_client_name_} -"
         permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
     else : 
         nd_client_name = " "
-        permi_desc = " "
+        permi_desc = f" Permis de conduire délivré le :{permit_date_nd}"
        
     signature_url = f"{settings.API_BASE_URL}/signature/{livraison_id}/"
 
