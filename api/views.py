@@ -1177,8 +1177,8 @@ def combined_document_download(request):
     birthday_contract = None
     permis_contract = None
 
-    birthday_date_contract = reservation.client.date_de_naissance if reservation.client.date_de_naissance else "ici"
-    birthday_contract = birthday_date_contract.strftime("%d %B %Y") if birthday_contract != "ici" else birthday_contract 
+    birthday_date_contract = reservation.client.date_de_naissance if reservation.client.date_de_naissance else ""
+    birthday_contract = birthday_date_contract.strftime("%d %B %Y") if birthday_contract != "" else birthday_contract 
     permis_contract = livraison.client.date_de_permis
     permit_date_contract = permis_contract.strftime("%B/%Y") if permis_contract else None 
 
