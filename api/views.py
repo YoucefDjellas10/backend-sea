@@ -4819,6 +4819,7 @@ def add_reservation_post_view(request):
             prenom = client.prenom,
             email = client.email,
             date_de_naissance = client.date_de_naissance,
+            permis_date=client.date_de_permis,
             mobile = client.mobile,
             telephone = client.telephone,
             risque = client.risque,
