@@ -3781,7 +3781,7 @@ def payment_request_ma_reservation_view(request):
             "client_name": reservation_obj.client.name,
             "payment_method": "En ligne",
             "payment_amount": round(remaining_to_pay, 2),
-            "reste": round( float(reservation_obj.total_reduit_euro) - float(reservation_obj.montant_paye)  - float(remaining_to_pay), 2),
+            "reste": round( float(new_total) - float(reservation_obj.montant_paye)  - float(remaining_to_pay), 2),
             "url": payment_url,
             "model_name": reservation_obj.model_name,
             "total_days": new_total_days,
