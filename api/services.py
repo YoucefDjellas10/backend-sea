@@ -1196,10 +1196,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
         return {"message": f"Erreur: {str(e)}", "trace": traceback.format_exc()}
 
 def option_ma_reservation(ref, email, country_code):
-    """
-    Retourne un dict d'options indexées par slug, avec
-    prix et totaux (convertis si DZ), et champs spécifiques pour KLM.
-    """
+
     try:
         reservation = Reservation.objects.filter(name=ref, email=email).first()
         if not reservation:
@@ -1241,8 +1238,6 @@ def option_ma_reservation(ref, email, country_code):
         }
 
         free_options = free_options_f(reservation.client.id)
-        reduction = 1
-
         result = {}
         for opt in options_qs:
             code      = (opt.option_code or "").upper()
@@ -1257,6 +1252,7 @@ def option_ma_reservation(ref, email, country_code):
             prix_unitaire = prix_base * taux_change
             total = prix_unitaire * nb_jour if tarif == "jour" else prix_unitaire
 
+            reduction = 1
             if "KLM_ILLIMITED" in code and free_options[0].get("option_seven") == True:
                 reduction = 0
             elif "ND_DRIVER" in code and free_options[0].get("option_one") == True:
@@ -3952,11 +3948,7 @@ def send_reservation_otp(email, ref):
 
 
 def get_reservation_for_client(client_id, ref, country_code):
-    """
-    Etape 3 : meme contenu que search-ma-reservation/, mais la reservation
-    doit appartenir au porteur du token.
-    Retourne (payload, None) ou (None, motif).
-    """
+
     client = ListeClient.objects.filter(id=client_id).first()
     if client is None:
         return None, "client_not_found"

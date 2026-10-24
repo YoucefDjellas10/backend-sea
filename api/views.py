@@ -8619,11 +8619,7 @@ def reservation_otp_verify_view(request):
 
 
 def reservation_detail_view(request):
-    """
-    Etape 3 : GET /reservation/?ref=250042 avec `Authorization: Bearer <token>`.
-    Meme payload que search-ma-reservation/, mais la reservation doit
-    appartenir au porteur du token.
-    """
+
     if request.method != "GET":
         return JsonResponse({"success": False, "error": "method_not_allowed",
                              "message": "Utilisez GET."}, status=405)
