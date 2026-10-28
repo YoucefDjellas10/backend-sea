@@ -8251,18 +8251,12 @@ def cancel_receipt_download(request):
     reservation = get_object_or_404(Reservation, id=reservation_id)
 
     ref =  reservation.name
-    try:
-        result = cencel_request(ref, "ABC")
-    except ValueError as e:
-        return HttpResponse(str(e), status=400)
 
-    if not result.get("success"):
-        return HttpResponse(result.get("message", "Erreur inconnue"), status=400)
+    fee = float(reservation.total_reduit_euro) - float(reservation.reste_payer)
+    refund = float(reservation.reste_payer)
 
-    cancellation_data = result["data"]["cancellation"]
-
-    un_jour = cancellation_data["cancellation_fee"] if cancellation_data["cancellation_fee"] and cancellation_data["cancellation_fee"] > 0 else 0.00
-    montant_rembourse = cancellation_data["refund_amount"] if cancellation_data ["refund_amount"] and cancellation_data["refund_amount"] > 0 else 0.00
+    un_jour = round(fee, 2)
+    montant_rembourse = round(refund, 2)
     total = reservation.montant_paye if reservation.montant_paye and reservation.montant_paye > 0 else 0.00
 
     context = {
