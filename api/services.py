@@ -1,3 +1,4 @@
+from functools import lru_cache
 from .models import *
 from datetime import datetime
 from django.db.models import Q
@@ -2106,6 +2107,18 @@ def appliquer_promo_dynamique(pourcentage_actuel, pourcentage_dyn, limite):
     return min(pourcentage_actuel + pourcentage_dyn, float(limite))
 
 
+@lru_cache(maxsize=256)
+def traduire_nom(texte, langue):
+    # Traduction automatique du français (Google Translate), gardée en cache
+    if not texte:
+        return None
+    try:
+        from deep_translator import GoogleTranslator
+        return GoogleTranslator(source="fr", target=langue).translate(texte)
+    except Exception:
+        return None
+
+
 def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
     try:
         date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
@@ -2433,6 +2446,32 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
+        if client and client.categorie_client:
+            recap_categorie_client = {
+                "id": client.categorie_client.id,
+                "name": client.categorie_client.name,
+            }
+        else:
+            recap_categorie_client = None
+
+        if opt_payment_total:
+            type_de_paiement_total = opt_payment_total
+        else:
+            type_de_paiement_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        type_de_paiement = {
+            "name": {
+                "fr": opt_payment_name,
+                "en": opt_payment_name_en,
+                "ar": opt_payment_name_ar,
+            },
+            "total": type_de_paiement_total,
+        }
+
         vip_limit = search_option_DA("KLM_ILLIMITED", total_days, lieu_depart)
         vip_limit_value = vip_limit["limit"]
 
@@ -2505,6 +2544,150 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_c_type_tarif = siege_c["type_tarif"]
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
+
+        if opt_carburant_total:
+            recap_plein_carburant_total = opt_carburant_total
+        else:
+            recap_plein_carburant_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_plein_carburant = {
+            "name": {
+                "fr": opt_carburant_name,
+                "en": opt_carburant_name_en,
+                "ar": opt_carburant_name_ar,
+            },
+            "total": recap_plein_carburant_total,
+        }
+
+        if opt_klm_total:
+            recap_klm_illimite_total = opt_klm_total
+        else:
+            recap_klm_illimite_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_klm_illimite = {
+            "name": {
+                "fr": opt_klm_name,
+                "en": opt_klm_name_en,
+                "ar": opt_klm_name_ar,
+            },
+            "total": recap_klm_illimite_total,
+        }
+
+        if opt_klm_b_total:
+            recap_klm_illimite_b_total = opt_klm_b_total
+        else:
+            recap_klm_illimite_b_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_klm_illimite_b = {
+            "name": {
+                "fr": opt_klm_b_name,
+                "en": opt_klm_b_name_en,
+                "ar": opt_klm_b_name_ar,
+            },
+            "total": recap_klm_illimite_b_total,
+        }
+
+        if opt_klm_c_total:
+            recap_klm_illimite_c_total = opt_klm_c_total
+        else:
+            recap_klm_illimite_c_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_klm_illimite_c = {
+            "name": {
+                "fr": opt_klm_c_name,
+                "en": opt_klm_c_name_en,
+                "ar": opt_klm_c_name_ar,
+            },
+            "total": recap_klm_illimite_c_total,
+        }
+
+        if opt_nd_driver_total:
+            recap_deuxieme_conducteur_total = opt_nd_driver_total
+        else:
+            recap_deuxieme_conducteur_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_deuxieme_conducteur = {
+            "name": {
+                "fr": opt_nd_driver_name,
+                "en": opt_nd_driver_name_en,
+                "ar": opt_nd_driver_name_ar,
+            },
+            "total": recap_deuxieme_conducteur_total,
+        }
+
+        if opt_siege_a_total:
+            recap_siege_bebe_5_total = opt_siege_a_total
+        else:
+            recap_siege_bebe_5_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_siege_bebe_5 = {
+            "name": {
+                "fr": opt_siege_a_name,
+                "en": opt_siege_a_name_en,
+                "ar": opt_siege_a_name_ar,
+            },
+            "total": recap_siege_bebe_5_total,
+        }
+
+        if opt_siege_b_total:
+            recap_siege_bebe_13_total = opt_siege_b_total
+        else:
+            recap_siege_bebe_13_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_siege_bebe_13 = {
+            "name": {
+                "fr": opt_siege_b_name,
+                "en": opt_siege_b_name_en,
+                "ar": opt_siege_b_name_ar,
+            },
+            "total": recap_siege_bebe_13_total,
+        }
+
+        if opt_siege_c_total:
+            recap_siege_bebe_18_total = opt_siege_c_total
+        else:
+            recap_siege_bebe_18_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_siege_bebe_18 = {
+            "name": {
+                "fr": opt_siege_c_name,
+                "en": opt_siege_c_name_en,
+                "ar": opt_siege_c_name_ar,
+            },
+            "total": recap_siege_bebe_18_total,
+        }
     
         base_a = search_option_DA("BASE_P_1", total_days, lieu_depart)
         base_a_name = base_a["name"]
@@ -2589,6 +2772,138 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         max_c_unit = max_c["prix"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"] / total_days
         max_c_total = max_c["total"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"]
         max_c_caution = max_c["caution"]
+
+        # Protection basique (option_code BASE_P_1) : toujours son total, sans catégorie client
+        recap_protection_basique_a_total = base_a_total
+
+        recap_protection_basique_a = {
+            "name": {
+                "fr": f"Protection {base_a_name}",
+                "en": f"Protection {base_a_name_en}",
+                "ar": f"حماية {base_a_name_ar}",
+            },
+            "total": recap_protection_basique_a_total,
+        }
+
+        # Protection basique (option_code BASE_P_2) : toujours son total, sans catégorie client
+        recap_protection_basique_b_total = base_b_total
+
+        recap_protection_basique_b = {
+            "name": {
+                "fr": f"Protection {base_b_name}",
+                "en": f"Protection {base_b_name_en}",
+                "ar": f"حماية {base_b_name_ar}",
+            },
+            "total": recap_protection_basique_b_total,
+        }
+
+        # Protection basique (option_code BASE_P_3) : toujours son total, sans catégorie client
+        recap_protection_basique_c_total = base_c_total
+
+        recap_protection_basique_c = {
+            "name": {
+                "fr": f"Protection {base_c_name}",
+                "en": f"Protection {base_c_name_en}",
+                "ar": f"حماية {base_c_name_ar}",
+            },
+            "total": recap_protection_basique_c_total,
+        }
+
+        if standart_a_total:
+            recap_protection_standard_a_total = standart_a_total
+        else:
+            recap_protection_standard_a_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_standard_a = {
+            "name": {
+                "fr": f"Protection {standart_a_name}",
+                "en": f"Protection {standart_a_name_en}",
+                "ar": f"حماية {standart_a_name_ar}",
+            },
+            "total": recap_protection_standard_a_total,
+        }
+
+        if standart_b_total:
+            recap_protection_standard_b_total = standart_b_total
+        else:
+            recap_protection_standard_b_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_standard_b = {
+            "name": {
+                "fr": f"Protection {standart_b_name}",
+                "en": f"Protection {standart_b_name_en}",
+                "ar": f"حماية {standart_b_name_ar}",
+            },
+            "total": recap_protection_standard_b_total,
+        }
+
+        if standart_c_total:
+            recap_protection_standard_c_total = standart_c_total
+        else:
+            recap_protection_standard_c_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_standard_c = {
+            "name": {
+                "fr": f"Protection {standart_c_name}",
+                "en": f"Protection {standart_c_name_en}",
+                "ar": f"حماية {standart_c_name_ar}",
+            },
+            "total": recap_protection_standard_c_total,
+        }
+
+        if max_a_total:
+            recap_protection_maximale_a_total = max_a_total
+        else:
+            recap_protection_maximale_a_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_maximale_a = {
+            "name": {
+                "fr": f"Protection {max_a_name}",
+                "en": f"Protection {max_a_name_en}",
+                "ar": f"حماية {max_a_name_ar}",
+            },
+            "total": recap_protection_maximale_a_total,
+        }
+
+        if max_b_total:
+            recap_protection_maximale_b_total = max_b_total
+        else:
+            recap_protection_maximale_b_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_maximale_b = {
+            "name": {
+                "fr": f"Protection {max_b_name}",
+                "en": f"Protection {max_b_name_en}",
+                "ar": f"حماية {max_b_name_ar}",
+            },
+            "total": recap_protection_maximale_b_total,
+        }
+
+        if max_c_total:
+            recap_protection_maximale_c_total = max_c_total
+        else:
+            recap_protection_maximale_c_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_maximale_c = {
+            "name": {
+                "fr": f"Protection {max_c_name}",
+                "en": f"Protection {max_c_name_en}",
+                "ar": f"حماية {max_c_name_ar}",
+            },
+            "total": recap_protection_maximale_c_total,
+        }
 
         modeles_ajoutes = set()
         total_brut = 0
@@ -2689,7 +3004,44 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
 
+                # Promotion classique uniquement (sans la promotion dynamique)
+                if promotion == "yes" and not is_prime:
+                    recap_promotion = {
+                        "is_promotion": True,
+                        "pourcentage": promotion_value,
+                        "valeur": round(float(montant_promotion), 2),
+                        "name": {
+                            "fr": promotion_name,
+                            "en": traduire_nom(promotion_name, "en"),
+                            "ar": traduire_nom(promotion_name, "ar"),
+                        },
+                    }
+                else:
+                    recap_promotion = {
+                        "is_promotion": False,
+                    }
+
+                # Code fidélité : réduction client (sans la promotion dynamique)
+                if promotion == "yes" and is_prime:
+                    recap_code_fidelite = {
+                        "is_code_fidelite": True,
+                        "pourcentage": client_pr,
+                        "valeur": round(float(montant_code_prime), 2),
+                        "categorie_client": recap_categorie_client,
+                        "name": {
+                            "fr": "Code fidélité",
+                            "en": "Loyalty code",
+                            "ar": "رمز الوفاء",
+                        },
+                    }
+                else:
+                    recap_code_fidelite = {
+                        "is_code_fidelite": False,
+                    }
+
                 # ── Promotion dynamique (remplissage du planning) ──
+                pourcentage_avant_dyn = float(percentage or 0)
+                montant_avant_dyn = float(montant_promotion or 0)
                 is_promo_dynamique = False
                 promo_name_vehicule = promotion_name
                 pourcentage_dyn = promo_dynamique_pourcentage(tarif_dyn, vehicle, recherche_debut_utc, recherche_fin_utc)
@@ -2705,6 +3057,23 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         montant_code_prime = montant_promotion
                     total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
+
+                # Offre dynamique : uniquement la part ajoutée par la promotion dynamique
+                if is_promo_dynamique:
+                    recap_offre_dynamique = {
+                        "is_offre_dynamique": True,
+                        "pourcentage": round(float(percentage) - pourcentage_avant_dyn, 2),
+                        "valeur": round(float(montant_promotion) - montant_avant_dyn, 2),
+                        "name": {
+                            "fr": "Offre Dynamique",
+                            "en": "Dynamic Offer",
+                            "ar": "عرض ديناميكي",
+                        },
+                    }
+                else:
+                    recap_offre_dynamique = {
+                        "is_offre_dynamique": False,
+                    }
 
                 solde_anterieur = 0
                 if int(client_sold) > 0 : 
@@ -2734,6 +3103,32 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
+                # Récompense parrainage : montant déduit directement (code parrainage)
+                if is_parrainage and prime_red and float(prime_red) > 0:
+                    recap_recompense_parrainage = {
+                        "is_recompense_parrainage": True,
+                        "valeur": round(float(prime_red), 2),
+                        "name": {
+                            "fr": "Récompense Parrainage",
+                            "en": "Referral Reward",
+                            "ar": "مكافأة الإحالة",
+                        },
+                    }
+                else:
+                    recap_recompense_parrainage = {
+                        "is_recompense_parrainage": False,
+                    }
+
+                if solde_anterieur and float(solde_anterieur) > 0:
+                    recap_solde_anterieur = {
+                        "is_solde": True,
+                        "valeur": round(float(solde_anterieur), 2),
+                    }
+                else:
+                    recap_solde_anterieur = {
+                        "is_solde": False,
+                    }
+
                 modeles_ajoutes.add(vehicle.modele.id)
 
                 if vehicle.categorie.id == base_a_category :
@@ -2842,6 +3237,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "date_annulation":date_annulation,
                         "hors_zone":hors_zone,
                         "hors_ville":hors_ville,
+                        "recap": {
+                            "bail_de_location": round(total_brut, 2),
+                            "type_de_paiement": type_de_paiement,
+                            "categorie_client": recap_categorie_client,
+                            "plein_carburant": recap_plein_carburant,
+                            "kilometrage_illimite": recap_klm_illimite,
+                            "deuxieme_conducteur": recap_deuxieme_conducteur,
+                            "siege_bebe_5": recap_siege_bebe_5,
+                            "siege_bebe_13": recap_siege_bebe_13,
+                            "siege_bebe_18": recap_siege_bebe_18,
+                            "solde_anterieur": recap_solde_anterieur,
+                            "promotion": recap_promotion,
+                            "code_fidelite": recap_code_fidelite,
+                            "offre_dynamique": recap_offre_dynamique,
+                            "recompense_parrainage": recap_recompense_parrainage,
+                            "protection_basique": recap_protection_basique_a,
+                            "protection_standard": recap_protection_standard_a,
+                            "protection_maximale": recap_protection_maximale_a,
+                        },
                     })
                 
                 if vehicle.categorie.id == base_b_category :
@@ -2949,6 +3363,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "date_annulation":date_annulation,
                         "hors_zone":hors_zone,
                         "hors_ville":hors_ville,
+                        "recap": {
+                            "bail_de_location": round(total_brut, 2),
+                            "type_de_paiement": type_de_paiement,
+                            "categorie_client": recap_categorie_client,
+                            "plein_carburant": recap_plein_carburant,
+                            "kilometrage_illimite": recap_klm_illimite_b,
+                            "deuxieme_conducteur": recap_deuxieme_conducteur,
+                            "siege_bebe_5": recap_siege_bebe_5,
+                            "siege_bebe_13": recap_siege_bebe_13,
+                            "siege_bebe_18": recap_siege_bebe_18,
+                            "solde_anterieur": recap_solde_anterieur,
+                            "promotion": recap_promotion,
+                            "code_fidelite": recap_code_fidelite,
+                            "offre_dynamique": recap_offre_dynamique,
+                            "recompense_parrainage": recap_recompense_parrainage,
+                            "protection_basique": recap_protection_basique_b,
+                            "protection_standard": recap_protection_standard_b,
+                            "protection_maximale": recap_protection_maximale_b,
+                        },
                     })
 
                 if vehicle.categorie.id == base_c_category :
@@ -3056,6 +3489,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "date_annulation":date_annulation,
                         "hors_zone":hors_zone,
                         "hors_ville":hors_ville,
+                        "recap": {
+                            "bail_de_location": round(total_brut, 2),
+                            "type_de_paiement": type_de_paiement,
+                            "categorie_client": recap_categorie_client,
+                            "plein_carburant": recap_plein_carburant,
+                            "kilometrage_illimite": recap_klm_illimite_c,
+                            "deuxieme_conducteur": recap_deuxieme_conducteur,
+                            "siege_bebe_5": recap_siege_bebe_5,
+                            "siege_bebe_13": recap_siege_bebe_13,
+                            "siege_bebe_18": recap_siege_bebe_18,
+                            "solde_anterieur": recap_solde_anterieur,
+                            "promotion": recap_promotion,
+                            "code_fidelite": recap_code_fidelite,
+                            "offre_dynamique": recap_offre_dynamique,
+                            "recompense_parrainage": recap_recompense_parrainage,
+                            "protection_basique": recap_protection_basique_c,
+                            "protection_standard": recap_protection_standard_c,
+                            "protection_maximale": recap_protection_maximale_c,
+                        },
                     })
     else :
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart_id).first()
@@ -3138,6 +3590,32 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_payment_unit = paiement_anticipe["prix"]
         opt_payment_total = paiement_anticipe["total"]
 
+        if client and client.categorie_client:
+            recap_categorie_client = {
+                "id": client.categorie_client.id,
+                "name": client.categorie_client.name,
+            }
+        else:
+            recap_categorie_client = None
+
+        if opt_payment_total:
+            type_de_paiement_total = opt_payment_total
+        else:
+            type_de_paiement_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        type_de_paiement = {
+            "name": {
+                "fr": opt_payment_name,
+                "en": opt_payment_name_en,
+                "ar": opt_payment_name_ar,
+            },
+            "total": type_de_paiement_total,
+        }
+
         klm_illimite = search_option("KLM_ILLIMITED", total_days, lieu_depart)
         opt_klm_name = klm_illimite["name"]
         opt_klm_name_en = klm_illimite["name_en"]
@@ -3207,6 +3685,150 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         opt_siege_c_type_tarif = siege_c["type_tarif"]
         opt_siege_c_unit = siege_c["prix"]
         opt_siege_c_total = siege_c["total"]
+
+        if opt_carburant_total:
+            recap_plein_carburant_total = opt_carburant_total
+        else:
+            recap_plein_carburant_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_plein_carburant = {
+            "name": {
+                "fr": opt_carburant_name,
+                "en": opt_carburant_name_en,
+                "ar": opt_carburant_name_ar,
+            },
+            "total": recap_plein_carburant_total,
+        }
+
+        if opt_klm_total:
+            recap_klm_illimite_total = opt_klm_total
+        else:
+            recap_klm_illimite_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_klm_illimite = {
+            "name": {
+                "fr": opt_klm_name,
+                "en": opt_klm_name_en,
+                "ar": opt_klm_name_ar,
+            },
+            "total": recap_klm_illimite_total,
+        }
+
+        if opt_klm_b_total:
+            recap_klm_illimite_b_total = opt_klm_b_total
+        else:
+            recap_klm_illimite_b_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_klm_illimite_b = {
+            "name": {
+                "fr": opt_klm_b_name,
+                "en": opt_klm_b_name_en,
+                "ar": opt_klm_b_name_ar,
+            },
+            "total": recap_klm_illimite_b_total,
+        }
+
+        if opt_klm_c_total:
+            recap_klm_illimite_c_total = opt_klm_c_total
+        else:
+            recap_klm_illimite_c_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_klm_illimite_c = {
+            "name": {
+                "fr": opt_klm_c_name,
+                "en": opt_klm_c_name_en,
+                "ar": opt_klm_c_name_ar,
+            },
+            "total": recap_klm_illimite_c_total,
+        }
+
+        if opt_nd_driver_total:
+            recap_deuxieme_conducteur_total = opt_nd_driver_total
+        else:
+            recap_deuxieme_conducteur_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_deuxieme_conducteur = {
+            "name": {
+                "fr": opt_nd_driver_name,
+                "en": opt_nd_driver_name_en,
+                "ar": opt_nd_driver_name_ar,
+            },
+            "total": recap_deuxieme_conducteur_total,
+        }
+
+        if opt_siege_a_total:
+            recap_siege_bebe_5_total = opt_siege_a_total
+        else:
+            recap_siege_bebe_5_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_siege_bebe_5 = {
+            "name": {
+                "fr": opt_siege_a_name,
+                "en": opt_siege_a_name_en,
+                "ar": opt_siege_a_name_ar,
+            },
+            "total": recap_siege_bebe_5_total,
+        }
+
+        if opt_siege_b_total:
+            recap_siege_bebe_13_total = opt_siege_b_total
+        else:
+            recap_siege_bebe_13_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_siege_bebe_13 = {
+            "name": {
+                "fr": opt_siege_b_name,
+                "en": opt_siege_b_name_en,
+                "ar": opt_siege_b_name_ar,
+            },
+            "total": recap_siege_bebe_13_total,
+        }
+
+        if opt_siege_c_total:
+            recap_siege_bebe_18_total = opt_siege_c_total
+        else:
+            recap_siege_bebe_18_total = {
+                "fr": "OFFERT",
+                "en": "COMPLIMENTARY",
+                "ar": "هدية",
+            }
+
+        recap_siege_bebe_18 = {
+            "name": {
+                "fr": opt_siege_c_name,
+                "en": opt_siege_c_name_en,
+                "ar": opt_siege_c_name_ar,
+            },
+            "total": recap_siege_bebe_18_total,
+        }
 
         base_a = search_option("BASE_P_1", total_days, lieu_depart)
         base_a_name = base_a["name"]
@@ -3291,6 +3913,138 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         max_c_unit = max_c["prix"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"] / total_days
         max_c_total = max_c["total"] if max_c["total"] > max_c["min_prix"] else max_c["min_prix"]
         max_c_caution = max_c["caution"]
+
+        # Protection basique (option_code BASE_P_1) : toujours son total, sans catégorie client
+        recap_protection_basique_a_total = base_a_total
+
+        recap_protection_basique_a = {
+            "name": {
+                "fr": f"Protection {base_a_name}",
+                "en": f"Protection {base_a_name_en}",
+                "ar": f"حماية {base_a_name_ar}",
+            },
+            "total": recap_protection_basique_a_total,
+        }
+
+        # Protection basique (option_code BASE_P_2) : toujours son total, sans catégorie client
+        recap_protection_basique_b_total = base_b_total
+
+        recap_protection_basique_b = {
+            "name": {
+                "fr": f"Protection {base_b_name}",
+                "en": f"Protection {base_b_name_en}",
+                "ar": f"حماية {base_b_name_ar}",
+            },
+            "total": recap_protection_basique_b_total,
+        }
+
+        # Protection basique (option_code BASE_P_3) : toujours son total, sans catégorie client
+        recap_protection_basique_c_total = base_c_total
+
+        recap_protection_basique_c = {
+            "name": {
+                "fr": f"Protection {base_c_name}",
+                "en": f"Protection {base_c_name_en}",
+                "ar": f"حماية {base_c_name_ar}",
+            },
+            "total": recap_protection_basique_c_total,
+        }
+
+        if standart_a_total:
+            recap_protection_standard_a_total = standart_a_total
+        else:
+            recap_protection_standard_a_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_standard_a = {
+            "name": {
+                "fr": f"Protection {standart_a_name}",
+                "en": f"Protection {standart_a_name_en}",
+                "ar": f"حماية {standart_a_name_ar}",
+            },
+            "total": recap_protection_standard_a_total,
+        }
+
+        if standart_b_total:
+            recap_protection_standard_b_total = standart_b_total
+        else:
+            recap_protection_standard_b_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_standard_b = {
+            "name": {
+                "fr": f"Protection {standart_b_name}",
+                "en": f"Protection {standart_b_name_en}",
+                "ar": f"حماية {standart_b_name_ar}",
+            },
+            "total": recap_protection_standard_b_total,
+        }
+
+        if standart_c_total:
+            recap_protection_standard_c_total = standart_c_total
+        else:
+            recap_protection_standard_c_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_standard_c = {
+            "name": {
+                "fr": f"Protection {standart_c_name}",
+                "en": f"Protection {standart_c_name_en}",
+                "ar": f"حماية {standart_c_name_ar}",
+            },
+            "total": recap_protection_standard_c_total,
+        }
+
+        if max_a_total:
+            recap_protection_maximale_a_total = max_a_total
+        else:
+            recap_protection_maximale_a_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_maximale_a = {
+            "name": {
+                "fr": f"Protection {max_a_name}",
+                "en": f"Protection {max_a_name_en}",
+                "ar": f"حماية {max_a_name_ar}",
+            },
+            "total": recap_protection_maximale_a_total,
+        }
+
+        if max_b_total:
+            recap_protection_maximale_b_total = max_b_total
+        else:
+            recap_protection_maximale_b_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_maximale_b = {
+            "name": {
+                "fr": f"Protection {max_b_name}",
+                "en": f"Protection {max_b_name_en}",
+                "ar": f"حماية {max_b_name_ar}",
+            },
+            "total": recap_protection_maximale_b_total,
+        }
+
+        if max_c_total:
+            recap_protection_maximale_c_total = max_c_total
+        else:
+            recap_protection_maximale_c_total = {
+                "categorie_client": recap_categorie_client,
+            }
+
+        recap_protection_maximale_c = {
+            "name": {
+                "fr": f"Protection {max_c_name}",
+                "en": f"Protection {max_c_name_en}",
+                "ar": f"حماية {max_c_name_ar}",
+            },
+            "total": recap_protection_maximale_c_total,
+        }
 
         modeles_ajoutes = set()
         total_brut = 0
@@ -3389,7 +4143,44 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     montant_code_prime = 0
                     total_red = total_brut
                     prix_unitaire_red = prix_unitaire
+                # Promotion classique uniquement (sans la promotion dynamique)
+                if promotion == "yes" and not is_prime:
+                    recap_promotion = {
+                        "is_promotion": True,
+                        "pourcentage": promotion_value,
+                        "valeur": round(float(montant_promotion), 2),
+                        "name": {
+                            "fr": promotion_name,
+                            "en": traduire_nom(promotion_name, "en"),
+                            "ar": traduire_nom(promotion_name, "ar"),
+                        },
+                    }
+                else:
+                    recap_promotion = {
+                        "is_promotion": False,
+                    }
+
+                # Code fidélité : réduction client (sans la promotion dynamique)
+                if promotion == "yes" and is_prime:
+                    recap_code_fidelite = {
+                        "is_code_fidelite": True,
+                        "pourcentage": client_pr,
+                        "valeur": round(float(montant_code_prime), 2),
+                        "categorie_client": recap_categorie_client,
+                        "name": {
+                            "fr": "Code fidélité",
+                            "en": "Loyalty code",
+                            "ar": "رمز الوفاء",
+                        },
+                    }
+                else:
+                    recap_code_fidelite = {
+                        "is_code_fidelite": False,
+                    }
+
                 # ── Promotion dynamique (remplissage du planning) ──
+                pourcentage_avant_dyn = float(percentage or 0)
+                montant_avant_dyn = float(montant_promotion or 0)
                 is_promo_dynamique = False
                 promo_name_vehicule = promotion_name
                 pourcentage_dyn = promo_dynamique_pourcentage(tarif_dyn, vehicle, recherche_debut_utc, recherche_fin_utc)
@@ -3408,6 +4199,23 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     else:
                         total_red = total_primary + (((100 - percentage) * prix_jour / 100) * total_days)
                     prix_unitaire_red = total_red / total_days
+
+                # Offre dynamique : uniquement la part ajoutée par la promotion dynamique
+                if is_promo_dynamique:
+                    recap_offre_dynamique = {
+                        "is_offre_dynamique": True,
+                        "pourcentage": round(float(percentage) - pourcentage_avant_dyn, 2),
+                        "valeur": round(float(montant_promotion) - montant_avant_dyn, 2),
+                        "name": {
+                            "fr": "Offre Dynamique",
+                            "en": "Dynamic Offer",
+                            "ar": "عرض ديناميكي",
+                        },
+                    }
+                else:
+                    recap_offre_dynamique = {
+                        "is_offre_dynamique": False,
+                    }
 
                 solde_anterieur = 0
                 if int(client_sold) > 0 : 
@@ -3437,6 +4245,32 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     total_red = float(total_brut) - float(prime_red)
                     prix_unitaire_red = float(prix_unitaire) - (float(prime_red) / float(total_days))
                 
+                # Récompense parrainage : montant déduit directement (code parrainage)
+                if is_parrainage and prime_red and float(prime_red) > 0:
+                    recap_recompense_parrainage = {
+                        "is_recompense_parrainage": True,
+                        "valeur": round(float(prime_red), 2),
+                        "name": {
+                            "fr": "Récompense Parrainage",
+                            "en": "Referral Reward",
+                            "ar": "مكافأة الإحالة",
+                        },
+                    }
+                else:
+                    recap_recompense_parrainage = {
+                        "is_recompense_parrainage": False,
+                    }
+
+                if solde_anterieur and float(solde_anterieur) > 0:
+                    recap_solde_anterieur = {
+                        "is_solde": True,
+                        "valeur": round(float(solde_anterieur), 2),
+                    }
+                else:
+                    recap_solde_anterieur = {
+                        "is_solde": False,
+                    }
+
                 modeles_ajoutes.add(vehicle.modele.id)
 
                 if vehicle.categorie.id == base_a_category :
@@ -3545,6 +4379,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "date_annulation":date_annulation,
                         "hors_zone":hors_zone,
                         "hors_ville":hors_ville,
+                        "recap": {
+                            "bail_de_location": round(total_brut, 2),
+                            "type_de_paiement": type_de_paiement,
+                            "categorie_client": recap_categorie_client,
+                            "plein_carburant": recap_plein_carburant,
+                            "kilometrage_illimite": recap_klm_illimite,
+                            "deuxieme_conducteur": recap_deuxieme_conducteur,
+                            "siege_bebe_5": recap_siege_bebe_5,
+                            "siege_bebe_13": recap_siege_bebe_13,
+                            "siege_bebe_18": recap_siege_bebe_18,
+                            "solde_anterieur": recap_solde_anterieur,
+                            "promotion": recap_promotion,
+                            "code_fidelite": recap_code_fidelite,
+                            "offre_dynamique": recap_offre_dynamique,
+                            "recompense_parrainage": recap_recompense_parrainage,
+                            "protection_basique": recap_protection_basique_a,
+                            "protection_standard": recap_protection_standard_a,
+                            "protection_maximale": recap_protection_maximale_a,
+                        },
                     })
 
                 
@@ -3653,6 +4506,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "date_annulation":date_annulation,
                         "hors_zone":hors_zone,
                         "hors_ville":hors_ville,
+                        "recap": {
+                            "bail_de_location": round(total_brut, 2),
+                            "type_de_paiement": type_de_paiement,
+                            "categorie_client": recap_categorie_client,
+                            "plein_carburant": recap_plein_carburant,
+                            "kilometrage_illimite": recap_klm_illimite_b,
+                            "deuxieme_conducteur": recap_deuxieme_conducteur,
+                            "siege_bebe_5": recap_siege_bebe_5,
+                            "siege_bebe_13": recap_siege_bebe_13,
+                            "siege_bebe_18": recap_siege_bebe_18,
+                            "solde_anterieur": recap_solde_anterieur,
+                            "promotion": recap_promotion,
+                            "code_fidelite": recap_code_fidelite,
+                            "offre_dynamique": recap_offre_dynamique,
+                            "recompense_parrainage": recap_recompense_parrainage,
+                            "protection_basique": recap_protection_basique_b,
+                            "protection_standard": recap_protection_standard_b,
+                            "protection_maximale": recap_protection_maximale_b,
+                        },
                     })
 
                 if vehicle.categorie.id == base_c_category :
@@ -3752,6 +4624,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "date_annulation":date_annulation,
                         "hors_zone":hors_zone,
                         "hors_ville":hors_ville,
+                        "recap": {
+                            "bail_de_location": round(total_brut, 2),
+                            "type_de_paiement": type_de_paiement,
+                            "categorie_client": recap_categorie_client,
+                            "plein_carburant": recap_plein_carburant,
+                            "kilometrage_illimite": recap_klm_illimite_c,
+                            "deuxieme_conducteur": recap_deuxieme_conducteur,
+                            "siege_bebe_5": recap_siege_bebe_5,
+                            "siege_bebe_13": recap_siege_bebe_13,
+                            "siege_bebe_18": recap_siege_bebe_18,
+                            "solde_anterieur": recap_solde_anterieur,
+                            "promotion": recap_promotion,
+                            "code_fidelite": recap_code_fidelite,
+                            "offre_dynamique": recap_offre_dynamique,
+                            "recompense_parrainage": recap_recompense_parrainage,
+                            "protection_basique": recap_protection_basique_c,
+                            "protection_standard": recap_protection_standard_c,
+                            "protection_maximale": recap_protection_maximale_c,
+                        },
                     })
 
     if not result:

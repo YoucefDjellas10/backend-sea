@@ -343,6 +343,7 @@ class Vehicule(models.Model):
 
 
 class CategorieClient(models.Model):
+    id = models.AutoField(primary_key=True) 
     name = models.CharField(max_length=255, verbose_name="Catégorie")
     name_en = models.CharField(max_length=255, verbose_name="Catégorie EN")
     name_ar = models.CharField(max_length=255, verbose_name="Catégorie AR")
