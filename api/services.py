@@ -1,4 +1,3 @@
-from functools import lru_cache
 from .models import *
 from datetime import datetime
 from django.db.models import Q
@@ -2107,18 +2106,6 @@ def appliquer_promo_dynamique(pourcentage_actuel, pourcentage_dyn, limite):
     return min(pourcentage_actuel + pourcentage_dyn, float(limite))
 
 
-@lru_cache(maxsize=256)
-def traduire_nom(texte, langue):
-    # Traduction automatique du français (Google Translate), gardée en cache
-    if not texte:
-        return None
-    try:
-        from deep_translator import GoogleTranslator
-        return GoogleTranslator(source="fr", target=langue).translate(texte)
-    except Exception:
-        return None
-
-
 def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_depart, date_retour, heure_retour, client_id, prime_code, country_code):
     try:
         date_depart = datetime.strptime(date_depart, "%Y-%m-%d").date()
@@ -3012,8 +2999,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "valeur": round(float(montant_promotion), 2),
                         "name": {
                             "fr": promotion_name,
-                            "en": traduire_nom(promotion_name, "en"),
-                            "ar": traduire_nom(promotion_name, "ar"),
+                            "en": promotion_name,
+                            "ar": promotion_name,
                         },
                     }
                 else:
@@ -4151,8 +4138,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "valeur": round(float(montant_promotion), 2),
                         "name": {
                             "fr": promotion_name,
-                            "en": traduire_nom(promotion_name, "en"),
-                            "ar": traduire_nom(promotion_name, "ar"),
+                            "en": promotion_name,
+                            "ar": promotion_name,
                         },
                     }
                 else:
