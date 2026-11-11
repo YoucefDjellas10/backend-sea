@@ -1420,7 +1420,7 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_type_de_paiement_total,
             }
         else:
-            recap_type_de_paiement = None
+            recap_type_de_paiement = False
 
         # Plein carburant : seulement si l'option est choisie dans la réservation
         if ma_reservation.opt_plein_carburant:
@@ -1442,7 +1442,7 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_plein_carburant_total,
             }
         else:
-            recap_plein_carburant = None
+            recap_plein_carburant = False
 
         # Kilométrage illimité : seulement si l'option est choisie dans la réservation
         if ma_reservation.opt_klm:
@@ -1464,7 +1464,7 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_klm_illimite_total,
             }
         else:
-            recap_klm_illimite = None
+            recap_klm_illimite = False
 
         # 2ème conducteur : seulement si l'option est choisie dans la réservation
         if ma_reservation.opt_nd_driver:
@@ -1486,7 +1486,7 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_deuxieme_conducteur_total,
             }
         else:
-            recap_deuxieme_conducteur = None
+            recap_deuxieme_conducteur = False
 
         # Siège bébé 5 : seulement si l'option est choisie dans la réservation
         if ma_reservation.opt_siege_a:
@@ -1508,7 +1508,7 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_siege_bebe_5_total,
             }
         else:
-            recap_siege_bebe_5 = None
+            recap_siege_bebe_5 = False
 
         # Siège bébé 13 : seulement si l'option est choisie dans la réservation
         if ma_reservation.opt_siege_b:
@@ -1530,7 +1530,7 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_siege_bebe_13_total,
             }
         else:
-            recap_siege_bebe_13 = None
+            recap_siege_bebe_13 = False
 
         # Siège bébé 18 : seulement si l'option est choisie dans la réservation
         if ma_reservation.opt_siege_c:
@@ -1552,12 +1552,12 @@ def ma_reservation_detail(ref, email, country_code):
                 "total": recap_siege_bebe_18_total,
             }
         else:
-            recap_siege_bebe_18 = None
+            recap_siege_bebe_18 = False
 
-        # Protection : une seule protection choisie dans la réservation (BASE / STANDART / MAX)
-        recap_protection_basique = None
-        recap_protection_standard = None
-        recap_protection_maximale = None
+        # Protection : une seule protection choisie dans la réservation (BASE / STANDART / MAX), les autres = False
+        recap_protection_basique = False
+        recap_protection_standard = False
+        recap_protection_maximale = False
 
         if ma_reservation.opt_protection:
             recap_protection_name = {
