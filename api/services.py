@@ -1401,7 +1401,9 @@ def ma_reservation_detail(ref, email, country_code):
         recap_bail_de_location = round((float(ma_reservation.total or 0) - options_total_recap) * taux_recap, 2)
 
         # Type de paiement : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_payment:
+        option_payment = Options.objects.filter(id=ma_reservation.opt_payment_id).first() if ma_reservation.opt_payment_id else None
+
+        if option_payment:
             if ma_reservation.opt_payment_total:
                 recap_type_de_paiement_total = round(float(ma_reservation.opt_payment_total) * taux_recap, 2)
             else:
@@ -1413,9 +1415,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_type_de_paiement = {
                 "name": {
-                    "fr": ma_reservation.opt_payment.name,
-                    "en": ma_reservation.opt_payment.name_en,
-                    "ar": ma_reservation.opt_payment.name_ar,
+                    "fr": option_payment.name,
+                    "en": option_payment.name_en,
+                    "ar": option_payment.name_ar,
                 },
                 "total": recap_type_de_paiement_total,
             }
@@ -1423,7 +1425,9 @@ def ma_reservation_detail(ref, email, country_code):
             recap_type_de_paiement = False
 
         # Plein carburant : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_plein_carburant:
+        option_plein_carburant = Options.objects.filter(id=ma_reservation.opt_plein_carburant_id).first() if ma_reservation.opt_plein_carburant_id else None
+
+        if option_plein_carburant:
             if ma_reservation.opt_plein_carburant_total:
                 recap_plein_carburant_total = round(float(ma_reservation.opt_plein_carburant_total) * taux_recap, 2)
             else:
@@ -1435,9 +1439,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_plein_carburant = {
                 "name": {
-                    "fr": ma_reservation.opt_plein_carburant.name,
-                    "en": ma_reservation.opt_plein_carburant.name_en,
-                    "ar": ma_reservation.opt_plein_carburant.name_ar,
+                    "fr": option_plein_carburant.name,
+                    "en": option_plein_carburant.name_en,
+                    "ar": option_plein_carburant.name_ar,
                 },
                 "total": recap_plein_carburant_total,
             }
@@ -1445,7 +1449,9 @@ def ma_reservation_detail(ref, email, country_code):
             recap_plein_carburant = False
 
         # Kilométrage illimité : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_klm:
+        option_klm = Options.objects.filter(id=ma_reservation.opt_klm_id).first() if ma_reservation.opt_klm_id else None
+
+        if option_klm:
             if ma_reservation.opt_klm_total:
                 recap_klm_illimite_total = round(float(ma_reservation.opt_klm_total) * taux_recap, 2)
             else:
@@ -1457,9 +1463,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_klm_illimite = {
                 "name": {
-                    "fr": ma_reservation.opt_klm.name,
-                    "en": ma_reservation.opt_klm.name_en,
-                    "ar": ma_reservation.opt_klm.name_ar,
+                    "fr": option_klm.name,
+                    "en": option_klm.name_en,
+                    "ar": option_klm.name_ar,
                 },
                 "total": recap_klm_illimite_total,
             }
@@ -1467,7 +1473,9 @@ def ma_reservation_detail(ref, email, country_code):
             recap_klm_illimite = False
 
         # 2ème conducteur : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_nd_driver:
+        option_nd_driver = Options.objects.filter(id=ma_reservation.opt_nd_driver_id).first() if ma_reservation.opt_nd_driver_id else None
+
+        if option_nd_driver:
             if ma_reservation.opt_nd_driver_total:
                 recap_deuxieme_conducteur_total = round(float(ma_reservation.opt_nd_driver_total) * taux_recap, 2)
             else:
@@ -1479,9 +1487,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_deuxieme_conducteur = {
                 "name": {
-                    "fr": ma_reservation.opt_nd_driver.name,
-                    "en": ma_reservation.opt_nd_driver.name_en,
-                    "ar": ma_reservation.opt_nd_driver.name_ar,
+                    "fr": option_nd_driver.name,
+                    "en": option_nd_driver.name_en,
+                    "ar": option_nd_driver.name_ar,
                 },
                 "total": recap_deuxieme_conducteur_total,
             }
@@ -1489,7 +1497,9 @@ def ma_reservation_detail(ref, email, country_code):
             recap_deuxieme_conducteur = False
 
         # Siège bébé 5 : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_siege_a:
+        option_siege_a = Options.objects.filter(id=ma_reservation.opt_siege_a_id).first() if ma_reservation.opt_siege_a_id else None
+
+        if option_siege_a:
             if ma_reservation.opt_siege_a_total:
                 recap_siege_bebe_5_total = round(float(ma_reservation.opt_siege_a_total) * taux_recap, 2)
             else:
@@ -1501,9 +1511,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_siege_bebe_5 = {
                 "name": {
-                    "fr": ma_reservation.opt_siege_a.name,
-                    "en": ma_reservation.opt_siege_a.name_en,
-                    "ar": ma_reservation.opt_siege_a.name_ar,
+                    "fr": option_siege_a.name,
+                    "en": option_siege_a.name_en,
+                    "ar": option_siege_a.name_ar,
                 },
                 "total": recap_siege_bebe_5_total,
             }
@@ -1511,7 +1521,9 @@ def ma_reservation_detail(ref, email, country_code):
             recap_siege_bebe_5 = False
 
         # Siège bébé 13 : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_siege_b:
+        option_siege_b = Options.objects.filter(id=ma_reservation.opt_siege_b_id).first() if ma_reservation.opt_siege_b_id else None
+
+        if option_siege_b:
             if ma_reservation.opt_siege_b_total:
                 recap_siege_bebe_13_total = round(float(ma_reservation.opt_siege_b_total) * taux_recap, 2)
             else:
@@ -1523,9 +1535,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_siege_bebe_13 = {
                 "name": {
-                    "fr": ma_reservation.opt_siege_b.name,
-                    "en": ma_reservation.opt_siege_b.name_en,
-                    "ar": ma_reservation.opt_siege_b.name_ar,
+                    "fr": option_siege_b.name,
+                    "en": option_siege_b.name_en,
+                    "ar": option_siege_b.name_ar,
                 },
                 "total": recap_siege_bebe_13_total,
             }
@@ -1533,7 +1545,9 @@ def ma_reservation_detail(ref, email, country_code):
             recap_siege_bebe_13 = False
 
         # Siège bébé 18 : seulement si l'option est choisie dans la réservation
-        if ma_reservation.opt_siege_c:
+        option_siege_c = Options.objects.filter(id=ma_reservation.opt_siege_c_id).first() if ma_reservation.opt_siege_c_id else None
+
+        if option_siege_c:
             if ma_reservation.opt_siege_c_total:
                 recap_siege_bebe_18_total = round(float(ma_reservation.opt_siege_c_total) * taux_recap, 2)
             else:
@@ -1545,9 +1559,9 @@ def ma_reservation_detail(ref, email, country_code):
 
             recap_siege_bebe_18 = {
                 "name": {
-                    "fr": ma_reservation.opt_siege_c.name,
-                    "en": ma_reservation.opt_siege_c.name_en,
-                    "ar": ma_reservation.opt_siege_c.name_ar,
+                    "fr": option_siege_c.name,
+                    "en": option_siege_c.name_en,
+                    "ar": option_siege_c.name_ar,
                 },
                 "total": recap_siege_bebe_18_total,
             }
@@ -1559,13 +1573,15 @@ def ma_reservation_detail(ref, email, country_code):
         recap_protection_standard = False
         recap_protection_maximale = False
 
-        if ma_reservation.opt_protection:
+        option_protection = Options.objects.filter(id=ma_reservation.opt_protection_id).first() if ma_reservation.opt_protection_id else None
+
+        if option_protection:
             recap_protection_name = {
-                "fr": f"Protection {ma_reservation.opt_protection.name}",
-                "en": f"Protection {ma_reservation.opt_protection.name_en}",
-                "ar": f"حماية {ma_reservation.opt_protection.name_ar}",
+                "fr": f"Protection {option_protection.name}",
+                "en": f"Protection {option_protection.name_en}",
+                "ar": f"حماية {option_protection.name_ar}",
             }
-            protection_code = ma_reservation.opt_protection.option_code or ""
+            protection_code = option_protection.option_code or ""
 
             if "BASE" in protection_code:
                 # Protection basique : toujours son total, sans catégorie client
