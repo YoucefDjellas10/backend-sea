@@ -1373,6 +1373,325 @@ def ma_reservation_detail(ref, email, country_code):
 
         free_options = free_options_f(ma_reservation.client.id if ma_reservation.client else None)
 
+        # ══════════════ RECAP (mêmes attributs que search_result_vehicule) ══════════════
+        if country_code == "DZ":
+            taux_recap = float(TauxChange.objects.filter(id=2).first().montant)
+        else:
+            taux_recap = 1
+
+        if ma_reservation.categorie_client:
+            recap_categorie_client = {
+                "id": ma_reservation.categorie_client.id,
+                "name": ma_reservation.categorie_client.name,
+            }
+        else:
+            recap_categorie_client = None
+
+        # Bail de location : total de la réservation sans les options
+        options_total_recap = (
+            float(ma_reservation.opt_payment_total or 0)
+            + float(ma_reservation.opt_klm_total or 0)
+            + float(ma_reservation.opt_protection_total or 0)
+            + float(ma_reservation.opt_nd_driver_total or 0)
+            + float(ma_reservation.opt_plein_carburant_total or 0)
+            + float(ma_reservation.opt_siege_a_total or 0)
+            + float(ma_reservation.opt_siege_b_total or 0)
+            + float(ma_reservation.opt_siege_c_total or 0)
+        )
+        recap_bail_de_location = round((float(ma_reservation.total or 0) - options_total_recap) * taux_recap, 2)
+
+        # Type de paiement : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_payment:
+            if ma_reservation.opt_payment_total:
+                recap_type_de_paiement_total = round(float(ma_reservation.opt_payment_total) * taux_recap, 2)
+            else:
+                recap_type_de_paiement_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_type_de_paiement = {
+                "name": {
+                    "fr": ma_reservation.opt_payment.name,
+                    "en": ma_reservation.opt_payment.name_en,
+                    "ar": ma_reservation.opt_payment.name_ar,
+                },
+                "total": recap_type_de_paiement_total,
+            }
+        else:
+            recap_type_de_paiement = None
+
+        # Plein carburant : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_plein_carburant:
+            if ma_reservation.opt_plein_carburant_total:
+                recap_plein_carburant_total = round(float(ma_reservation.opt_plein_carburant_total) * taux_recap, 2)
+            else:
+                recap_plein_carburant_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_plein_carburant = {
+                "name": {
+                    "fr": ma_reservation.opt_plein_carburant.name,
+                    "en": ma_reservation.opt_plein_carburant.name_en,
+                    "ar": ma_reservation.opt_plein_carburant.name_ar,
+                },
+                "total": recap_plein_carburant_total,
+            }
+        else:
+            recap_plein_carburant = None
+
+        # Kilométrage illimité : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_klm:
+            if ma_reservation.opt_klm_total:
+                recap_klm_illimite_total = round(float(ma_reservation.opt_klm_total) * taux_recap, 2)
+            else:
+                recap_klm_illimite_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_klm_illimite = {
+                "name": {
+                    "fr": ma_reservation.opt_klm.name,
+                    "en": ma_reservation.opt_klm.name_en,
+                    "ar": ma_reservation.opt_klm.name_ar,
+                },
+                "total": recap_klm_illimite_total,
+            }
+        else:
+            recap_klm_illimite = None
+
+        # 2ème conducteur : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_nd_driver:
+            if ma_reservation.opt_nd_driver_total:
+                recap_deuxieme_conducteur_total = round(float(ma_reservation.opt_nd_driver_total) * taux_recap, 2)
+            else:
+                recap_deuxieme_conducteur_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_deuxieme_conducteur = {
+                "name": {
+                    "fr": ma_reservation.opt_nd_driver.name,
+                    "en": ma_reservation.opt_nd_driver.name_en,
+                    "ar": ma_reservation.opt_nd_driver.name_ar,
+                },
+                "total": recap_deuxieme_conducteur_total,
+            }
+        else:
+            recap_deuxieme_conducteur = None
+
+        # Siège bébé 5 : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_siege_a:
+            if ma_reservation.opt_siege_a_total:
+                recap_siege_bebe_5_total = round(float(ma_reservation.opt_siege_a_total) * taux_recap, 2)
+            else:
+                recap_siege_bebe_5_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_siege_bebe_5 = {
+                "name": {
+                    "fr": ma_reservation.opt_siege_a.name,
+                    "en": ma_reservation.opt_siege_a.name_en,
+                    "ar": ma_reservation.opt_siege_a.name_ar,
+                },
+                "total": recap_siege_bebe_5_total,
+            }
+        else:
+            recap_siege_bebe_5 = None
+
+        # Siège bébé 13 : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_siege_b:
+            if ma_reservation.opt_siege_b_total:
+                recap_siege_bebe_13_total = round(float(ma_reservation.opt_siege_b_total) * taux_recap, 2)
+            else:
+                recap_siege_bebe_13_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_siege_bebe_13 = {
+                "name": {
+                    "fr": ma_reservation.opt_siege_b.name,
+                    "en": ma_reservation.opt_siege_b.name_en,
+                    "ar": ma_reservation.opt_siege_b.name_ar,
+                },
+                "total": recap_siege_bebe_13_total,
+            }
+        else:
+            recap_siege_bebe_13 = None
+
+        # Siège bébé 18 : seulement si l'option est choisie dans la réservation
+        if ma_reservation.opt_siege_c:
+            if ma_reservation.opt_siege_c_total:
+                recap_siege_bebe_18_total = round(float(ma_reservation.opt_siege_c_total) * taux_recap, 2)
+            else:
+                recap_siege_bebe_18_total = {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                }
+
+            recap_siege_bebe_18 = {
+                "name": {
+                    "fr": ma_reservation.opt_siege_c.name,
+                    "en": ma_reservation.opt_siege_c.name_en,
+                    "ar": ma_reservation.opt_siege_c.name_ar,
+                },
+                "total": recap_siege_bebe_18_total,
+            }
+        else:
+            recap_siege_bebe_18 = None
+
+        # Protection : une seule protection choisie dans la réservation (BASE / STANDART / MAX)
+        recap_protection_basique = None
+        recap_protection_standard = None
+        recap_protection_maximale = None
+
+        if ma_reservation.opt_protection:
+            recap_protection_name = {
+                "fr": f"Protection {ma_reservation.opt_protection.name}",
+                "en": f"Protection {ma_reservation.opt_protection.name_en}",
+                "ar": f"حماية {ma_reservation.opt_protection.name_ar}",
+            }
+            protection_code = ma_reservation.opt_protection.option_code or ""
+
+            if "BASE" in protection_code:
+                # Protection basique : toujours son total, sans catégorie client
+                recap_protection_basique_total = round(float(ma_reservation.opt_protection_total or 0) * taux_recap, 2)
+
+                recap_protection_basique = {
+                    "name": recap_protection_name,
+                    "total": recap_protection_basique_total,
+                }
+            elif "STANDART" in protection_code:
+                if ma_reservation.opt_protection_total:
+                    recap_protection_standard_total = round(float(ma_reservation.opt_protection_total) * taux_recap, 2)
+                else:
+                    recap_protection_standard_total = {
+                        "categorie_client": recap_categorie_client,
+                    }
+
+                recap_protection_standard = {
+                    "name": recap_protection_name,
+                    "total": recap_protection_standard_total,
+                }
+            elif "MAX" in protection_code:
+                if ma_reservation.opt_protection_total:
+                    recap_protection_maximale_total = round(float(ma_reservation.opt_protection_total) * taux_recap, 2)
+                else:
+                    recap_protection_maximale_total = {
+                        "categorie_client": recap_categorie_client,
+                    }
+
+                recap_protection_maximale = {
+                    "name": recap_protection_name,
+                    "total": recap_protection_maximale_total,
+                }
+
+        # Solde antérieur utilisé
+        if ma_reservation.solde_utilise and float(ma_reservation.solde_utilise) > 0:
+            recap_solde_anterieur = {
+                "is_solde": True,
+                "valeur": round(float(ma_reservation.solde_utilise) * taux_recap, 2),
+            }
+        else:
+            recap_solde_anterieur = {
+                "is_solde": False,
+            }
+
+        # Réductions : "reduction" = pourcentage de base (promotion classique ou code fidélité)
+        #              "valeur_reduction" = pourcentage total (avec la promotion dynamique)
+        pourcentage_base = float(ma_reservation.reduction or 0)
+        tarif_location = float(ma_reservation.prix_jour or 0) * float(ma_reservation.nbr_jour_reservation or 0) * taux_recap
+
+        if ma_reservation.type_reduction == "prime_reduction":
+            base_est_fidelite = True
+        elif ma_reservation.type_reduction != "promotion" and pourcentage_base > 0 and ma_reservation.categorie_client and ma_reservation.categorie_client.reduction and float(ma_reservation.categorie_client.reduction) == pourcentage_base:
+            base_est_fidelite = True
+        else:
+            base_est_fidelite = False
+
+        # Promotion classique uniquement (sans la promotion dynamique)
+        if pourcentage_base > 0 and not base_est_fidelite:
+            recap_promotion = {
+                "is_promotion": True,
+                "pourcentage": round(pourcentage_base, 2),
+                "valeur": round(tarif_location * pourcentage_base / 100, 2),
+                "name": {
+                    "fr": "Promotion",
+                    "en": "Promotion",
+                    "ar": "تخفيض",
+                },
+            }
+        else:
+            recap_promotion = {
+                "is_promotion": False,
+            }
+
+        # Code fidélité : réduction client (sans la promotion dynamique)
+        if pourcentage_base > 0 and base_est_fidelite:
+            recap_code_fidelite = {
+                "is_code_fidelite": True,
+                "pourcentage": round(pourcentage_base, 2),
+                "valeur": round(tarif_location * pourcentage_base / 100, 2),
+                "categorie_client": recap_categorie_client,
+                "name": {
+                    "fr": "Code fidélité",
+                    "en": "Loyalty code",
+                    "ar": "رمز الوفاء",
+                },
+            }
+        else:
+            recap_code_fidelite = {
+                "is_code_fidelite": False,
+            }
+
+        # Offre dynamique : seulement la partie ajoutée par la promotion dynamique
+        if ma_reservation.type_reduction == "promotion_dynamique" and float(ma_reservation.valeur_reduction or 0) > pourcentage_base:
+            pourcentage_dynamique = float(ma_reservation.valeur_reduction) - pourcentage_base
+            recap_offre_dynamique = {
+                "is_offre_dynamique": True,
+                "pourcentage": round(pourcentage_dynamique, 2),
+                "valeur": round(tarif_location * pourcentage_dynamique / 100, 2),
+                "name": {
+                    "fr": "Offre Dynamique",
+                    "en": "Dynamic Offer",
+                    "ar": "عرض ديناميكي",
+                },
+            }
+        else:
+            recap_offre_dynamique = {
+                "is_offre_dynamique": False,
+            }
+
+        # Récompense parrainage (feuil_red est enregistré en négatif)
+        if ma_reservation.feuil_red and abs(float(ma_reservation.feuil_red)) > 0:
+            recap_recompense_parrainage = {
+                "is_recompense_parrainage": True,
+                "valeur": round(abs(float(ma_reservation.feuil_red)) * taux_recap, 2),
+                "name": {
+                    "fr": "Récompense Parrainage",
+                    "en": "Referral Reward",
+                    "ar": "مكافأة الإحالة",
+                },
+            }
+        else:
+            recap_recompense_parrainage = {
+                "is_recompense_parrainage": False,
+            }
+
         if country_code =="DZ":
             taux = TauxChange.objects.filter(id=2).first()
             taux_change = taux.montant
@@ -1460,6 +1779,25 @@ def ma_reservation_detail(ref, email, country_code):
                     "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) * taux_change if ma_reservation.total_reduit and ma_reservation.total else 0,
                     "parrainage_value": ma_reservation.feuil_red * taux_change if ma_reservation.feuil_red else 0.00,
                     "free_options": free_options,
+                    "recap": {
+                        "bail_de_location": recap_bail_de_location,
+                        "type_de_paiement": recap_type_de_paiement,
+                        "categorie_client": recap_categorie_client,
+                        "plein_carburant": recap_plein_carburant,
+                        "kilometrage_illimite": recap_klm_illimite,
+                        "deuxieme_conducteur": recap_deuxieme_conducteur,
+                        "siege_bebe_5": recap_siege_bebe_5,
+                        "siege_bebe_13": recap_siege_bebe_13,
+                        "siege_bebe_18": recap_siege_bebe_18,
+                        "solde_anterieur": recap_solde_anterieur,
+                        "promotion": recap_promotion,
+                        "code_fidelite": recap_code_fidelite,
+                        "offre_dynamique": recap_offre_dynamique,
+                        "recompense_parrainage": recap_recompense_parrainage,
+                        "protection_basique": recap_protection_basique,
+                        "protection_standard": recap_protection_standard,
+                        "protection_maximale": recap_protection_maximale,
+                    },
                 })
         else :  
             if ma_reservation :
@@ -1546,7 +1884,25 @@ def ma_reservation_detail(ref, email, country_code):
                     "fidelite_value": (ma_reservation.total - ma_reservation.total_reduit) if ma_reservation.total_reduit and ma_reservation.total else 0,
                     "parrainage_value": ma_reservation.feuil_red if ma_reservation.feuil_red else 0.00,
                     "free_options": free_options,
-
+                    "recap": {
+                        "bail_de_location": recap_bail_de_location,
+                        "type_de_paiement": recap_type_de_paiement,
+                        "categorie_client": recap_categorie_client,
+                        "plein_carburant": recap_plein_carburant,
+                        "kilometrage_illimite": recap_klm_illimite,
+                        "deuxieme_conducteur": recap_deuxieme_conducteur,
+                        "siege_bebe_5": recap_siege_bebe_5,
+                        "siege_bebe_13": recap_siege_bebe_13,
+                        "siege_bebe_18": recap_siege_bebe_18,
+                        "solde_anterieur": recap_solde_anterieur,
+                        "promotion": recap_promotion,
+                        "code_fidelite": recap_code_fidelite,
+                        "offre_dynamique": recap_offre_dynamique,
+                        "recompense_parrainage": recap_recompense_parrainage,
+                        "protection_basique": recap_protection_basique,
+                        "protection_standard": recap_protection_standard,
+                        "protection_maximale": recap_protection_maximale,
+                    },
                 })  
 
         return result
