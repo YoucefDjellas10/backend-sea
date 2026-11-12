@@ -1387,31 +1387,32 @@ def ma_reservation_detail(ref, email, country_code):
         else:
             recap_categorie_client = None
 
-        # Bail de location : total de la réservation sans les options
-        options_total_recap = (
-            float(ma_reservation.opt_payment_total or 0)
-            + float(ma_reservation.opt_klm_total or 0)
-            + float(ma_reservation.opt_protection_total or 0)
-            + float(ma_reservation.opt_nd_driver_total or 0)
-            + float(ma_reservation.opt_plein_carburant_total or 0)
-            + float(ma_reservation.opt_siege_a_total or 0)
-            + float(ma_reservation.opt_siege_b_total or 0)
-            + float(ma_reservation.opt_siege_c_total or 0)
-        )
-        recap_bail_de_location = round((float(ma_reservation.total or 0) - options_total_recap) * taux_recap, 2)
+        # Bail de location : champ total_afficher de la réservation
+        recap_bail_de_location = round(float(ma_reservation.total_afficher or 0) * taux_recap, 2)
 
-        # Type de paiement : seulement si l'option est choisie dans la réservation
+        # Type de paiement : si opt_payment_name est vide -> Paiement anticipé / Inclus
         option_payment = Options.objects.filter(id=ma_reservation.opt_payment_id).first() if ma_reservation.opt_payment_id else None
 
-        if option_payment:
+        if not ma_reservation.opt_payment_name:
+            recap_type_de_paiement = {
+                "name": {
+                    "fr": "Paiement anticipé",
+                    "en": "Advance payment",
+                    "ar": "الدفع المسبق",
+                },
+                "total": {
+                    "fr": "Inclus",
+                    "en": "Included",
+                    "ar": "مشمول",
+                },
+                "color": "green",
+                "badge": None,
+            }
+        elif option_payment:
             if ma_reservation.opt_payment_total:
-                recap_type_de_paiement_total = round(float(ma_reservation.opt_payment_total) * taux_recap, 2)
+                recap_type_de_paiement_color = "black"
             else:
-                recap_type_de_paiement_total = {
-                    "fr": "OFFERT",
-                    "en": "COMPLIMENTARY",
-                    "ar": "هدية",
-                }
+                recap_type_de_paiement_color = "green"
 
             recap_type_de_paiement = {
                 "name": {
@@ -1419,154 +1420,320 @@ def ma_reservation_detail(ref, email, country_code):
                     "en": option_payment.name_en,
                     "ar": option_payment.name_ar,
                 },
-                "total": recap_type_de_paiement_total,
+                "total": round(float(ma_reservation.opt_payment_total or 0) * taux_recap, 2),
+                "color": recap_type_de_paiement_color,
+                "badge": None,
             }
         else:
-            recap_type_de_paiement = False
+            if ma_reservation.opt_payment_total:
+                recap_type_de_paiement_color = "black"
+            else:
+                recap_type_de_paiement_color = "green"
 
-        # Plein carburant : seulement si l'option est choisie dans la réservation
+            recap_type_de_paiement = {
+                "name": {
+                    "fr": ma_reservation.opt_payment_name,
+                    "en": ma_reservation.opt_payment_name,
+                    "ar": ma_reservation.opt_payment_name,
+                },
+                "total": round(float(ma_reservation.opt_payment_total or 0) * taux_recap, 2),
+                "color": recap_type_de_paiement_color,
+                "badge": None,
+            }
+
+        # Plein carburant : si opt_plein_carburant_name est vide -> False
         option_plein_carburant = Options.objects.filter(id=ma_reservation.opt_plein_carburant_id).first() if ma_reservation.opt_plein_carburant_id else None
 
-        if option_plein_carburant:
+        if not ma_reservation.opt_plein_carburant_name:
+            recap_plein_carburant = False
+        else:
             if ma_reservation.opt_plein_carburant_total:
                 recap_plein_carburant_total = round(float(ma_reservation.opt_plein_carburant_total) * taux_recap, 2)
+                recap_plein_carburant_color = "black"
+                recap_plein_carburant_badge = None
             else:
                 recap_plein_carburant_total = {
                     "fr": "OFFERT",
                     "en": "COMPLIMENTARY",
                     "ar": "هدية",
                 }
+                recap_plein_carburant_color = "green"
+                recap_plein_carburant_badge = {
+                    "icon": "🎁",
+                    "text": {
+                        "fr": "OFFERT",
+                        "en": "COMPLIMENTARY",
+                        "ar": "هدية",
+                    },
+                }
 
-            recap_plein_carburant = {
-                "name": {
-                    "fr": option_plein_carburant.name,
-                    "en": option_plein_carburant.name_en,
-                    "ar": option_plein_carburant.name_ar,
-                },
-                "total": recap_plein_carburant_total,
-            }
-        else:
-            recap_plein_carburant = False
+            if option_plein_carburant:
+                recap_plein_carburant = {
+                    "name": {
+                        "fr": option_plein_carburant.name,
+                        "en": option_plein_carburant.name_en,
+                        "ar": option_plein_carburant.name_ar,
+                    },
+                    "total": recap_plein_carburant_total,
+                    "color": recap_plein_carburant_color,
+                    "badge": recap_plein_carburant_badge,
+                }
+            else:
+                recap_plein_carburant = {
+                    "name": {
+                        "fr": ma_reservation.opt_plein_carburant_name,
+                        "en": ma_reservation.opt_plein_carburant_name,
+                        "ar": ma_reservation.opt_plein_carburant_name,
+                    },
+                    "total": recap_plein_carburant_total,
+                    "color": recap_plein_carburant_color,
+                    "badge": recap_plein_carburant_badge,
+                }
 
-        # Kilométrage illimité : seulement si l'option est choisie dans la réservation
+        # Kilométrage illimité : si opt_klm_name est vide -> False
         option_klm = Options.objects.filter(id=ma_reservation.opt_klm_id).first() if ma_reservation.opt_klm_id else None
 
-        if option_klm:
+        if not ma_reservation.opt_klm_name:
+            recap_klm_illimite = False
+        else:
             if ma_reservation.opt_klm_total:
                 recap_klm_illimite_total = round(float(ma_reservation.opt_klm_total) * taux_recap, 2)
+                recap_klm_illimite_color = "black"
+                recap_klm_illimite_badge = None
             else:
                 recap_klm_illimite_total = {
                     "fr": "OFFERT",
                     "en": "COMPLIMENTARY",
                     "ar": "هدية",
                 }
+                recap_klm_illimite_color = "green"
+                recap_klm_illimite_badge = {
+                    "icon": "🎁",
+                    "text": {
+                        "fr": "OFFERT",
+                        "en": "COMPLIMENTARY",
+                        "ar": "هدية",
+                    },
+                }
 
-            recap_klm_illimite = {
-                "name": {
-                    "fr": option_klm.name,
-                    "en": option_klm.name_en,
-                    "ar": option_klm.name_ar,
-                },
-                "total": recap_klm_illimite_total,
-            }
-        else:
-            recap_klm_illimite = False
+            if option_klm:
+                recap_klm_illimite = {
+                    "name": {
+                        "fr": option_klm.name,
+                        "en": option_klm.name_en,
+                        "ar": option_klm.name_ar,
+                    },
+                    "total": recap_klm_illimite_total,
+                    "color": recap_klm_illimite_color,
+                    "badge": recap_klm_illimite_badge,
+                }
+            else:
+                recap_klm_illimite = {
+                    "name": {
+                        "fr": ma_reservation.opt_klm_name,
+                        "en": ma_reservation.opt_klm_name,
+                        "ar": ma_reservation.opt_klm_name,
+                    },
+                    "total": recap_klm_illimite_total,
+                    "color": recap_klm_illimite_color,
+                    "badge": recap_klm_illimite_badge,
+                }
 
-        # 2ème conducteur : seulement si l'option est choisie dans la réservation
+        # 2ème conducteur : si opt_nd_driver_name est vide -> False
         option_nd_driver = Options.objects.filter(id=ma_reservation.opt_nd_driver_id).first() if ma_reservation.opt_nd_driver_id else None
 
-        if option_nd_driver:
+        if not ma_reservation.opt_nd_driver_name:
+            recap_deuxieme_conducteur = False
+        else:
             if ma_reservation.opt_nd_driver_total:
                 recap_deuxieme_conducteur_total = round(float(ma_reservation.opt_nd_driver_total) * taux_recap, 2)
+                recap_deuxieme_conducteur_color = "black"
+                recap_deuxieme_conducteur_badge = None
             else:
                 recap_deuxieme_conducteur_total = {
                     "fr": "OFFERT",
                     "en": "COMPLIMENTARY",
                     "ar": "هدية",
                 }
+                recap_deuxieme_conducteur_color = "green"
+                recap_deuxieme_conducteur_badge = {
+                    "icon": "🎁",
+                    "text": {
+                        "fr": "OFFERT",
+                        "en": "COMPLIMENTARY",
+                        "ar": "هدية",
+                    },
+                }
 
-            recap_deuxieme_conducteur = {
-                "name": {
-                    "fr": option_nd_driver.name,
-                    "en": option_nd_driver.name_en,
-                    "ar": option_nd_driver.name_ar,
-                },
-                "total": recap_deuxieme_conducteur_total,
-            }
-        else:
-            recap_deuxieme_conducteur = False
+            if option_nd_driver:
+                recap_deuxieme_conducteur = {
+                    "name": {
+                        "fr": option_nd_driver.name,
+                        "en": option_nd_driver.name_en,
+                        "ar": option_nd_driver.name_ar,
+                    },
+                    "total": recap_deuxieme_conducteur_total,
+                    "color": recap_deuxieme_conducteur_color,
+                    "badge": recap_deuxieme_conducteur_badge,
+                }
+            else:
+                recap_deuxieme_conducteur = {
+                    "name": {
+                        "fr": ma_reservation.opt_nd_driver_name,
+                        "en": ma_reservation.opt_nd_driver_name,
+                        "ar": ma_reservation.opt_nd_driver_name,
+                    },
+                    "total": recap_deuxieme_conducteur_total,
+                    "color": recap_deuxieme_conducteur_color,
+                    "badge": recap_deuxieme_conducteur_badge,
+                }
 
-        # Siège bébé 5 : seulement si l'option est choisie dans la réservation
+        # Siège bébé 5 : si opt_siege_a_name est vide -> False
         option_siege_a = Options.objects.filter(id=ma_reservation.opt_siege_a_id).first() if ma_reservation.opt_siege_a_id else None
 
-        if option_siege_a:
+        if not ma_reservation.opt_siege_a_name:
+            recap_siege_bebe_5 = False
+        else:
             if ma_reservation.opt_siege_a_total:
                 recap_siege_bebe_5_total = round(float(ma_reservation.opt_siege_a_total) * taux_recap, 2)
+                recap_siege_bebe_5_color = "black"
+                recap_siege_bebe_5_badge = None
             else:
                 recap_siege_bebe_5_total = {
                     "fr": "OFFERT",
                     "en": "COMPLIMENTARY",
                     "ar": "هدية",
                 }
+                recap_siege_bebe_5_color = "green"
+                recap_siege_bebe_5_badge = {
+                    "icon": "🎁",
+                    "text": {
+                        "fr": "OFFERT",
+                        "en": "COMPLIMENTARY",
+                        "ar": "هدية",
+                    },
+                }
 
-            recap_siege_bebe_5 = {
-                "name": {
-                    "fr": option_siege_a.name,
-                    "en": option_siege_a.name_en,
-                    "ar": option_siege_a.name_ar,
-                },
-                "total": recap_siege_bebe_5_total,
-            }
-        else:
-            recap_siege_bebe_5 = False
+            if option_siege_a:
+                recap_siege_bebe_5 = {
+                    "name": {
+                        "fr": option_siege_a.name,
+                        "en": option_siege_a.name_en,
+                        "ar": option_siege_a.name_ar,
+                    },
+                    "total": recap_siege_bebe_5_total,
+                    "color": recap_siege_bebe_5_color,
+                    "badge": recap_siege_bebe_5_badge,
+                }
+            else:
+                recap_siege_bebe_5 = {
+                    "name": {
+                        "fr": ma_reservation.opt_siege_a_name,
+                        "en": ma_reservation.opt_siege_a_name,
+                        "ar": ma_reservation.opt_siege_a_name,
+                    },
+                    "total": recap_siege_bebe_5_total,
+                    "color": recap_siege_bebe_5_color,
+                    "badge": recap_siege_bebe_5_badge,
+                }
 
-        # Siège bébé 13 : seulement si l'option est choisie dans la réservation
+        # Siège bébé 13 : si opt_siege_b_name est vide -> False
         option_siege_b = Options.objects.filter(id=ma_reservation.opt_siege_b_id).first() if ma_reservation.opt_siege_b_id else None
 
-        if option_siege_b:
+        if not ma_reservation.opt_siege_b_name:
+            recap_siege_bebe_13 = False
+        else:
             if ma_reservation.opt_siege_b_total:
                 recap_siege_bebe_13_total = round(float(ma_reservation.opt_siege_b_total) * taux_recap, 2)
+                recap_siege_bebe_13_color = "black"
+                recap_siege_bebe_13_badge = None
             else:
                 recap_siege_bebe_13_total = {
                     "fr": "OFFERT",
                     "en": "COMPLIMENTARY",
                     "ar": "هدية",
                 }
+                recap_siege_bebe_13_color = "green"
+                recap_siege_bebe_13_badge = {
+                    "icon": "🎁",
+                    "text": {
+                        "fr": "OFFERT",
+                        "en": "COMPLIMENTARY",
+                        "ar": "هدية",
+                    },
+                }
 
-            recap_siege_bebe_13 = {
-                "name": {
-                    "fr": option_siege_b.name,
-                    "en": option_siege_b.name_en,
-                    "ar": option_siege_b.name_ar,
-                },
-                "total": recap_siege_bebe_13_total,
-            }
-        else:
-            recap_siege_bebe_13 = False
+            if option_siege_b:
+                recap_siege_bebe_13 = {
+                    "name": {
+                        "fr": option_siege_b.name,
+                        "en": option_siege_b.name_en,
+                        "ar": option_siege_b.name_ar,
+                    },
+                    "total": recap_siege_bebe_13_total,
+                    "color": recap_siege_bebe_13_color,
+                    "badge": recap_siege_bebe_13_badge,
+                }
+            else:
+                recap_siege_bebe_13 = {
+                    "name": {
+                        "fr": ma_reservation.opt_siege_b_name,
+                        "en": ma_reservation.opt_siege_b_name,
+                        "ar": ma_reservation.opt_siege_b_name,
+                    },
+                    "total": recap_siege_bebe_13_total,
+                    "color": recap_siege_bebe_13_color,
+                    "badge": recap_siege_bebe_13_badge,
+                }
 
-        # Siège bébé 18 : seulement si l'option est choisie dans la réservation
+        # Siège bébé 18 : si opt_siege_c_name est vide -> False
         option_siege_c = Options.objects.filter(id=ma_reservation.opt_siege_c_id).first() if ma_reservation.opt_siege_c_id else None
 
-        if option_siege_c:
+        if not ma_reservation.opt_siege_c_name:
+            recap_siege_bebe_18 = False
+        else:
             if ma_reservation.opt_siege_c_total:
                 recap_siege_bebe_18_total = round(float(ma_reservation.opt_siege_c_total) * taux_recap, 2)
+                recap_siege_bebe_18_color = "black"
+                recap_siege_bebe_18_badge = None
             else:
                 recap_siege_bebe_18_total = {
                     "fr": "OFFERT",
                     "en": "COMPLIMENTARY",
                     "ar": "هدية",
                 }
+                recap_siege_bebe_18_color = "green"
+                recap_siege_bebe_18_badge = {
+                    "icon": "🎁",
+                    "text": {
+                        "fr": "OFFERT",
+                        "en": "COMPLIMENTARY",
+                        "ar": "هدية",
+                    },
+                }
 
-            recap_siege_bebe_18 = {
-                "name": {
-                    "fr": option_siege_c.name,
-                    "en": option_siege_c.name_en,
-                    "ar": option_siege_c.name_ar,
-                },
-                "total": recap_siege_bebe_18_total,
-            }
-        else:
-            recap_siege_bebe_18 = False
+            if option_siege_c:
+                recap_siege_bebe_18 = {
+                    "name": {
+                        "fr": option_siege_c.name,
+                        "en": option_siege_c.name_en,
+                        "ar": option_siege_c.name_ar,
+                    },
+                    "total": recap_siege_bebe_18_total,
+                    "color": recap_siege_bebe_18_color,
+                    "badge": recap_siege_bebe_18_badge,
+                }
+            else:
+                recap_siege_bebe_18 = {
+                    "name": {
+                        "fr": ma_reservation.opt_siege_c_name,
+                        "en": ma_reservation.opt_siege_c_name,
+                        "ar": ma_reservation.opt_siege_c_name,
+                    },
+                    "total": recap_siege_bebe_18_total,
+                    "color": recap_siege_bebe_18_color,
+                    "badge": recap_siege_bebe_18_badge,
+                }
 
         # Protection : une seule protection choisie dans la réservation (BASE / STANDART / MAX), les autres = False
         recap_protection_basique = False
@@ -1587,14 +1754,23 @@ def ma_reservation_detail(ref, email, country_code):
                 # Protection basique : toujours son total, sans catégorie client
                 recap_protection_basique_total = round(float(ma_reservation.opt_protection_total or 0) * taux_recap, 2)
 
+                if recap_protection_basique_total:
+                    recap_protection_basique_color = "black"
+                else:
+                    recap_protection_basique_color = "green"
+
                 recap_protection_basique = {
                     "name": recap_protection_name,
                     "total": recap_protection_basique_total,
+                    "color": recap_protection_basique_color,
+                    "badge": None,
                 }
             elif "STANDART" in protection_code:
                 if ma_reservation.opt_protection_total:
                     recap_protection_standard_total = round(float(ma_reservation.opt_protection_total) * taux_recap, 2)
+                    recap_protection_standard_color = "black"
                 else:
+                    recap_protection_standard_color = "green"
                     recap_protection_standard_total = {
                         "categorie_client": recap_categorie_client,
                     }
@@ -1602,11 +1778,15 @@ def ma_reservation_detail(ref, email, country_code):
                 recap_protection_standard = {
                     "name": recap_protection_name,
                     "total": recap_protection_standard_total,
+                    "color": recap_protection_standard_color,
+                    "badge": None,
                 }
             elif "MAX" in protection_code:
                 if ma_reservation.opt_protection_total:
                     recap_protection_maximale_total = round(float(ma_reservation.opt_protection_total) * taux_recap, 2)
+                    recap_protection_maximale_color = "black"
                 else:
+                    recap_protection_maximale_color = "green"
                     recap_protection_maximale_total = {
                         "categorie_client": recap_categorie_client,
                     }
@@ -1614,6 +1794,8 @@ def ma_reservation_detail(ref, email, country_code):
                 recap_protection_maximale = {
                     "name": recap_protection_name,
                     "total": recap_protection_maximale_total,
+                    "color": recap_protection_maximale_color,
+                    "badge": None,
                 }
 
         # Solde antérieur utilisé
@@ -1621,76 +1803,202 @@ def ma_reservation_detail(ref, email, country_code):
             recap_solde_anterieur = {
                 "is_solde": True,
                 "valeur": round(float(ma_reservation.solde_utilise) * taux_recap, 2),
+                "name": {
+                    "fr": "Solde antérieur",
+                    "en": "Previous balance",
+                    "ar": "الرصيد السابق",
+                },
+                "color": "black",
+                "badge": None,
             }
         else:
             recap_solde_anterieur = {
                 "is_solde": False,
             }
 
-        # Réductions : "reduction" = pourcentage de base (promotion classique ou code fidélité)
-        #              "valeur_reduction" = pourcentage total (avec la promotion dynamique)
-        pourcentage_base = float(ma_reservation.reduction or 0)
+        # Réductions : le type vient de "type_reduction" et le pourcentage de "valeur_reduction"
+        pourcentage_reduction = float(ma_reservation.valeur_reduction or 0)
         tarif_location = float(ma_reservation.prix_jour or 0) * float(ma_reservation.nbr_jour_reservation or 0) * taux_recap
 
-        if ma_reservation.type_reduction == "prime_reduction":
-            base_est_fidelite = True
-        elif ma_reservation.type_reduction != "promotion" and pourcentage_base > 0 and ma_reservation.categorie_client and ma_reservation.categorie_client.reduction and float(ma_reservation.categorie_client.reduction) == pourcentage_base:
-            base_est_fidelite = True
+        # Nom de la promotion : depuis la promotion liée à la réservation (nom français pour les 3 langues)
+        if ma_reservation.promotion:
+            recap_promotion_name = {
+                "fr": ma_reservation.promotion.name,
+                "en": ma_reservation.promotion.name,
+                "ar": ma_reservation.promotion.name,
+            }
         else:
-            base_est_fidelite = False
+            recap_promotion_name = {
+                "fr": "Promotion",
+                "en": "Promotion",
+                "ar": "تخفيض",
+            }
 
-        # Promotion classique uniquement (sans la promotion dynamique)
-        if pourcentage_base > 0 and not base_est_fidelite:
+        # Promotion classique : seulement si type_reduction == "promotion"
+        if ma_reservation.type_reduction == "promotion" and pourcentage_reduction > 0:
             recap_promotion = {
                 "is_promotion": True,
-                "pourcentage": round(pourcentage_base, 2),
-                "valeur": round(tarif_location * pourcentage_base / 100, 2),
-                "name": {
-                    "fr": "Promotion",
-                    "en": "Promotion",
-                    "ar": "تخفيض",
-                },
+                "pourcentage": round(pourcentage_reduction, 2),
+                "valeur": round(tarif_location * pourcentage_reduction / 100, 2),
+                "name": recap_promotion_name,
+                "color": "green",
+                "badge": None,
             }
         else:
             recap_promotion = {
                 "is_promotion": False,
             }
 
-        # Code fidélité : réduction client (sans la promotion dynamique)
-        if pourcentage_base > 0 and base_est_fidelite:
+        # Code fidélité : seulement si type_reduction == "prime_reduction"
+        if ma_reservation.type_reduction == "prime_reduction" and pourcentage_reduction > 0:
+            recap_code_fidelite_valeur = round(tarif_location * pourcentage_reduction / 100, 2)
+
+            if recap_code_fidelite_valeur > 0:
+                recap_code_fidelite_color = "green"
+            else:
+                recap_code_fidelite_color = "red"
+
             recap_code_fidelite = {
                 "is_code_fidelite": True,
-                "pourcentage": round(pourcentage_base, 2),
-                "valeur": round(tarif_location * pourcentage_base / 100, 2),
+                "pourcentage": round(pourcentage_reduction, 2),
+                "valeur": recap_code_fidelite_valeur,
                 "categorie_client": recap_categorie_client,
                 "name": {
                     "fr": "Code fidélité",
                     "en": "Loyalty code",
                     "ar": "رمز الوفاء",
                 },
+                "color": recap_code_fidelite_color,
+                "badge": None,
             }
         else:
             recap_code_fidelite = {
                 "is_code_fidelite": False,
             }
 
-        # Offre dynamique : seulement la partie ajoutée par la promotion dynamique
-        if ma_reservation.type_reduction == "promotion_dynamique" and float(ma_reservation.valeur_reduction or 0) > pourcentage_base:
-            pourcentage_dynamique = float(ma_reservation.valeur_reduction) - pourcentage_base
+        # Offre dynamique : seulement si type_reduction == "promotion_dynamique"
+        if ma_reservation.type_reduction == "promotion_dynamique" and pourcentage_reduction > 0:
             recap_offre_dynamique = {
                 "is_offre_dynamique": True,
-                "pourcentage": round(pourcentage_dynamique, 2),
-                "valeur": round(tarif_location * pourcentage_dynamique / 100, 2),
+                "pourcentage": round(pourcentage_reduction, 2),
+                "valeur": round(tarif_location * pourcentage_reduction / 100, 2),
                 "name": {
                     "fr": "Offre Dynamique",
                     "en": "Dynamic Offer",
                     "ar": "عرض ديناميكي",
+                },
+                "color": "green",
+                "badge": {
+                    "icon": "⚡",
+                    "text": {
+                        "fr": "FLASH",
+                        "en": "FLASH",
+                        "ar": "FLASH",
+                    },
                 },
             }
         else:
             recap_offre_dynamique = {
                 "is_offre_dynamique": False,
             }
+
+        # Modification de la réservation : total prolongations + total retours à l'avance
+        total_modification = float(ma_reservation.total_prolongations or 0) + float(ma_reservation.total_retours_avance or 0)
+
+        if total_modification != 0:
+            recap_modification_reservation = {
+                "name": {
+                    "fr": "Modification de la réservation",
+                    "en": "Booking modification",
+                    "ar": "تعديل الحجز",
+                },
+                "total": round(total_modification * taux_recap, 2),
+                "color": "black",
+                "badge": None,
+            }
+        else:
+            recap_modification_reservation = False
+
+        # Non-conformité contractuelle : total pénalités (KM + carburant)
+        if ma_reservation.total_penalites_livraison and float(ma_reservation.total_penalites_livraison) != 0:
+            recap_non_conformite_contractuelle = {
+                "name": {
+                    "fr": "Non-conformité contractuelle",
+                    "en": "Contractual non-compliance",
+                    "ar": "عدم المطابقة التعاقدية",
+                },
+                "total": round(float(ma_reservation.total_penalites_livraison) * taux_recap, 2),
+                "color": "black",
+                "badge": None,
+            }
+        else:
+            recap_non_conformite_contractuelle = False
+
+        # Franchise dommage : total dégradation limite
+        if ma_reservation.total_degradation_limit and float(ma_reservation.total_degradation_limit) != 0:
+            recap_franchise_dommage = {
+                "name": {
+                    "fr": "Franchise dommage",
+                    "en": "Damage excess",
+                    "ar": "مبلغ التحمل عن الأضرار",
+                },
+                "total": round(float(ma_reservation.total_degradation_limit) * taux_recap, 2),
+                "color": "black",
+                "badge": None,
+            }
+        else:
+            recap_franchise_dommage = False
+
+        # Montant payé : toujours affiché (0 si rien n'est payé)
+        recap_montant_paye = {
+            "name": {
+                "fr": "Montant payé",
+                "en": "Amount paid",
+                "ar": "المبلغ المدفوع",
+            },
+            "total": round(float(ma_reservation.montant_paye or 0) * taux_recap, 2),
+            "color": "black",
+            "badge": None,
+        }
+
+        # Reste à payer : toujours affiché (0 si tout est payé)
+        recap_reste_payer = {
+            "name": {
+                "fr": "Reste à payer",
+                "en": "Remaining balance",
+                "ar": "المبلغ المتبقي",
+            },
+            "total": round(float(ma_reservation.reste_payer or 0) * taux_recap, 2),
+            "color": "black",
+            "badge": None,
+        }
+
+        # Solde créditeur restant : valeur ajoutée au solde du client (retour anticipé)
+        if ma_reservation.credit_solde_retour and float(ma_reservation.credit_solde_retour) != 0:
+            recap_solde_crediteur_restant = {
+                "name": {
+                    "fr": "Solde créditeur restant",
+                    "en": "Remaining credit balance",
+                    "ar": "الرصيد الدائن المتبقي",
+                },
+                "total": round(float(ma_reservation.credit_solde_retour) * taux_recap, 2),
+                "color": "black",
+                "badge": None,
+            }
+        else:
+            recap_solde_crediteur_restant = False
+
+        # Prix total : total_reduit_euro
+        recap_prix_total = round(float(ma_reservation.total_reduit_euro or 0) * taux_recap, 2)
+
+        # Caution : opt_protection_caution
+        recap_caution = round(float(ma_reservation.opt_protection_caution or 0) * taux_recap, 2)
+
+        # Kilométrage inclus : kilometrage_autorise si pas d'option kilométrage illimité, sinon infini
+        if not ma_reservation.opt_klm_name:
+            recap_kilometrage_inclus = ma_reservation.kilometrage_autorise
+        else:
+            recap_kilometrage_inclus = "∞"
 
         # Récompense parrainage (feuil_red est enregistré en négatif)
         if ma_reservation.feuil_red and abs(float(ma_reservation.feuil_red)) > 0:
@@ -1702,6 +2010,8 @@ def ma_reservation_detail(ref, email, country_code):
                     "en": "Referral Reward",
                     "ar": "مكافأة الإحالة",
                 },
+                "color": "black",
+                "badge": None,
             }
         else:
             recap_recompense_parrainage = {
@@ -1797,6 +2107,8 @@ def ma_reservation_detail(ref, email, country_code):
                     "free_options": free_options,
                     "recap": {
                         "bail_de_location": recap_bail_de_location,
+                        "nombre_de_jours": ma_reservation.nbr_jour_reservation,
+                        "kilometrage_inclus": recap_kilometrage_inclus,
                         "type_de_paiement": recap_type_de_paiement,
                         "categorie_client": recap_categorie_client,
                         "plein_carburant": recap_plein_carburant,
@@ -1813,6 +2125,14 @@ def ma_reservation_detail(ref, email, country_code):
                         "protection_basique": recap_protection_basique,
                         "protection_standard": recap_protection_standard,
                         "protection_maximale": recap_protection_maximale,
+                        "modification_reservation": recap_modification_reservation,
+                        "non_conformite_contractuelle": recap_non_conformite_contractuelle,
+                        "franchise_dommage": recap_franchise_dommage,
+                        "montant_paye": recap_montant_paye,
+                        "reste_payer": recap_reste_payer,
+                        "solde_crediteur_restant": recap_solde_crediteur_restant,
+                        "prix_total": recap_prix_total,
+                        "caution": recap_caution,
                     },
                 })
         else :  
@@ -1902,6 +2222,8 @@ def ma_reservation_detail(ref, email, country_code):
                     "free_options": free_options,
                     "recap": {
                         "bail_de_location": recap_bail_de_location,
+                        "nombre_de_jours": ma_reservation.nbr_jour_reservation,
+                        "kilometrage_inclus": recap_kilometrage_inclus,
                         "type_de_paiement": recap_type_de_paiement,
                         "categorie_client": recap_categorie_client,
                         "plein_carburant": recap_plein_carburant,
@@ -1918,6 +2240,14 @@ def ma_reservation_detail(ref, email, country_code):
                         "protection_basique": recap_protection_basique,
                         "protection_standard": recap_protection_standard,
                         "protection_maximale": recap_protection_maximale,
+                        "modification_reservation": recap_modification_reservation,
+                        "non_conformite_contractuelle": recap_non_conformite_contractuelle,
+                        "franchise_dommage": recap_franchise_dommage,
+                        "montant_paye": recap_montant_paye,
+                        "reste_payer": recap_reste_payer,
+                        "solde_crediteur_restant": recap_solde_crediteur_restant,
+                        "prix_total": recap_prix_total,
+                        "caution": recap_caution,
                     },
                 })  
 
@@ -2815,11 +3145,22 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
         if opt_payment_total:
             type_de_paiement_total = opt_payment_total
+            type_de_paiement_color = "black"
+            type_de_paiement_badge = None
         else:
             type_de_paiement_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            type_de_paiement_color = "green"
+            type_de_paiement_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         type_de_paiement = {
@@ -2829,6 +3170,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_payment_name_ar,
             },
             "total": type_de_paiement_total,
+            "color": type_de_paiement_color,
+            "badge": type_de_paiement_badge,
         }
 
         vip_limit = search_option_DA("KLM_ILLIMITED", total_days, lieu_depart)
@@ -2906,11 +3249,22 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
         if opt_carburant_total:
             recap_plein_carburant_total = opt_carburant_total
+            recap_plein_carburant_color = "black"
+            recap_plein_carburant_badge = None
         else:
             recap_plein_carburant_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_plein_carburant_color = "green"
+            recap_plein_carburant_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_plein_carburant = {
@@ -2920,15 +3274,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_carburant_name_ar,
             },
             "total": recap_plein_carburant_total,
+            "color": recap_plein_carburant_color,
+            "badge": recap_plein_carburant_badge,
         }
 
         if opt_klm_total:
             recap_klm_illimite_total = opt_klm_total
+            recap_klm_illimite_color = "black"
+            recap_klm_illimite_badge = None
         else:
             recap_klm_illimite_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_klm_illimite_color = "green"
+            recap_klm_illimite_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_klm_illimite = {
@@ -2938,15 +3305,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_klm_name_ar,
             },
             "total": recap_klm_illimite_total,
+            "color": recap_klm_illimite_color,
+            "badge": recap_klm_illimite_badge,
         }
 
         if opt_klm_b_total:
             recap_klm_illimite_b_total = opt_klm_b_total
+            recap_klm_illimite_b_color = "black"
+            recap_klm_illimite_b_badge = None
         else:
             recap_klm_illimite_b_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_klm_illimite_b_color = "green"
+            recap_klm_illimite_b_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_klm_illimite_b = {
@@ -2956,15 +3336,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_klm_b_name_ar,
             },
             "total": recap_klm_illimite_b_total,
+            "color": recap_klm_illimite_b_color,
+            "badge": recap_klm_illimite_b_badge,
         }
 
         if opt_klm_c_total:
             recap_klm_illimite_c_total = opt_klm_c_total
+            recap_klm_illimite_c_color = "black"
+            recap_klm_illimite_c_badge = None
         else:
             recap_klm_illimite_c_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_klm_illimite_c_color = "green"
+            recap_klm_illimite_c_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_klm_illimite_c = {
@@ -2974,15 +3367,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_klm_c_name_ar,
             },
             "total": recap_klm_illimite_c_total,
+            "color": recap_klm_illimite_c_color,
+            "badge": recap_klm_illimite_c_badge,
         }
 
         if opt_nd_driver_total:
             recap_deuxieme_conducteur_total = opt_nd_driver_total
+            recap_deuxieme_conducteur_color = "black"
+            recap_deuxieme_conducteur_badge = None
         else:
             recap_deuxieme_conducteur_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_deuxieme_conducteur_color = "green"
+            recap_deuxieme_conducteur_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_deuxieme_conducteur = {
@@ -2992,15 +3398,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_nd_driver_name_ar,
             },
             "total": recap_deuxieme_conducteur_total,
+            "color": recap_deuxieme_conducteur_color,
+            "badge": recap_deuxieme_conducteur_badge,
         }
 
         if opt_siege_a_total:
             recap_siege_bebe_5_total = opt_siege_a_total
+            recap_siege_bebe_5_color = "black"
+            recap_siege_bebe_5_badge = None
         else:
             recap_siege_bebe_5_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_siege_bebe_5_color = "green"
+            recap_siege_bebe_5_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_siege_bebe_5 = {
@@ -3010,15 +3429,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_siege_a_name_ar,
             },
             "total": recap_siege_bebe_5_total,
+            "color": recap_siege_bebe_5_color,
+            "badge": recap_siege_bebe_5_badge,
         }
 
         if opt_siege_b_total:
             recap_siege_bebe_13_total = opt_siege_b_total
+            recap_siege_bebe_13_color = "black"
+            recap_siege_bebe_13_badge = None
         else:
             recap_siege_bebe_13_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_siege_bebe_13_color = "green"
+            recap_siege_bebe_13_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_siege_bebe_13 = {
@@ -3028,15 +3460,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_siege_b_name_ar,
             },
             "total": recap_siege_bebe_13_total,
+            "color": recap_siege_bebe_13_color,
+            "badge": recap_siege_bebe_13_badge,
         }
 
         if opt_siege_c_total:
             recap_siege_bebe_18_total = opt_siege_c_total
+            recap_siege_bebe_18_color = "black"
+            recap_siege_bebe_18_badge = None
         else:
             recap_siege_bebe_18_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_siege_bebe_18_color = "green"
+            recap_siege_bebe_18_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_siege_bebe_18 = {
@@ -3046,6 +3491,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_siege_c_name_ar,
             },
             "total": recap_siege_bebe_18_total,
+            "color": recap_siege_bebe_18_color,
+            "badge": recap_siege_bebe_18_badge,
         }
     
         base_a = search_option_DA("BASE_P_1", total_days, lieu_depart)
@@ -3135,6 +3582,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         # Protection basique (option_code BASE_P_1) : toujours son total, sans catégorie client
         recap_protection_basique_a_total = base_a_total
 
+        if recap_protection_basique_a_total:
+            recap_protection_basique_a_color = "black"
+        else:
+            recap_protection_basique_a_color = "green"
+        recap_protection_basique_a_badge = None
+
         recap_protection_basique_a = {
             "name": {
                 "fr": f"Protection {base_a_name}",
@@ -3142,10 +3595,18 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {base_a_name_ar}",
             },
             "total": recap_protection_basique_a_total,
+            "color": recap_protection_basique_a_color,
+            "badge": recap_protection_basique_a_badge,
         }
 
         # Protection basique (option_code BASE_P_2) : toujours son total, sans catégorie client
         recap_protection_basique_b_total = base_b_total
+
+        if recap_protection_basique_b_total:
+            recap_protection_basique_b_color = "black"
+        else:
+            recap_protection_basique_b_color = "green"
+        recap_protection_basique_b_badge = None
 
         recap_protection_basique_b = {
             "name": {
@@ -3154,10 +3615,18 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {base_b_name_ar}",
             },
             "total": recap_protection_basique_b_total,
+            "color": recap_protection_basique_b_color,
+            "badge": recap_protection_basique_b_badge,
         }
 
         # Protection basique (option_code BASE_P_3) : toujours son total, sans catégorie client
         recap_protection_basique_c_total = base_c_total
+
+        if recap_protection_basique_c_total:
+            recap_protection_basique_c_color = "black"
+        else:
+            recap_protection_basique_c_color = "green"
+        recap_protection_basique_c_badge = None
 
         recap_protection_basique_c = {
             "name": {
@@ -3166,14 +3635,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {base_c_name_ar}",
             },
             "total": recap_protection_basique_c_total,
+            "color": recap_protection_basique_c_color,
+            "badge": recap_protection_basique_c_badge,
         }
 
         if standart_a_total:
             recap_protection_standard_a_total = standart_a_total
+            recap_protection_standard_a_color = "black"
+            recap_protection_standard_a_badge = None
         else:
             recap_protection_standard_a_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_standard_a_color = "green"
+            recap_protection_standard_a_badge = None
 
         recap_protection_standard_a = {
             "name": {
@@ -3182,14 +3657,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {standart_a_name_ar}",
             },
             "total": recap_protection_standard_a_total,
+            "color": recap_protection_standard_a_color,
+            "badge": recap_protection_standard_a_badge,
         }
 
         if standart_b_total:
             recap_protection_standard_b_total = standart_b_total
+            recap_protection_standard_b_color = "black"
+            recap_protection_standard_b_badge = None
         else:
             recap_protection_standard_b_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_standard_b_color = "green"
+            recap_protection_standard_b_badge = None
 
         recap_protection_standard_b = {
             "name": {
@@ -3198,14 +3679,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {standart_b_name_ar}",
             },
             "total": recap_protection_standard_b_total,
+            "color": recap_protection_standard_b_color,
+            "badge": recap_protection_standard_b_badge,
         }
 
         if standart_c_total:
             recap_protection_standard_c_total = standart_c_total
+            recap_protection_standard_c_color = "black"
+            recap_protection_standard_c_badge = None
         else:
             recap_protection_standard_c_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_standard_c_color = "green"
+            recap_protection_standard_c_badge = None
 
         recap_protection_standard_c = {
             "name": {
@@ -3214,14 +3701,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {standart_c_name_ar}",
             },
             "total": recap_protection_standard_c_total,
+            "color": recap_protection_standard_c_color,
+            "badge": recap_protection_standard_c_badge,
         }
 
         if max_a_total:
             recap_protection_maximale_a_total = max_a_total
+            recap_protection_maximale_a_color = "black"
+            recap_protection_maximale_a_badge = None
         else:
             recap_protection_maximale_a_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_maximale_a_color = "green"
+            recap_protection_maximale_a_badge = None
 
         recap_protection_maximale_a = {
             "name": {
@@ -3230,14 +3723,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {max_a_name_ar}",
             },
             "total": recap_protection_maximale_a_total,
+            "color": recap_protection_maximale_a_color,
+            "badge": recap_protection_maximale_a_badge,
         }
 
         if max_b_total:
             recap_protection_maximale_b_total = max_b_total
+            recap_protection_maximale_b_color = "black"
+            recap_protection_maximale_b_badge = None
         else:
             recap_protection_maximale_b_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_maximale_b_color = "green"
+            recap_protection_maximale_b_badge = None
 
         recap_protection_maximale_b = {
             "name": {
@@ -3246,14 +3745,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {max_b_name_ar}",
             },
             "total": recap_protection_maximale_b_total,
+            "color": recap_protection_maximale_b_color,
+            "badge": recap_protection_maximale_b_badge,
         }
 
         if max_c_total:
             recap_protection_maximale_c_total = max_c_total
+            recap_protection_maximale_c_color = "black"
+            recap_protection_maximale_c_badge = None
         else:
             recap_protection_maximale_c_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_maximale_c_color = "green"
+            recap_protection_maximale_c_badge = None
 
         recap_protection_maximale_c = {
             "name": {
@@ -3262,6 +3767,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {max_c_name_ar}",
             },
             "total": recap_protection_maximale_c_total,
+            "color": recap_protection_maximale_c_color,
+            "badge": recap_protection_maximale_c_badge,
         }
 
         modeles_ajoutes = set()
@@ -3374,6 +3881,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "en": promotion_name,
                             "ar": promotion_name,
                         },
+                        "color": "green",
+                        "badge": None,
                     }
                 else:
                     recap_promotion = {
@@ -3382,6 +3891,11 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
                 # Code fidélité : réduction client (sans la promotion dynamique)
                 if promotion == "yes" and is_prime:
+                    if float(montant_code_prime) > 0:
+                        recap_code_fidelite_color = "green"
+                    else:
+                        recap_code_fidelite_color = "red"
+
                     recap_code_fidelite = {
                         "is_code_fidelite": True,
                         "pourcentage": client_pr,
@@ -3392,6 +3906,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "en": "Loyalty code",
                             "ar": "رمز الوفاء",
                         },
+                        "color": recap_code_fidelite_color,
+                        "badge": None,
                     }
                 else:
                     recap_code_fidelite = {
@@ -3427,6 +3943,15 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "fr": "Offre Dynamique",
                             "en": "Dynamic Offer",
                             "ar": "عرض ديناميكي",
+                        },
+                        "color": "green",
+                        "badge": {
+                            "icon": "⚡",
+                            "text": {
+                                "fr": "FLASH",
+                                "en": "FLASH",
+                                "ar": "FLASH",
+                            },
                         },
                     }
                 else:
@@ -3472,6 +3997,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "en": "Referral Reward",
                             "ar": "مكافأة الإحالة",
                         },
+                        "color": "black",
+                        "badge": None,
                     }
                 else:
                     recap_recompense_parrainage = {
@@ -3482,6 +4009,13 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     recap_solde_anterieur = {
                         "is_solde": True,
                         "valeur": round(float(solde_anterieur), 2),
+                        "name": {
+                            "fr": "Solde antérieur",
+                            "en": "Previous balance",
+                            "ar": "الرصيد السابق",
+                        },
+                        "color": "black",
+                        "badge": None,
                     }
                 else:
                     recap_solde_anterieur = {
@@ -3598,6 +4132,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                         "recap": {
                             "bail_de_location": round(total_brut, 2),
+                            "nombre_de_jours": total_days,
                             "type_de_paiement": type_de_paiement,
                             "categorie_client": recap_categorie_client,
                             "plein_carburant": recap_plein_carburant,
@@ -3724,6 +4259,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                         "recap": {
                             "bail_de_location": round(total_brut, 2),
+                            "nombre_de_jours": total_days,
                             "type_de_paiement": type_de_paiement,
                             "categorie_client": recap_categorie_client,
                             "plein_carburant": recap_plein_carburant,
@@ -3850,6 +4386,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                         "recap": {
                             "bail_de_location": round(total_brut, 2),
+                            "nombre_de_jours": total_days,
                             "type_de_paiement": type_de_paiement,
                             "categorie_client": recap_categorie_client,
                             "plein_carburant": recap_plein_carburant,
@@ -3959,11 +4496,22 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
         if opt_payment_total:
             type_de_paiement_total = opt_payment_total
+            type_de_paiement_color = "black"
+            type_de_paiement_badge = None
         else:
             type_de_paiement_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            type_de_paiement_color = "green"
+            type_de_paiement_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         type_de_paiement = {
@@ -3973,6 +4521,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_payment_name_ar,
             },
             "total": type_de_paiement_total,
+            "color": type_de_paiement_color,
+            "badge": type_de_paiement_badge,
         }
 
         klm_illimite = search_option("KLM_ILLIMITED", total_days, lieu_depart)
@@ -4047,11 +4597,22 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
         if opt_carburant_total:
             recap_plein_carburant_total = opt_carburant_total
+            recap_plein_carburant_color = "black"
+            recap_plein_carburant_badge = None
         else:
             recap_plein_carburant_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_plein_carburant_color = "green"
+            recap_plein_carburant_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_plein_carburant = {
@@ -4061,15 +4622,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_carburant_name_ar,
             },
             "total": recap_plein_carburant_total,
+            "color": recap_plein_carburant_color,
+            "badge": recap_plein_carburant_badge,
         }
 
         if opt_klm_total:
             recap_klm_illimite_total = opt_klm_total
+            recap_klm_illimite_color = "black"
+            recap_klm_illimite_badge = None
         else:
             recap_klm_illimite_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_klm_illimite_color = "green"
+            recap_klm_illimite_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_klm_illimite = {
@@ -4079,15 +4653,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_klm_name_ar,
             },
             "total": recap_klm_illimite_total,
+            "color": recap_klm_illimite_color,
+            "badge": recap_klm_illimite_badge,
         }
 
         if opt_klm_b_total:
             recap_klm_illimite_b_total = opt_klm_b_total
+            recap_klm_illimite_b_color = "black"
+            recap_klm_illimite_b_badge = None
         else:
             recap_klm_illimite_b_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_klm_illimite_b_color = "green"
+            recap_klm_illimite_b_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_klm_illimite_b = {
@@ -4097,15 +4684,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_klm_b_name_ar,
             },
             "total": recap_klm_illimite_b_total,
+            "color": recap_klm_illimite_b_color,
+            "badge": recap_klm_illimite_b_badge,
         }
 
         if opt_klm_c_total:
             recap_klm_illimite_c_total = opt_klm_c_total
+            recap_klm_illimite_c_color = "black"
+            recap_klm_illimite_c_badge = None
         else:
             recap_klm_illimite_c_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_klm_illimite_c_color = "green"
+            recap_klm_illimite_c_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_klm_illimite_c = {
@@ -4115,15 +4715,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_klm_c_name_ar,
             },
             "total": recap_klm_illimite_c_total,
+            "color": recap_klm_illimite_c_color,
+            "badge": recap_klm_illimite_c_badge,
         }
 
         if opt_nd_driver_total:
             recap_deuxieme_conducteur_total = opt_nd_driver_total
+            recap_deuxieme_conducteur_color = "black"
+            recap_deuxieme_conducteur_badge = None
         else:
             recap_deuxieme_conducteur_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_deuxieme_conducteur_color = "green"
+            recap_deuxieme_conducteur_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_deuxieme_conducteur = {
@@ -4133,15 +4746,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_nd_driver_name_ar,
             },
             "total": recap_deuxieme_conducteur_total,
+            "color": recap_deuxieme_conducteur_color,
+            "badge": recap_deuxieme_conducteur_badge,
         }
 
         if opt_siege_a_total:
             recap_siege_bebe_5_total = opt_siege_a_total
+            recap_siege_bebe_5_color = "black"
+            recap_siege_bebe_5_badge = None
         else:
             recap_siege_bebe_5_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_siege_bebe_5_color = "green"
+            recap_siege_bebe_5_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_siege_bebe_5 = {
@@ -4151,15 +4777,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_siege_a_name_ar,
             },
             "total": recap_siege_bebe_5_total,
+            "color": recap_siege_bebe_5_color,
+            "badge": recap_siege_bebe_5_badge,
         }
 
         if opt_siege_b_total:
             recap_siege_bebe_13_total = opt_siege_b_total
+            recap_siege_bebe_13_color = "black"
+            recap_siege_bebe_13_badge = None
         else:
             recap_siege_bebe_13_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_siege_bebe_13_color = "green"
+            recap_siege_bebe_13_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_siege_bebe_13 = {
@@ -4169,15 +4808,28 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_siege_b_name_ar,
             },
             "total": recap_siege_bebe_13_total,
+            "color": recap_siege_bebe_13_color,
+            "badge": recap_siege_bebe_13_badge,
         }
 
         if opt_siege_c_total:
             recap_siege_bebe_18_total = opt_siege_c_total
+            recap_siege_bebe_18_color = "black"
+            recap_siege_bebe_18_badge = None
         else:
             recap_siege_bebe_18_total = {
                 "fr": "OFFERT",
                 "en": "COMPLIMENTARY",
                 "ar": "هدية",
+            }
+            recap_siege_bebe_18_color = "green"
+            recap_siege_bebe_18_badge = {
+                "icon": "🎁",
+                "text": {
+                    "fr": "OFFERT",
+                    "en": "COMPLIMENTARY",
+                    "ar": "هدية",
+                },
             }
 
         recap_siege_bebe_18 = {
@@ -4187,6 +4839,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": opt_siege_c_name_ar,
             },
             "total": recap_siege_bebe_18_total,
+            "color": recap_siege_bebe_18_color,
+            "badge": recap_siege_bebe_18_badge,
         }
 
         base_a = search_option("BASE_P_1", total_days, lieu_depart)
@@ -4276,6 +4930,12 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         # Protection basique (option_code BASE_P_1) : toujours son total, sans catégorie client
         recap_protection_basique_a_total = base_a_total
 
+        if recap_protection_basique_a_total:
+            recap_protection_basique_a_color = "black"
+        else:
+            recap_protection_basique_a_color = "green"
+        recap_protection_basique_a_badge = None
+
         recap_protection_basique_a = {
             "name": {
                 "fr": f"Protection {base_a_name}",
@@ -4283,10 +4943,18 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {base_a_name_ar}",
             },
             "total": recap_protection_basique_a_total,
+            "color": recap_protection_basique_a_color,
+            "badge": recap_protection_basique_a_badge,
         }
 
         # Protection basique (option_code BASE_P_2) : toujours son total, sans catégorie client
         recap_protection_basique_b_total = base_b_total
+
+        if recap_protection_basique_b_total:
+            recap_protection_basique_b_color = "black"
+        else:
+            recap_protection_basique_b_color = "green"
+        recap_protection_basique_b_badge = None
 
         recap_protection_basique_b = {
             "name": {
@@ -4295,10 +4963,18 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {base_b_name_ar}",
             },
             "total": recap_protection_basique_b_total,
+            "color": recap_protection_basique_b_color,
+            "badge": recap_protection_basique_b_badge,
         }
 
         # Protection basique (option_code BASE_P_3) : toujours son total, sans catégorie client
         recap_protection_basique_c_total = base_c_total
+
+        if recap_protection_basique_c_total:
+            recap_protection_basique_c_color = "black"
+        else:
+            recap_protection_basique_c_color = "green"
+        recap_protection_basique_c_badge = None
 
         recap_protection_basique_c = {
             "name": {
@@ -4307,14 +4983,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {base_c_name_ar}",
             },
             "total": recap_protection_basique_c_total,
+            "color": recap_protection_basique_c_color,
+            "badge": recap_protection_basique_c_badge,
         }
 
         if standart_a_total:
             recap_protection_standard_a_total = standart_a_total
+            recap_protection_standard_a_color = "black"
+            recap_protection_standard_a_badge = None
         else:
             recap_protection_standard_a_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_standard_a_color = "green"
+            recap_protection_standard_a_badge = None
 
         recap_protection_standard_a = {
             "name": {
@@ -4323,14 +5005,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {standart_a_name_ar}",
             },
             "total": recap_protection_standard_a_total,
+            "color": recap_protection_standard_a_color,
+            "badge": recap_protection_standard_a_badge,
         }
 
         if standart_b_total:
             recap_protection_standard_b_total = standart_b_total
+            recap_protection_standard_b_color = "black"
+            recap_protection_standard_b_badge = None
         else:
             recap_protection_standard_b_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_standard_b_color = "green"
+            recap_protection_standard_b_badge = None
 
         recap_protection_standard_b = {
             "name": {
@@ -4339,14 +5027,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {standart_b_name_ar}",
             },
             "total": recap_protection_standard_b_total,
+            "color": recap_protection_standard_b_color,
+            "badge": recap_protection_standard_b_badge,
         }
 
         if standart_c_total:
             recap_protection_standard_c_total = standart_c_total
+            recap_protection_standard_c_color = "black"
+            recap_protection_standard_c_badge = None
         else:
             recap_protection_standard_c_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_standard_c_color = "green"
+            recap_protection_standard_c_badge = None
 
         recap_protection_standard_c = {
             "name": {
@@ -4355,14 +5049,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {standart_c_name_ar}",
             },
             "total": recap_protection_standard_c_total,
+            "color": recap_protection_standard_c_color,
+            "badge": recap_protection_standard_c_badge,
         }
 
         if max_a_total:
             recap_protection_maximale_a_total = max_a_total
+            recap_protection_maximale_a_color = "black"
+            recap_protection_maximale_a_badge = None
         else:
             recap_protection_maximale_a_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_maximale_a_color = "green"
+            recap_protection_maximale_a_badge = None
 
         recap_protection_maximale_a = {
             "name": {
@@ -4371,14 +5071,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {max_a_name_ar}",
             },
             "total": recap_protection_maximale_a_total,
+            "color": recap_protection_maximale_a_color,
+            "badge": recap_protection_maximale_a_badge,
         }
 
         if max_b_total:
             recap_protection_maximale_b_total = max_b_total
+            recap_protection_maximale_b_color = "black"
+            recap_protection_maximale_b_badge = None
         else:
             recap_protection_maximale_b_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_maximale_b_color = "green"
+            recap_protection_maximale_b_badge = None
 
         recap_protection_maximale_b = {
             "name": {
@@ -4387,14 +5093,20 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {max_b_name_ar}",
             },
             "total": recap_protection_maximale_b_total,
+            "color": recap_protection_maximale_b_color,
+            "badge": recap_protection_maximale_b_badge,
         }
 
         if max_c_total:
             recap_protection_maximale_c_total = max_c_total
+            recap_protection_maximale_c_color = "black"
+            recap_protection_maximale_c_badge = None
         else:
             recap_protection_maximale_c_total = {
                 "categorie_client": recap_categorie_client,
             }
+            recap_protection_maximale_c_color = "green"
+            recap_protection_maximale_c_badge = None
 
         recap_protection_maximale_c = {
             "name": {
@@ -4403,6 +5115,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 "ar": f"حماية {max_c_name_ar}",
             },
             "total": recap_protection_maximale_c_total,
+            "color": recap_protection_maximale_c_color,
+            "badge": recap_protection_maximale_c_badge,
         }
 
         modeles_ajoutes = set()
@@ -4513,6 +5227,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "en": promotion_name,
                             "ar": promotion_name,
                         },
+                        "color": "green",
+                        "badge": None,
                     }
                 else:
                     recap_promotion = {
@@ -4521,6 +5237,11 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
                 # Code fidélité : réduction client (sans la promotion dynamique)
                 if promotion == "yes" and is_prime:
+                    if float(montant_code_prime) > 0:
+                        recap_code_fidelite_color = "green"
+                    else:
+                        recap_code_fidelite_color = "red"
+
                     recap_code_fidelite = {
                         "is_code_fidelite": True,
                         "pourcentage": client_pr,
@@ -4531,6 +5252,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "en": "Loyalty code",
                             "ar": "رمز الوفاء",
                         },
+                        "color": recap_code_fidelite_color,
+                        "badge": None,
                     }
                 else:
                     recap_code_fidelite = {
@@ -4569,6 +5292,15 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "fr": "Offre Dynamique",
                             "en": "Dynamic Offer",
                             "ar": "عرض ديناميكي",
+                        },
+                        "color": "green",
+                        "badge": {
+                            "icon": "⚡",
+                            "text": {
+                                "fr": "FLASH",
+                                "en": "FLASH",
+                                "ar": "FLASH",
+                            },
                         },
                     }
                 else:
@@ -4614,6 +5346,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                             "en": "Referral Reward",
                             "ar": "مكافأة الإحالة",
                         },
+                        "color": "black",
+                        "badge": None,
                     }
                 else:
                     recap_recompense_parrainage = {
@@ -4624,6 +5358,13 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                     recap_solde_anterieur = {
                         "is_solde": True,
                         "valeur": round(float(solde_anterieur), 2),
+                        "name": {
+                            "fr": "Solde antérieur",
+                            "en": "Previous balance",
+                            "ar": "الرصيد السابق",
+                        },
+                        "color": "black",
+                        "badge": None,
                     }
                 else:
                     recap_solde_anterieur = {
@@ -4740,6 +5481,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                         "recap": {
                             "bail_de_location": round(total_brut, 2),
+                            "nombre_de_jours": total_days,
                             "type_de_paiement": type_de_paiement,
                             "categorie_client": recap_categorie_client,
                             "plein_carburant": recap_plein_carburant,
@@ -4867,6 +5609,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                         "recap": {
                             "bail_de_location": round(total_brut, 2),
+                            "nombre_de_jours": total_days,
                             "type_de_paiement": type_de_paiement,
                             "categorie_client": recap_categorie_client,
                             "plein_carburant": recap_plein_carburant,
@@ -4985,6 +5728,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                         "hors_ville":hors_ville,
                         "recap": {
                             "bail_de_location": round(total_brut, 2),
+                            "nombre_de_jours": total_days,
                             "type_de_paiement": type_de_paiement,
                             "categorie_client": recap_categorie_client,
                             "plein_carburant": recap_plein_carburant,

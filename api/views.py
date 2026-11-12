@@ -3349,6 +3349,10 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
                             reservation_obj.client.solde =  Decimal(credit_amount) if reservation_obj.client.solde == None or reservation_obj.client.solde  == 0 else reservation_obj.client.solde + Decimal(credit_amount)
                             reservation_obj.client.save()
 
+                            # Valeur ajoutée au solde du client (cumulée si plusieurs retours anticipés)
+                            reservation_obj.credit_solde_retour = Decimal(credit_amount) if reservation_obj.credit_solde_retour is None else reservation_obj.credit_solde_retour + Decimal(credit_amount)
+                            Reservation.objects.filter(id=reservation_obj.id).update(credit_solde_retour=reservation_obj.credit_solde_retour)
+
                             historique = HistoriqueSolde.objects.create(
                                 client = reservation_obj.client,
                                 reservation = reservation_obj,
@@ -4894,7 +4898,8 @@ def add_reservation_post_view(request):
             feuil_red = - prime_red,
             parrain = parent_client,
             kilometrage_autorise = kilometrage_autorise,
-            solde_utilise = solde_consome
+            solde_utilise = solde_consome,
+            promotion = promotions if promo_value and promo_value > client_red_pr else None
         )  
 
         montant_a_paye = to_pay if to_pay>0 else last_total

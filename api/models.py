@@ -1157,6 +1157,12 @@ class Reservation(models.Model):
 
     color_tag = models.IntegerField(null=True, blank=True)
     solde_reduit = models.IntegerField(null=True, blank=True)
+    total_retours_avance = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_prolongations = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_penalites_livraison = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_degradation_limit = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    credit_solde_retour = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    promotion = models.ForeignKey('Promotion', on_delete=models.SET_NULL, db_column='promotion_id', related_name='reservations_promotion', null=True, blank=True)
 
     opt_payment = models.ForeignKey('Options', on_delete=models.CASCADE,db_column='opt_payment', related_name='opt_payment')
     opt_payment_name = models.CharField(max_length=255, null=True, blank=True)
