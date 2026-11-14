@@ -8254,11 +8254,16 @@ def cancel_receipt_download(request):
         return HttpResponse("Reservation non disponible", status=404)
 
     reservation = get_object_or_404(Reservation, id=reservation_id)
+    refunds = RefundTable.objects.filter(reservation=reservation)
+    total_refund = 0
+    for refund in refunds:
+        if refund.status == 'en_attent' or refund.status == 'effectuer':
+            total_refund += float(refund.amount)
 
     ref =  reservation.name
 
-    fee = float(reservation.total_reduit_euro) - float(reservation.reste_payer)
-    refund = float(reservation.reste_payer)
+    fee = float(reservation.total_reduit_euro) - float(total_refund)
+    refund = float(total_refund)
 
     un_jour = round(fee, 2)
     montant_rembourse = round(refund, 2)
