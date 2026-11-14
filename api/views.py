@@ -8262,7 +8262,7 @@ def cancel_receipt_download(request):
 
     ref =  reservation.name
 
-    fee = float(reservation.total_reduit_euro) - float(total_refund)
+    fee = float(reservation.montant_paye) - float(total_refund)
     refund = float(total_refund)
 
     un_jour = round(fee, 2)
