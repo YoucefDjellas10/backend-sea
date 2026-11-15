@@ -3018,8 +3018,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
     # Promotion par catégorie client : si la promo ne s'applique pas à toutes les catégories,
     # le client (client_id envoyé par le front) doit avoir une catégorie parmi categorie_one..four.
-    # Sans client_id, la promo s'applique normalement.
-    if promotions and promotions.tout_categorie == "non" and client_id:
+    # Sans client_id, la promo ne s'applique pas.
+    if promotions and promotions.tout_categorie == "non":
         client_categorie_promo = None
         if client_id :
             client_promo = ListeClient.objects.filter(id=client_id).first()
