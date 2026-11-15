@@ -4146,6 +4146,13 @@ def add_reservation_post_view(request):
                         promo_value = 0
             else:
                 promo_value = 0
+            # Promotion par catégorie client : si la promo ne s'applique pas à toutes les catégories,
+            # la catégorie du client doit être parmi categorie_one..four (client obligatoire ici)
+            if promotions and promotions.tout_categorie == "non":
+                if client and client.categorie_client and (client.categorie_client == promotions.categorie_one or client.categorie_client == promotions.categorie_two or client.categorie_client == promotions.categorie_three or client.categorie_client == promotions.categorie_four):
+                    promo_value = promo_value
+                else :
+                    promo_value = 0
             dbg("8. promo_value:", promo_value)
 
             tarifs_periodiques = Tarifs.objects.filter(

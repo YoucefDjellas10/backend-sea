@@ -3016,6 +3016,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             else :
                 promotion_value = 0
 
+    # Promotion par catégorie client : si la promo ne s'applique pas à toutes les catégories,
+    # le client (client_id envoyé par le front) doit avoir une catégorie parmi categorie_one..four.
+    # Sans client_id, la promo s'applique normalement.
+    if promotions and promotions.tout_categorie == "non" and client_id:
+        client_categorie_promo = None
+        if client_id :
+            client_promo = ListeClient.objects.filter(id=client_id).first()
+            if client_promo and client_promo.categorie_client :
+                client_categorie_promo = client_promo.categorie_client
+            else :
+                client_categorie_promo = None
+        else :
+            client_categorie_promo = None
+
+        if client_categorie_promo is not None and (client_categorie_promo == promotions.categorie_one or client_categorie_promo == promotions.categorie_two or client_categorie_promo == promotions.categorie_three or client_categorie_promo == promotions.categorie_four):
+            promotion_value = promotion_value
+        else :
+            promotion_value = 0
+
     date_annulation = None
     annulation = ConditionAnnulation.objects.filter(id=1).first()
     if annulation:

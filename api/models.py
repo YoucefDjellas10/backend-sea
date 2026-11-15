@@ -955,6 +955,16 @@ class Promotion(models.Model):
     zone_three = models.ForeignKey(Zone, on_delete=models.SET_NULL,related_name='zone_three', db_column='zone_three', verbose_name="Modèle", null=True, blank=True)
     nbr_model = models.IntegerField(null=True, blank=True)
     nbr_zone = models.IntegerField(null=True, blank=True)
+    tout_categorie = models.CharField(
+        max_length=3,
+        choices=[('oui', 'Oui'), ('non', 'Non')],
+        default='oui',
+        verbose_name="Appliquer sur tout les Catégories client"
+    )
+    categorie_one = models.ForeignKey('CategorieClient', on_delete=models.SET_NULL, related_name='promo_categorie_one', db_column='categorie_one', verbose_name="Catégorie", null=True, blank=True)
+    categorie_two = models.ForeignKey('CategorieClient', on_delete=models.SET_NULL, related_name='promo_categorie_two', db_column='categorie_two', verbose_name="Catégorie", null=True, blank=True)
+    categorie_three = models.ForeignKey('CategorieClient', on_delete=models.SET_NULL, related_name='promo_categorie_three', db_column='categorie_three', verbose_name="Catégorie", null=True, blank=True)
+    categorie_four = models.ForeignKey('CategorieClient', on_delete=models.SET_NULL, related_name='promo_categorie_four', db_column='categorie_four', verbose_name="Catégorie", null=True, blank=True)
 
     class Meta:
         db_table = 'promotion'
