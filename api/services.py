@@ -941,12 +941,14 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             lieu_retour_int = int(lieu_retour)
             print(f"*** lieu_depart_int={lieu_depart_int} lieu_retour_int={lieu_retour_int}")
 
+            livraison_new = 0
             frais_livraison = FraisLivraison.objects.filter(depart_id=lieu_depart_obj, retour_id=lieu_retour_obj)
             print(f"*** frais_livraison list = {frais_livraison}")
             print(f"*** frais_livraison direct count = {frais_livraison.count() if frais_livraison else 0}")
             if frais_livraison:
                 for frais in frais_livraison:
                     total_fixe += Decimal(frais.montant)
+                    livraison_new += float(frais.montant or 0)
                     print(f"*** total_fixe (apres frais_livraison direct montant={frais.montant}) = {total_fixe}")
             else:
                 print("*** Pas de frais_livraison direct -> recherche de chemin via escales")
@@ -973,6 +975,7 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 print(f"*** meilleur_cout FINAL (chemin indirect) = {meilleur_cout}")
                 meilleur_cout = meilleur_cout or 0
                 total_fixe += Decimal(meilleur_cout)
+                livraison_new += float(meilleur_cout)
                 print(f"*** total_fixe (apres frais_livraison indirect meilleur_cout={meilleur_cout}) = {total_fixe}")
 
             supplements_one = Supplement.objects.filter(
@@ -989,6 +992,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
             print(f"*** supplements_two = {supplements_two}")
             total_fixe += Decimal(supplements_two.montant) if supplements_two else 0
             print(f"*** total_fixe (apres supplements_two) = {total_fixe}")
+
+            supp_new = float(supplements_one.montant if supplements_one else 0) + float(supplements_two.montant if supplements_two else 0)
+            print(f"*** supp_new (supp_one + supp_two) = {supp_new} | livraison_new = {livraison_new}")
 
             # Retour tardif : prix_jour de la réservation × valeur %
             supplements_valeur = Supplement.objects.filter(valeur__gt=0)
@@ -1134,7 +1140,50 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                 payment_required = "yes"
             print(f"*** payment_required = {payment_required}")
 
-            if new_total < old_total:
+            # ── Retour anticipé : nouveau retour avant le retour actuel ──────
+            retour_anticipe = nouvelle_fin_utc < as_utc(record.date_heure_fin)
+            print(f"*** [RETOUR AVANCE] retour_anticipe = {retour_anticipe}")
+
+            if retour_anticipe:
+                # Pas de recalcul du prix : seulement suppléments d'heure + livraison non payés
+                diff_supp = supp_new - float(record.supplements or 0)
+                if diff_supp < 0:
+                    diff_supp = 0
+                diff_livraison = livraison_new - float(record.frais_de_livraison or 0)
+                if diff_livraison < 0:
+                    diff_livraison = 0
+                diff_retour = diff_supp + diff_livraison
+                print(f"*** [RETOUR AVANCE] supp_new={supp_new} record.supplements={record.supplements} diff_supp={diff_supp}")
+                print(f"*** [RETOUR AVANCE] livraison_new={livraison_new} record.frais_de_livraison={record.frais_de_livraison} diff_livraison={diff_livraison}")
+                print(f"*** [RETOUR AVANCE] diff_retour (euro) = {diff_retour}")
+
+                refund = "no"
+                refund_amount = 0.0
+
+                if credit == "yes":
+                    # La diff est soustraite du crédit, pas affichée à payer
+                    credit_amount = credit_amount - diff_retour
+                    print(f"*** [RETOUR AVANCE] credit_amount apres soustraction = {credit_amount}")
+                    if credit_amount <= 0:
+                        # Le crédit ne couvre pas tout : le reste est à payer
+                        diff_retour = -credit_amount
+                        credit_amount = 0.0
+                        credit = "no"
+                        print(f"*** [RETOUR AVANCE] credit epuise -> reste a payer (euro) = {diff_retour}")
+                    else:
+                        diff_retour = 0
+
+                diff_retour_aff = diff_retour * taux_change if country_code == "DZ" else diff_retour
+                new_total = old_total + diff_retour_aff
+                print(f"*** [RETOUR AVANCE] new_total = {new_total}")
+
+                if remaining_date > 0 or (float(new_total) - montant_paye) < 1:
+                    payment_required = "no"
+                else:
+                    payment_required = "yes"
+                print(f"*** [RETOUR AVANCE] payment_required = {payment_required}")
+
+            if not retour_anticipe and new_total < old_total:
                 print(f"*** new_total ({new_total}) < old_total ({old_total})")
                 if not record.opt_payment_name and new_total < montant_paye and remaining_date > 14 and record.nbr_jour_reservation > 3:
                     
