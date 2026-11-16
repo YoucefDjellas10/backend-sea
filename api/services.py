@@ -3019,6 +3019,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
     # Promotion par catégorie client : si la promo ne s'applique pas à toutes les catégories,
     # le client (client_id envoyé par le front) doit avoir une catégorie parmi categorie_one..four.
     # Sans client_id, la promo ne s'applique pas.
+    print(f"[DEBUG PROMO CAT] promo={promotions.id if promotions else None} name={promotions.name if promotions else None} tout_categorie={promotions.tout_categorie if promotions else None} promotion_value_avant={promotion_value} client_id={client_id!r}")
     if promotions and promotions.tout_categorie == "non":
         client_categorie_promo = None
         if client_id :
@@ -3034,6 +3035,77 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             promotion_value = promotion_value
         else :
             promotion_value = 0
+        print(f"[DEBUG PROMO CAT] client_categorie={client_categorie_promo.id if client_categorie_promo else None} ({client_categorie_promo.name if client_categorie_promo else None}) promo_categories={[c.id if c else None for c in (promotions.categorie_one, promotions.categorie_two, promotions.categorie_three, promotions.categorie_four)]}")
+    print(f"[DEBUG PROMO CAT] promotion_value_apres={promotion_value}")
+
+    # ── Meilleure promo par véhicule ──
+    # On garde toutes les promos actives qui s'appliquent à la zone et à la catégorie du client,
+    # puis dans la boucle véhicules on prend la plus haute qui concerne le modèle du véhicule.
+    client_categorie_best = None
+    if client_id :
+        client_best = ListeClient.objects.filter(id=client_id).first()
+        if client_best and client_best.categorie_client :
+            client_categorie_best = client_best.categorie_client
+        else :
+            client_categorie_best = None
+    else :
+        client_categorie_best = None
+
+    promos_candidates = []
+    promos_actives = Promotion.objects.filter(
+        debut_visibilite__lte=today,
+        fin_visibilite__gte=today,
+        date_debut__lte=date_retour,
+        date_fin__gte=date_depart,
+        active_passive=True
+    )
+    for promo_c in promos_actives :
+        # Zone
+        if promo_c.tout_zone == "oui":
+            zone_ok = True
+        elif lieu_depart.zone == promo_c.zone_one or lieu_depart.zone == promo_c.zone_two or lieu_depart.zone == promo_c.zone_three :
+            zone_ok = True
+        else :
+            zone_ok = False
+
+        # Catégorie client (sans client_id : pas de promo réservée à des catégories)
+        if promo_c.tout_categorie == "oui":
+            categorie_ok = True
+        elif client_categorie_best is not None and (client_categorie_best == promo_c.categorie_one or client_categorie_best == promo_c.categorie_two or client_categorie_best == promo_c.categorie_three or client_categorie_best == promo_c.categorie_four):
+            categorie_ok = True
+        else :
+            categorie_ok = False
+
+        if not zone_ok or not categorie_ok :
+            continue
+
+        # Valeur proportionnelle (même calcul que la promo principale)
+        debut_c = max(promo_c.date_debut, date_depart)
+        fin_c = min(promo_c.date_fin, date_retour)
+        jours_c = (fin_c - debut_c).days
+        base_c = promo_c.reduction if promo_c.reduction else 0
+        if jours_c >= total_days:
+            value_c = base_c
+        elif total_days > 0:
+            value_c = (base_c * jours_c) / total_days
+        else :
+            value_c = 0
+
+        if value_c <= 0 :
+            continue
+
+        # Modèles : None = tous les modèles
+        if promo_c.tout_modele == "oui":
+            models_c = None
+        else :
+            models_c = [m.id for m in (promo_c.model_one, promo_c.model_two, promo_c.model_three, promo_c.model_four, promo_c.model_five) if m is not None]
+
+        promos_candidates.append({
+            "promo": promo_c,
+            "value": value_c,
+            "models": models_c,
+        })
+    print(f"[DEBUG PROMO BEST] candidates={[(c['promo'].id, c['promo'].name, c['value'], c['models']) for c in promos_candidates]}")
 
     date_annulation = None
     annulation = ConditionAnnulation.objects.filter(id=1).first()
@@ -3085,6 +3157,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 return {"message": "Client has a high risk, cannot proceed"}
             elif client_status.get("message") == "positif":
                 client_pr = client.reduction if client.reduction is not None else 0
+                print(f"[DEBUG PROMO CAT] client_pr (fidelite)={client_pr}")
                 client_sold = float(client.solde) * taux_change if client.solde is not None else 0
 
             else:
@@ -3857,6 +3930,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
 
                 total_brut = total_primary + cout_total_tarif 
                 prix_unitaire = total_brut / total_days
+                # Meilleure promo pour CE véhicule (la plus haute parmi celles qui concernent son modèle)
+                meilleure_promo = None
+                for cand in promos_candidates :
+                    if cand["models"] is None or vehicle.modele.id in cand["models"]:
+                        if meilleure_promo is None or cand["value"] > meilleure_promo["value"]:
+                            meilleure_promo = cand
+                if meilleure_promo is not None :
+                    promotions = meilleure_promo["promo"]
+                    promotion_value = meilleure_promo["value"]
+                    promotion_name = meilleure_promo["promo"].name
+                    model_one = meilleure_promo["promo"].model_one
+                    model_two = meilleure_promo["promo"].model_two
+                    model_three = meilleure_promo["promo"].model_three
+                    model_four = meilleure_promo["promo"].model_four
+                    model_five = meilleure_promo["promo"].model_five
+                else :
+                    promotion_value = 0
+                    promotion_name = None
+                print(f"[DEBUG PROMO BEST] vehicule modele={vehicle.modele.id} promo={meilleure_promo['promo'].id if meilleure_promo else None} value={promotion_value}")
                 # La promo s'applique-t-elle à CE véhicule ? (tous modèles ou modèle 1..5)
                 model_ids_promo = [m.id for m in (model_one, model_two, model_three, model_four, model_five) if m is not None]
                 promo_applicable = bool(promotions) and promotion_value > 0 and (
@@ -4437,6 +4529,7 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 return {"message": "Client has a high risk, cannot proceed"}
             elif client_status.get("message") == "positif":
                 client_pr = client.reduction if client.reduction is not None else 0
+                print(f"[DEBUG PROMO CAT] client_pr (fidelite)={client_pr}")
                 client_sold = client.solde if client.solde is not None else 0
             else:
                 return client_status 
@@ -5204,6 +5297,25 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 total_brut = total_primary + cout_total_tarif  
                 prix_unitaire = total_brut / total_days
 
+                # Meilleure promo pour CE véhicule (la plus haute parmi celles qui concernent son modèle)
+                meilleure_promo = None
+                for cand in promos_candidates :
+                    if cand["models"] is None or vehicle.modele.id in cand["models"]:
+                        if meilleure_promo is None or cand["value"] > meilleure_promo["value"]:
+                            meilleure_promo = cand
+                if meilleure_promo is not None :
+                    promotions = meilleure_promo["promo"]
+                    promotion_value = meilleure_promo["value"]
+                    promotion_name = meilleure_promo["promo"].name
+                    model_one = meilleure_promo["promo"].model_one
+                    model_two = meilleure_promo["promo"].model_two
+                    model_three = meilleure_promo["promo"].model_three
+                    model_four = meilleure_promo["promo"].model_four
+                    model_five = meilleure_promo["promo"].model_five
+                else :
+                    promotion_value = 0
+                    promotion_name = None
+                print(f"[DEBUG PROMO BEST] vehicule modele={vehicle.modele.id} promo={meilleure_promo['promo'].id if meilleure_promo else None} value={promotion_value}")
                 # La promo s'applique-t-elle à CE véhicule ? (tous modèles ou modèle 1..5)
                 model_ids_promo = [m.id for m in (model_one, model_two, model_three, model_four, model_five) if m is not None]
                 promo_applicable = bool(promotions) and promotion_value > 0 and (

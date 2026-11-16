@@ -4153,6 +4153,65 @@ def add_reservation_post_view(request):
                     promo_value = promo_value
                 else :
                     promo_value = 0
+            # ── Meilleure promo pour ce véhicule (même règle que search_result_vehicule) ──
+            # On prend la promo la plus haute qui s'applique à la zone, à la catégorie du client et au modèle du véhicule
+            meilleure_promo = None
+            meilleure_value = 0
+            promos_actives = Promotion.objects.filter(
+                date_debut__lte=date_retour_obj,
+                date_fin__gte=date_depart_obj,
+                active_passive=True
+            )
+            for promo_c in promos_actives :
+                # Zone
+                if promo_c.tout_zone == "oui":
+                    zone_ok = True
+                elif lieu_depart_obj.zone == promo_c.zone_one or lieu_depart_obj.zone == promo_c.zone_two or lieu_depart_obj.zone == promo_c.zone_three :
+                    zone_ok = True
+                else :
+                    zone_ok = False
+
+                # Catégorie client
+                if promo_c.tout_categorie == "oui":
+                    categorie_ok = True
+                elif client and client.categorie_client and (client.categorie_client == promo_c.categorie_one or client.categorie_client == promo_c.categorie_two or client.categorie_client == promo_c.categorie_three or client.categorie_client == promo_c.categorie_four):
+                    categorie_ok = True
+                else :
+                    categorie_ok = False
+
+                # Modèle
+                if promo_c.tout_modele == "oui":
+                    modele_ok = True
+                elif vehicule.modele == promo_c.model_one or vehicule.modele == promo_c.model_two or vehicule.modele == promo_c.model_three or vehicule.modele == promo_c.model_four or vehicule.modele == promo_c.model_five :
+                    modele_ok = True
+                else :
+                    modele_ok = False
+
+                if not zone_ok or not categorie_ok or not modele_ok :
+                    continue
+
+                # Valeur proportionnelle (même calcul que plus haut)
+                debut_c = max(promo_c.date_debut, date_depart_obj)
+                fin_c = min(promo_c.date_fin, date_retour_obj)
+                jours_c = (fin_c - debut_c).days
+                base_c = promo_c.reduction if promo_c.reduction else 0
+                if jours_c >= total_days:
+                    value_c = base_c
+                elif total_days > 0:
+                    value_c = (base_c * jours_c) / total_days
+                else :
+                    value_c = 0
+
+                if value_c > meilleure_value :
+                    meilleure_promo = promo_c
+                    meilleure_value = value_c
+
+            if meilleure_promo is not None :
+                promotions = meilleure_promo
+                promo_value = meilleure_value
+            else :
+                promo_value = 0
+            dbg("7b. meilleure promo:", meilleure_promo, "| value:", promo_value)
             dbg("8. promo_value:", promo_value)
 
             tarifs_periodiques = Tarifs.objects.filter(
