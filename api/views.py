@@ -2957,7 +2957,7 @@ def verify_and_edit(ref, lieu_depart, lieu_retour, date_depart, heure_depart, da
             heure_depart,
             date_retour,
             heure_retour,
-            country_code
+            country_code,
         )
         lieu_depart_obj = Lieux.objects.filter(id=lieu_depart).first()
         ma_reservation = Reservation.objects.filter(name=ref).first()
@@ -3105,7 +3105,8 @@ def verify_and_do(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date
             heure_depart,
             date_retour,
             heure_retour,
-            None
+            None,
+            backoffice
         )
         
         if not verify_value[0].get('is_available') or not verify_value[0].get('old_total') or not verify_value[0].get('new_total'):
@@ -3727,7 +3728,7 @@ def payment_request_ma_reservation_view(request):
             return JsonResponse({"error": "Email client manquant."}, status=400, json_dumps_params={"ensure_ascii": False})
 
         verify_value = verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depart,
-                                            date_retour, heure_retour, None)
+                                            date_retour, heure_retour, None, None)
         if not isinstance(verify_value, list) or not verify_value or verify_value[0].get('is_available') != "yes":
             message = "Le véhicule n'est pas disponible."
             if isinstance(verify_value, dict):
@@ -7202,7 +7203,9 @@ def verify_and_calculate_view(request):
     heure_depart = request.GET.get("heure_depart")
     date_retour = request.GET.get("date_retour")
     heure_retour = request.GET.get("heure_retour")
+    backoffice = request.GET.get("backoffice")
     country_code = request.headers.get("X-Country-Code")
+     
 
     if not date_retour or not date_depart:
         return JsonResponse({"error": "Les paramètres 'date_retour' et 'date_depart' sont requis."}, status=400)
@@ -7222,7 +7225,8 @@ def verify_and_calculate_view(request):
             heure_depart = heure_depart,
             date_retour = date_retour,
             heure_retour = heure_retour,
-            country_code = country_code
+            country_code = country_code,
+            backoffice = backoffice
         )
         if isinstance(resultats, dict) and "error" in resultats:
             return JsonResponse({"error": resultats["error"]}, status=400, json_dumps_params={"ensure_ascii": False})

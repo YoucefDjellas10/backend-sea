@@ -745,7 +745,7 @@ def cencel_request(ref,country_code):
     except Exception as e:
         return {"message": f"Erreur: {str(e)}"}
 
-def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, country_code):
+def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depart, date_retour, heure_retour, country_code, backoffice=None):
     try:
         print("\n" + "#" * 80)
         print(f"### DEBUT verify_and_calculate ref={ref}")
@@ -895,7 +895,9 @@ def verify_and_calculate(ref, lieu_depart, lieu_retour, date_depart, heure_depar
                     is_available = False
 
             # Vendredi : pas de depart entre 12:00 et 14:00, pas de retour entre 13:00 et 14:00
-            if is_available:
+            # (non applique si la modification vient du backoffice)
+            print(f"*** backoffice = {backoffice}")
+            if is_available and backoffice != "yes":
                 depart_local = datetime.strptime(f"{date_depart} {heure_depart}", '%Y-%m-%d %H:%M')
                 retour_local = datetime.strptime(f"{date_retour} {heure_retour}", '%Y-%m-%d %H:%M')
                 if not location_commencee and depart_local.weekday() == 4 and time(12, 0) <= depart_local.time() < time(14, 0):
