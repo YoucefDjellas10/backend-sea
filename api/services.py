@@ -3130,17 +3130,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
         if not zone_ok or not categorie_ok :
             continue
 
-        # Valeur proportionnelle (même calcul que la promo principale)
-        debut_c = max(promo_c.date_debut, date_depart)
-        fin_c = min(promo_c.date_fin, date_retour)
-        jours_c = (fin_c - debut_c).days
-        base_c = promo_c.reduction if promo_c.reduction else 0
-        if jours_c >= total_days:
-            value_c = base_c
-        elif total_days > 0:
-            value_c = (base_c * jours_c) / total_days
-        else :
-            value_c = 0
+        # Réduction de la promo (la moyenne jour par jour est calculée par véhicule)
+        value_c = promo_c.reduction if promo_c.reduction else 0
 
         if value_c <= 0 :
             continue
@@ -3155,6 +3146,8 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
             "promo": promo_c,
             "value": value_c,
             "models": models_c,
+            "date_debut": promo_c.date_debut,
+            "date_fin": promo_c.date_fin,
         })
     print(f"[DEBUG PROMO BEST] candidates={[(c['promo'].id, c['promo'].name, c['value'], c['models']) for c in promos_candidates]}")
 
@@ -3982,14 +3975,29 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 total_brut = total_primary + cout_total_tarif 
                 prix_unitaire = total_brut / total_days
                 # Meilleure promo pour CE véhicule (la plus haute parmi celles qui concernent son modèle)
+                # Jour par jour : chaque jour prend la meilleure promo qui le couvre,
+                # puis la remise = moyenne des remises sur tous les jours de la location.
+                # Un jour i est compté par sa date de fin (date_depart + i + 1).
                 meilleure_promo = None
-                for cand in promos_candidates :
-                    if cand["models"] is None or vehicle.modele.id in cand["models"]:
-                        if meilleure_promo is None or cand["value"] > meilleure_promo["value"]:
-                            meilleure_promo = cand
-                if meilleure_promo is not None :
+                somme_reduction = 0
+                jours_par_promo = {}
+                for i in range(total_days):
+                    jour = date_depart + timedelta(days=i + 1)
+                    promo_jour = None
+                    for cand in promos_candidates :
+                        if (cand["models"] is None or vehicle.modele.id in cand["models"]) and cand["date_debut"] <= jour <= cand["date_fin"]:
+                            if promo_jour is None or cand["value"] > promo_jour["value"]:
+                                promo_jour = cand
+                    if promo_jour is not None :
+                        somme_reduction += promo_jour["value"]
+                        jours_par_promo[promo_jour["promo"].id] = jours_par_promo.get(promo_jour["promo"].id, 0) + promo_jour["value"]
+                        # Promo principale (nom affiché) = celle qui apporte le plus de remise
+                        if meilleure_promo is None or jours_par_promo[promo_jour["promo"].id] > jours_par_promo.get(meilleure_promo["promo"].id, 0):
+                            meilleure_promo = promo_jour
+                print(f"[DEBUG PROMO JOURS] vehicule modele={vehicle.modele.id} somme_reduction={somme_reduction} total_days={total_days} detail={jours_par_promo}")
+                if meilleure_promo is not None and total_days > 0 :
                     promotions = meilleure_promo["promo"]
-                    promotion_value = meilleure_promo["value"]
+                    promotion_value = somme_reduction / total_days
                     promotion_name = meilleure_promo["promo"].name
                     model_one = meilleure_promo["promo"].model_one
                     model_two = meilleure_promo["promo"].model_two
@@ -5349,14 +5357,29 @@ def search_result_vehicule(lieu_depart_id, lieu_retour_id, date_depart, heure_de
                 prix_unitaire = total_brut / total_days
 
                 # Meilleure promo pour CE véhicule (la plus haute parmi celles qui concernent son modèle)
+                # Jour par jour : chaque jour prend la meilleure promo qui le couvre,
+                # puis la remise = moyenne des remises sur tous les jours de la location.
+                # Un jour i est compté par sa date de fin (date_depart + i + 1).
                 meilleure_promo = None
-                for cand in promos_candidates :
-                    if cand["models"] is None or vehicle.modele.id in cand["models"]:
-                        if meilleure_promo is None or cand["value"] > meilleure_promo["value"]:
-                            meilleure_promo = cand
-                if meilleure_promo is not None :
+                somme_reduction = 0
+                jours_par_promo = {}
+                for i in range(total_days):
+                    jour = date_depart + timedelta(days=i + 1)
+                    promo_jour = None
+                    for cand in promos_candidates :
+                        if (cand["models"] is None or vehicle.modele.id in cand["models"]) and cand["date_debut"] <= jour <= cand["date_fin"]:
+                            if promo_jour is None or cand["value"] > promo_jour["value"]:
+                                promo_jour = cand
+                    if promo_jour is not None :
+                        somme_reduction += promo_jour["value"]
+                        jours_par_promo[promo_jour["promo"].id] = jours_par_promo.get(promo_jour["promo"].id, 0) + promo_jour["value"]
+                        # Promo principale (nom affiché) = celle qui apporte le plus de remise
+                        if meilleure_promo is None or jours_par_promo[promo_jour["promo"].id] > jours_par_promo.get(meilleure_promo["promo"].id, 0):
+                            meilleure_promo = promo_jour
+                print(f"[DEBUG PROMO JOURS] vehicule modele={vehicle.modele.id} somme_reduction={somme_reduction} total_days={total_days} detail={jours_par_promo}")
+                if meilleure_promo is not None and total_days > 0 :
                     promotions = meilleure_promo["promo"]
-                    promotion_value = meilleure_promo["value"]
+                    promotion_value = somme_reduction / total_days
                     promotion_name = meilleure_promo["promo"].name
                     model_one = meilleure_promo["promo"].model_one
                     model_two = meilleure_promo["promo"].model_two

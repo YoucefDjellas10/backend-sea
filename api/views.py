@@ -4158,6 +4158,7 @@ def add_reservation_post_view(request):
             # On prend la promo la plus haute qui s'applique à la zone, à la catégorie du client et au modèle du véhicule
             meilleure_promo = None
             meilleure_value = 0
+            promos_ok = []
             promos_actives = Promotion.objects.filter(
                 date_debut__lte=date_retour_obj,
                 date_fin__gte=date_depart_obj,
@@ -4191,21 +4192,29 @@ def add_reservation_post_view(request):
                 if not zone_ok or not categorie_ok or not modele_ok :
                     continue
 
-                # Valeur proportionnelle (même calcul que plus haut)
-                debut_c = max(promo_c.date_debut, date_depart_obj)
-                fin_c = min(promo_c.date_fin, date_retour_obj)
-                jours_c = (fin_c - debut_c).days
-                base_c = promo_c.reduction if promo_c.reduction else 0
-                if jours_c >= total_days:
-                    value_c = base_c
-                elif total_days > 0:
-                    value_c = (base_c * jours_c) / total_days
-                else :
-                    value_c = 0
+                if promo_c.reduction and promo_c.reduction > 0 :
+                    promos_ok.append(promo_c)
 
-                if value_c > meilleure_value :
-                    meilleure_promo = promo_c
-                    meilleure_value = value_c
+            # Jour par jour : chaque jour prend la meilleure promo qui le couvre,
+            # puis la remise = moyenne des remises sur tous les jours (même règle que search_result_vehicule)
+            somme_reduction = 0
+            jours_par_promo = {}
+            for i in range(total_days):
+                jour = date_depart_obj + timedelta(days=i + 1)
+                promo_jour = None
+                for promo_c in promos_ok :
+                    if promo_c.date_debut <= jour <= promo_c.date_fin :
+                        if promo_jour is None or promo_c.reduction > promo_jour.reduction :
+                            promo_jour = promo_c
+                if promo_jour is not None :
+                    somme_reduction += promo_jour.reduction
+                    jours_par_promo[promo_jour.id] = jours_par_promo.get(promo_jour.id, 0) + promo_jour.reduction
+                    # Promo enregistrée = celle qui apporte le plus de remise
+                    if meilleure_promo is None or jours_par_promo[promo_jour.id] > jours_par_promo.get(meilleure_promo.id, 0):
+                        meilleure_promo = promo_jour
+            if total_days > 0 :
+                meilleure_value = somme_reduction / total_days
+            dbg("7a. promo jours:", jours_par_promo, "| somme:", somme_reduction, "| total_days:", total_days)
 
             if meilleure_promo is not None :
                 promotions = meilleure_promo
